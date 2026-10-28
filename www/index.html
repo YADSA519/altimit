@@ -38,6 +38,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{
 #boot[hidden]{display:none!important}
 #boot .log{font-family:var(--mono);font-size:13px;color:var(--ink-dim);line-height:1.7;min-height:11em;white-space:pre-wrap}
 #boot .log b{color:var(--ice);font-weight:400}
+#boot .log{white-space:normal}
+#boot .log .r{display:grid;grid-template-columns:7.2em minmax(0,1fr);gap:6px}
+#boot .log .k{white-space:pre;color:var(--ink-dim)}
 #boot .brand{display:flex;align-items:center;gap:12px}
 #boot .brand img.logo{width:min(68vw,320px)}
 #boot .brand .tun{width:min(16vw,72px)}
@@ -154,10 +157,48 @@ canvas.tun{height:auto;aspect-ratio:1;display:block}
 
 @media (max-width:360px){:root{--rail:74px}.rail button img{width:40px;height:40px}.rail button span{font-size:9.5px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ---------- v0.2: acceso, red, admin ---------- */
+.overlay{position:fixed;inset:0;z-index:15;display:flex;align-items:center;justify-content:center;padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));background:rgba(0,0,0,.55)}
+.overlay .win{width:min(100%,420px)}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;font-family:var(--display);font-size:11.5px;letter-spacing:.08em;padding:10px 6px;color:var(--ink-dim);border-right:1px solid var(--line-soft)}
+.tabs button:last-child{border-right:0}
+.tabs button[aria-selected="true"]{color:var(--hi);background:rgba(255,255,255,.08)}
+.tabs .n{font-family:var(--mono);font-size:10.5px;margin-left:4px;padding:0 5px;background:var(--hi);color:var(--void)}
+.form{display:flex;flex-direction:column;gap:10px}
+.form label{display:flex;flex-direction:column;gap:4px;font-family:var(--mono);font-size:11.5px;color:var(--ink-dim);letter-spacing:.04em}
+input[type=email],input[type=password],select{width:100%;box-sizing:border-box;background:rgba(0,0,0,.55);border:1px solid var(--line);color:var(--ink);font:inherit;font-size:15px;padding:8px 10px;border-radius:0}
+select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink-dim) 50%),linear-gradient(135deg,var(--ink-dim) 50%,transparent 50%);background-position:calc(100% - 16px) 55%,calc(100% - 11px) 55%;background-size:5px 5px;background-repeat:no-repeat;padding-right:28px}
+.msgline{font-family:var(--mono);font-size:12px;min-height:1.3em;color:var(--ice)}
+.msgline.err{color:#ffb4b4}
+.btn.primary{background:var(--hi);color:var(--void);border-color:var(--hi)}
+.btn.primary:hover{background:var(--ice)}
+.btn.small{font-size:10.5px;padding:5px 9px}
+.btn.danger{border-color:#8a5a5a;color:#ffc9c9}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.empty{padding:14px 12px;color:var(--ink-dim);font-size:14px}
+.rows .date{font-family:var(--mono);font-size:11px;color:var(--ink-dim)}
+.rows li button{grid-template-columns:minmax(0,.8fr) minmax(0,1.3fr) auto}
+.msg .actions{margin-top:6px}
+.news-item{padding:12px;border-bottom:1px solid var(--line-soft)}
+.news-item h3{margin:6px 0 6px;font-family:var(--body);font-weight:600;font-size:18px;color:var(--hi);line-height:1.2;text-wrap:balance}
+.news-item .who{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-family:var(--mono);font-size:11.5px;color:var(--ink-dim)}
+.news-item p{white-space:pre-wrap;word-wrap:break-word;margin:0 0 6px}
+.tag.cat-evento{background:var(--hi)}
+.tag.cat-informe{background:var(--ice)}
+.person{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:9px 12px;border-bottom:1px solid var(--line-soft)}
+.person .nm{font-weight:600;color:var(--hi);overflow:hidden;text-overflow:ellipsis}
+.person small{display:block;font-family:var(--mono);font-size:11px;color:var(--ink-dim)}
+.toast{position:fixed;z-index:30;left:50%;transform:translateX(-50%);bottom:calc(64px + env(safe-area-inset-bottom,0px));max-width:min(92vw,420px);background:var(--panel-solid);border:1px solid var(--hi);color:var(--hi);font-family:var(--mono);font-size:12.5px;padding:10px 14px;box-shadow:0 6px 30px rgba(0,0,0,.6)}
+.rail .badge{position:absolute;top:6px;right:12px;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;background:var(--hi);color:var(--void);font-family:var(--mono);font-size:10px;line-height:16px;text-align:center}
+.rail .exit{font-family:var(--display);font-size:10px;color:var(--ink-dim);padding:6px 0 10px}
+.rail .home{margin-top:auto}
+.sep{height:1px;background:var(--line-soft);margin:6px 10px}
+.mailview p{white-space:pre-wrap;word-wrap:break-word}
 </style>
 </head>
 <body>
-
 
 <div class="wall" aria-hidden="true"><canvas id="wallc"></canvas></div>
 
@@ -167,21 +208,62 @@ canvas.tun{height:auto;aspect-ratio:1;display:block}
   <button class="enter" id="enter">[ ENTRAR ]</button>
 </div>
 
-<div class="shell">
+<!-- ACCESO -->
+<div class="overlay" id="auth" hidden>
+  <div class="win">
+    <div class="cap">ALTIMIT · ACCESO A LA RED</div>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tab-login" aria-selected="true">INGRESAR</button>
+      <button role="tab" id="tab-reg" aria-selected="false">REGISTRARSE</button>
+    </div>
+    <div class="body">
+      <form class="form" id="f-login" novalidate>
+        <label>mail<input type="email" id="li-mail" autocomplete="email" required></label>
+        <label>contraseña<input type="password" id="li-pass" autocomplete="current-password" required></label>
+        <div class="msgline" id="li-msg" role="status"></div>
+        <div class="actions"><button class="btn primary" type="submit" id="li-go">INGRESAR</button></div>
+      </form>
+      <form class="form" id="f-reg" novalidate hidden>
+        <label>nick (así te ven los demás)<input type="text" id="rg-nick" maxlength="20" autocomplete="nickname" required></label>
+        <label>mail<input type="email" id="rg-mail" autocomplete="email" required></label>
+        <label>contraseña (mínimo 6)<input type="password" id="rg-pass" autocomplete="new-password" required></label>
+        <label>repetir contraseña<input type="password" id="rg-pass2" autocomplete="new-password" required></label>
+        <div class="msgline" id="rg-msg" role="status"></div>
+        <div class="actions"><button class="btn primary" type="submit" id="rg-go">CREAR CUENTA</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- CUENTA EN ESPERA / BLOQUEADA -->
+<div class="overlay" id="wait" hidden>
+  <div class="win">
+    <div class="cap" id="wait-cap">CUENTA EN ESPERA</div>
+    <div class="body form">
+      <p id="wait-text"></p>
+      <div class="msgline" id="wait-msg" role="status"></div>
+      <div class="actions"><button class="btn" id="wait-out">SALIR</button><button class="btn primary" id="wait-retry">VOLVER A CONSULTAR</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="shell" id="shell" hidden>
   <nav class="rail" aria-label="Secciones">
     <button data-go="world"><img src="/a/world.png" alt=""><span>[THE WORLD]</span></button>
-    <button data-go="mailer"><img src="/a/mailer.png" alt=""><span>[MAILER]</span></button>
-    <button data-go="news"><img src="/a/news.png" alt=""><span>[NEWS]</span></button>
+    <button data-go="mailer"><img src="/a/mailer.png" alt=""><span>[MAILER]</span><b class="badge" id="badge-mail" hidden></b></button>
+    <button data-go="news"><img src="/a/news.png" alt=""><span>[NEWS]</span><b class="badge" id="badge-news" hidden></b></button>
     <button data-go="accessory"><img src="/a/accessory.png" alt=""><span>[ACCESSORY]</span></button>
     <button data-go="audio"><img src="/a/audio.png" alt=""><span>[AUDIO]</span></button>
     <button data-go="data"><img src="/a/data.png" alt=""><span>[DATA]</span></button>
     <button class="home" data-go="desk">[DESKTOP]</button>
+    <button class="home" data-go="admin" id="rail-admin" hidden style="margin-top:0">[ADMIN]</button>
+    <button class="exit" id="logout">[SALIR]</button>
   </nav>
 
   <main>
     <header class="titlebar">
       <h1 id="ttl">Desktop</h1>
-      <div class="ver" id="ver">build 0.1</div>
+      <div class="ver" id="ver">build 0.2</div>
     </header>
 
     <!-- DESKTOP -->
@@ -196,10 +278,14 @@ canvas.tun{height:auto;aspect-ratio:1;display:block}
           <div class="cap">SYSTEM STATUS</div>
           <div class="body">
             <dl class="status">
-              <dt>usuario</dt><dd>Thiriang</dd>
-              <dt>nodo</dt><dd>simulación privada · local</dd>
-              <dt>mailer</dt><dd id="st-mail">3 sin leer</dd>
-              <dt>red</dt><dd>sin servidor (etapa 3)</dd>
+              <dt>usuario</dt><dd id="st-user">—</dd>
+              <dt>rango</dt><dd id="st-role">—</dd>
+              <dt>nodo</dt><dd id="st-net">conectando…</dd>
+              <dt>en la red</dt><dd id="st-people">—</dd>
+              <dt>mailer</dt><dd id="st-mail">—</dd>
+              <dt>news</dt><dd id="st-news">—</dd>
+              <dt>audio</dt><dd>próximamente</dd>
+              <dt>data</dt><dd>próximamente</dd>
             </dl>
           </div>
         </div>
@@ -209,84 +295,88 @@ canvas.tun{height:auto;aspect-ratio:1;display:block}
     <!-- MAILER -->
     <section class="view" id="v-mailer" hidden>
       <div class="win">
-        <div class="cap">VISUAL MAILER ver 6.0 · BANDEJA</div>
-        <ul class="rows" id="mail"></ul>
-      </div>
-      <div class="win">
-        <div class="cap">CUENTA EXTERNA</div>
-        <div class="body"><p class="muted">Acá se va a conectar tu Gmail para leer el correo real con esta pantalla. <span class="tag soon">ETAPA 2</span></p></div>
+        <div class="cap">VISUAL MAILER ver 6.0</div>
+        <div class="tabs" role="tablist">
+          <button role="tab" data-box="in" aria-selected="true">RECIBIDOS<span class="n" id="n-in" hidden></span></button>
+          <button role="tab" data-box="out" aria-selected="false">ENVIADOS</button>
+          <button role="tab" data-box="new" aria-selected="false">REDACTAR</button>
+        </div>
+        <ul class="rows" id="mail-list"></ul>
+        <form class="body form" id="f-mail" novalidate hidden>
+          <label>para<select id="m-to" required></select></label>
+          <label>asunto<input type="text" id="m-subj" maxlength="140" required></label>
+          <label>mensaje<textarea id="m-body" maxlength="8000" required style="min-height:160px"></textarea></label>
+          <div class="msgline" id="m-msg" role="status"></div>
+          <div class="actions"><button class="btn primary" type="submit" id="m-send">ENVIAR</button></div>
+        </form>
       </div>
     </section>
 
     <!-- NEWS -->
     <section class="view" id="v-news" hidden>
+      <div class="win" id="news-admin" hidden>
+        <div class="cap">PUBLICAR · SOLO ADMIN</div>
+        <form class="body form" id="f-news" novalidate>
+          <label>tipo<select id="n-cat"><option value="general">General</option><option value="evento">Evento</option><option value="informe">Informe</option></select></label>
+          <label>título<input type="text" id="n-title" maxlength="140" required></label>
+          <label>texto<textarea id="n-body" maxlength="12000" required style="min-height:120px"></textarea></label>
+          <div class="msgline" id="n-msg" role="status"></div>
+          <div class="actions"><button class="btn primary" type="submit" id="n-go">PUBLICAR</button></div>
+        </form>
+      </div>
       <div class="win">
-        <div class="cap">NEWS · BOLETÍN DEL SISTEMA</div>
-        <div class="body">
-          <div class="post"><div class="who"><b>ALTIMIT</b><span>28.10.2026</span></div><p>Build 0.1 en línea: escritorio, barra lateral y las seis secciones. Anotador local en DATA. Reproductor en AUDIO.</p></div>
-          <div class="post"><div class="who"><b>ALTIMIT</b><span>próximo</span></div><p>Titulares de noticias reales (fuentes que elijas) con formato de boletín.</p><span class="tag soon">ETAPA 2</span></div>
-        </div>
+        <div class="cap">NEWS · BOLETÍN DE LA RED</div>
+        <div id="news-list"></div>
       </div>
     </section>
 
     <!-- ACCESSORY -->
     <section class="view" id="v-accessory" hidden>
       <div class="win">
-        <div class="cap">ALERT MONITOR · ALARMAS</div>
-        <div id="alarms"></div>
+        <div class="cap">RECORDATORIOS</div>
         <div class="body">
-          <p class="muted">Ejemplos para ver el diseño. Las alarmas que suenan con el celu bloqueado llegan con la APK. <span class="tag soon">ETAPA 2</span></p>
+          <input type="text" id="rem-in" placeholder="Ej: llamar a Aduana" aria-label="Nuevo recordatorio">
+          <div class="row" style="margin-top:8px"><input type="time" id="rem-t" aria-label="Hora" style="width:8em"><button class="btn" id="rem-add">AGREGAR</button></div>
+          <ul class="notes" id="rems"></ul>
         </div>
       </div>
       <div class="win">
-        <div class="cap">RECORDATORIOS</div>
+        <div class="cap">ANOTADOR PERSONAL</div>
         <div class="body">
-          <input type="text" id="rem-in" placeholder="Ej: llamar a Aduana" aria-label="Nuevo recordatorio"><div class="row" style="margin-top:8px"><input type="time" id="rem-t" aria-label="Hora" style="width:8em"><button class="btn" id="rem-add">AGREGAR</button></div>
-          <ul class="notes" id="rems"></ul>
+          <textarea id="note-in" placeholder="Escribí algo… (queda solo en este celu)" aria-label="Nueva nota"></textarea>
+          <div class="row" style="margin-top:8px;justify-content:flex-end"><button class="btn" id="note-add">GUARDAR</button></div>
+          <ul class="notes" id="notes"></ul>
         </div>
+      </div>
+      <div class="win">
+        <div class="cap">ALERT MONITOR · ALARMAS</div>
+        <div class="body"><p class="muted">Alarmas que suenan con el celu bloqueado, como las de cualquier app. <span class="tag soon">PRÓXIMA ETAPA</span></p></div>
       </div>
     </section>
 
     <!-- AUDIO -->
     <section class="view" id="v-audio" hidden>
+      <div class="win">
+        <div class="cap">AUDIOS PRIVADOS</div>
+        <div class="body"><p class="muted">Mensajes de voz entre usuarios de Altimit. Solo los escucha quien los recibe. <span class="tag soon">PRÓXIMA ETAPA</span></p></div>
+      </div>
       <div class="win" id="player">
-        <div class="cap">AUDIO DECK</div>
+        <div class="cap">AUDIO DECK · TU MÚSICA</div>
         <div class="body deck">
           <div class="track" id="now">— sin pista —</div>
           <div class="bars" id="bars" aria-hidden="true"></div>
           <audio id="aud" controls></audio>
-          <div class="row">
-            <label class="btn filepick">CARGAR MÚSICA<input type="file" id="files" accept="audio/*" multiple></label>
-            <span class="muted mono" style="font-size:12px">desde tu celu</span>
-          </div>
+          <div class="row"><label class="btn filepick">CARGAR MÚSICA<input type="file" id="files" accept="audio/*" multiple></label></div>
           <ul class="queue" id="queue"></ul>
         </div>
-      </div>
-      <div class="win">
-        <div class="cap">AUDIOS PRIVADOS</div>
-        <div class="body"><p class="muted">Mensajes de voz entre usuarios de Altimit, solo para quien los recibe. <span class="tag soon">ETAPA 3</span></p></div>
       </div>
     </section>
 
     <!-- DATA -->
     <section class="view" id="v-data" hidden>
       <div class="win">
-        <div class="cap">DATA · ANOTADOR</div>
-        <div class="body">
-          <label for="note-in" class="muted mono" style="font-size:12px;display:block;margin-bottom:6px">nuevo registro</label>
-          <textarea id="note-in" placeholder="Escribí algo…"></textarea>
-          <div class="row" style="margin-top:8px;justify-content:space-between"><span class="muted mono" style="font-size:11.5px">se guarda en este celu</span><button class="btn" id="note-add">GUARDAR</button></div>
-          <ul class="notes" id="notes"></ul>
-        </div>
-      </div>
-      <div class="win">
-        <div class="cap">DATA · PIZARRA COMPARTIDA</div>
-        <div class="body">
-          <p class="muted">Así se va a ver: cada usuario deja noticias con su nick y los demás responden. Lo de abajo es un ejemplo. <span class="tag soon">ETAPA 3</span></p>
-          <div class="post"><div class="who"><b>Thiriang</b><span>hoy 09:12</span><span class="tag">EJEMPLO</span></div><p>Mañana cambia el horario de entrada a las 8:30.</p>
-            <div class="reply"><div class="who"><b>nick_amigo</b><span>hoy 09:40</span></div><p>Anotado, gracias.</p></div></div>
-          <div class="row" style="margin-top:10px"><input type="text" disabled placeholder="Responder con tu nick…" aria-label="Responder (deshabilitado)" style="flex:1;min-width:0"><button class="btn" disabled>ENVIAR</button></div>
-        </div>
+        <div class="cap">DATA · FOTOS RECIBIDAS</div>
+        <div class="body"><p class="muted">Fotos con un comentario que te mandan otros usuarios, y las que mandás vos. <span class="tag soon">PRÓXIMA ETAPA</span></p></div>
       </div>
     </section>
 
@@ -295,21 +385,25 @@ canvas.tun{height:auto;aspect-ratio:1;display:block}
       <div class="win">
         <div class="cap">THE WORLD · ACCESO</div>
         <div class="body gate">
-          <canvas class="tun" width="160" height="160" aria-hidden="true"></canvas>
-          <p><b style="color:var(--hi);font-weight:600">Área cerrada.</b> Acá vas a crear tu avatar con un nick fijo, entrar a un espacio por el que se camina y dejar comentarios para mejorar la app.</p>
-          <span class="tag soon">ETAPA 4</span>
+          <canvas class="tun" width="160" height="160" aria-hidden="true" style="width:110px"></canvas>
+          <p><b style="color:var(--hi);font-weight:600">Área cerrada.</b> Se planifica cuando el resto de Altimit esté andando.</p>
         </div>
       </div>
+    </section>
+
+    <!-- ADMIN -->
+    <section class="view" id="v-admin" hidden>
       <div class="win">
-        <div class="cap">PLAN DE OBRA</div>
-        <div class="body">
-          <ul class="plan">
-            <li><span class="k">AVATAR</span><span>Se crea una sola vez y queda grabado con tu nick.</span></li>
-            <li><span class="k">FORO</span><span>Comentarios para mejorar Altimit, firmados con el avatar.</span></li>
-            <li><span class="k">MUNDO</span><span>Un espacio para caminar con los otros avatares.</span></li>
-            <li><span class="k">DIFERENCIA</span><span>En DATA comentás con nick. En THE WORLD entrás con avatar y nick fijos.</span></li>
-          </ul>
-        </div>
+        <div class="cap">SOLICITUDES PENDIENTES</div>
+        <div id="adm-pending"></div>
+      </div>
+      <div class="win">
+        <div class="cap">USUARIOS HABILITADOS</div>
+        <div id="adm-ok"></div>
+      </div>
+      <div class="win">
+        <div class="cap">BLOQUEADOS</div>
+        <div id="adm-blocked"></div>
       </div>
     </section>
   </main>
@@ -320,81 +414,11 @@ canvas.tun{height:auto;aspect-ratio:1;display:block}
   </footer>
 </div>
 
-<script>
-(function(){
-const $=s=>document.querySelector(s);
-const store={get(k,d){try{const v=localStorage.getItem('altimit.'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('altimit.'+k,JSON.stringify(v))}catch(e){}}};
-const pad=n=>String(n).padStart(2,'0');
-const DIAS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-function tick(){const d=new Date();const t=pad(d.getHours())+':'+pad(d.getMinutes());$('#bigclock').textContent=t;$('#tbclock').textContent=t+' · '+pad(d.getDate())+'.'+pad(d.getMonth()+1);$('#bigdate').textContent=DIAS[d.getDay()]+' '+d.getDate()+' de '+MESES[d.getMonth()]+' · '+d.getFullYear();}
-tick();setInterval(tick,10000);
+<div class="toast" id="toast" role="status" hidden></div>
 
-/* boot */
-const lines=['ALTIMIT OS  build 0.1','memoria ............ <b>ok</b>','nodo ............... simulación privada','usuario ............ <b>Thiriang</b>','mailer ............. 3 mensajes','the world .......... <b>cerrado</b>','','listo.'];
-const boot=$('#boot'),log=$('#bootlog'),enter=$('#enter');
-let skip=false;try{skip=sessionStorage.getItem('altimit.booted')==='1'}catch(e){}
-const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-function closeBoot(){boot.hidden=true;try{sessionStorage.setItem('altimit.booted','1')}catch(e){}}
-if(skip){boot.hidden=true}else{
-  let i=0;const step=()=>{if(i<lines.length){log.innerHTML+=(i?'\n':'')+lines[i++];setTimeout(step,reduce?0:170)}else enter.classList.add('on')};step();
-  enter.addEventListener('click',closeBoot);boot.addEventListener('click',e=>{if(enter.classList.contains('on'))closeBoot()});
-}
-
-/* routing */
-const TITLES={desk:'Desktop',world:'The World',mailer:'Mailer',news:'News',accessory:'Accessory',audio:'Audio',data:'Data'};
-function show(){let k=location.hash.slice(1);if(!TITLES[k])k='desk';
-  document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!=='v-'+k);
-  document.querySelectorAll('.rail [data-go]').forEach(b=>b.toggleAttribute('aria-current',false)||b.removeAttribute('aria-current'));
-  const cur=document.querySelector('.rail [data-go="'+k+'"]');if(cur)cur.setAttribute('aria-current','page');
-  $('#ttl').textContent=TITLES[k];}
-document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.go;location.hash=k==='desk'?'':k;if(k==='desk')show();}));
-addEventListener('hashchange',show);show();
-
-/* mailer */
-const MAIL=[
- {from:'ALTIMIT Sistema',subj:'Bienvenido a tu simulación',date:'28.10.2026 13:10',body:['Thiriang: este es tu escritorio privado. Por ahora todo vive en este celu y nadie más lo ve.','La barra de la izquierda te lleva a cada sección. Lo que todavía no funciona tiene la etapa marcada.']},
- {from:'ALTIMIT Sistema',subj:'Hoja de ruta',date:'28.10.2026 13:10',body:['Etapa 1: escritorio y secciones (esto).','Etapa 2: alarmas y recordatorios reales, tu música, tu Gmail.','Etapa 3: usuarios con nick, pizarra compartida, audios privados.','Etapa 4: THE WORLD, con avatar y espacio para caminar.']},
- {from:'ALTIMIT Sistema',subj:'Sobre la APK',date:'28.10.2026 13:11',body:['Esta versión corre en el navegador. Cuando la empaquetemos como APK va a poder sonar alarmas con el celu bloqueado y mandar notificaciones.']}
-];
-let read=store.get('read',[]);
-function renderMail(){const ul=$('#mail');ul.innerHTML='';MAIL.forEach((m,i)=>{const li=document.createElement('li');if(!read.includes(i))li.className='unread';
-  const b=document.createElement('button');b.setAttribute('aria-expanded','false');b.innerHTML='<span class="from"></span><span class="subj"></span>';b.children[0].textContent=m.from;b.children[1].textContent=m.subj;
-  const box=document.createElement('div');box.className='msg';box.hidden=true;box.innerHTML='<div class="meta"></div>';box.firstChild.textContent='De: '+m.from+' · '+m.date;m.body.forEach(t=>{const p=document.createElement('p');p.textContent=t;box.appendChild(p)});
-  b.addEventListener('click',()=>{const open=box.hidden;box.hidden=!open;b.setAttribute('aria-expanded',String(open));if(!read.includes(i)){read.push(i);store.set('read',read);li.className='';countMail();}});
-  li.append(b,box);ul.appendChild(li)});countMail();}
-function countMail(){const n=MAIL.length-read.length;$('#st-mail').textContent=n?n+' sin leer':'al día';}
-renderMail();
-
-/* alarms (examples) */
-const AL=[{t:'07:15',l:'Despertador',s:'lun a vie',lv:'normal'},{t:'09:30',l:'Presentación en Aduana',s:'alerta especial · repite 3 veces',lv:'red'},{t:'18:00',l:'Cierre de presupuestos',s:'lun a vie',lv:'normal'}];
-$('#alarms').innerHTML='';AL.forEach(a=>{const d=document.createElement('div');d.className='alarm';d.innerHTML='<span class="t"></span><span class="l"><span></span><small></small></span><span class="lvl"></span>';d.querySelector('.t').textContent=a.t;d.querySelector('.l span').textContent=a.l+' ';d.querySelector('small').textContent=a.s+' · ejemplo';const lv=d.querySelector('.lvl');lv.textContent=a.lv==='red'?'ALERTA':'NORMAL';if(a.lv==='red')lv.classList.add('red');$('#alarms').appendChild(d)});
-
-/* lists stored locally: reminders + notes */
-function listUI(key,ul,fmt){let items=store.get(key,[]);
-  function render(){ul.innerHTML='';if(!items.length){const li=document.createElement('li');li.className='muted';li.textContent=key==='notes'?'Todavía no hay registros. Escribí el primero arriba.':'Sin recordatorios. Agregá uno arriba.';li.style.border='0';li.style.background='none';li.style.padding='4px 0';ul.appendChild(li);return}
-   items.slice().reverse().forEach(it=>{const li=document.createElement('li');li.innerHTML='<div class="ts"><span></span><button>borrar</button></div><p></p>';li.querySelector('span').textContent=fmt(it);li.querySelector('p').textContent=it.text;li.querySelector('button').addEventListener('click',()=>{items=items.filter(x=>x.id!==it.id);store.set(key,items);render()});ul.appendChild(li)})}
-  render();return{add(o){items.push(Object.assign({id:Date.now()+Math.random()},o));store.set(key,items);render()}}}
-const stamp=ts=>{const d=new Date(ts);return pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear()+' '+pad(d.getHours())+':'+pad(d.getMinutes())};
-const notes=listUI('notes',$('#notes'),it=>'LOG '+stamp(it.ts));
-$('#note-add').addEventListener('click',()=>{const v=$('#note-in').value.trim();if(!v)return;notes.add({text:v,ts:Date.now()});$('#note-in').value=''});
-const rems=listUI('rems',$('#rems'),it=>(it.time?'⏱ '+it.time:'sin hora')+' · creado '+stamp(it.ts));
-$('#rem-add').addEventListener('click',()=>{const v=$('#rem-in').value.trim();if(!v)return;rems.add({text:v,time:$('#rem-t').value,ts:Date.now()});$('#rem-in').value='';$('#rem-t').value=''});
-$('#rem-in').addEventListener('keydown',e=>{if(e.key==='Enter')$('#rem-add').click()});
-
-/* audio */
-const bars=$('#bars');for(let i=0;i<24;i++)bars.appendChild(document.createElement('i'));
-const aud=$('#aud');let q=[],cur=-1,anim=null;
-function play(i){cur=i;aud.src=q[i].url;aud.play().catch(()=>{});$('#now').textContent='▸ '+q[i].name;renderQ()}
-function renderQ(){const ul=$('#queue');ul.innerHTML='';q.forEach((t,i)=>{const li=document.createElement('li');const b=document.createElement('button');b.textContent=pad(i+1)+'  '+t.name;if(i===cur)b.setAttribute('aria-current','true');b.addEventListener('click',()=>play(i));li.appendChild(b);ul.appendChild(li)})}
-$('#files').addEventListener('change',e=>{[...e.target.files].forEach(f=>q.push({name:f.name.replace(/\.[^.]+$/,''),url:URL.createObjectURL(f)}));renderQ();if(cur<0&&q.length)play(0)});
-aud.addEventListener('ended',()=>{if(cur+1<q.length)play(cur+1)});
-function wave(){[...bars.children].forEach(b=>b.style.height=(15+Math.random()*85)+'%');anim=setTimeout(wave,140)}
-aud.addEventListener('play',()=>{$('#player').classList.add('playing');if(!reduce&&!anim)wave()});
-aud.addEventListener('pause',()=>{$('#player').classList.remove('playing');clearTimeout(anim);anim=null;[...bars.children].forEach(b=>b.style.height='15%')});
-})();
-</script>
-
+<script src="/a/supabase.js"></script>
+<script src="/config.js"></script>
+<script src="/app.js"></script>
 <script>
 (function(){
 /* wallpaper: drawn on the device so it fits any screen */
