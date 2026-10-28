@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050506">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<style>:root{padding-top:max(env(safe-area-inset-top,0px),var(--safe-area-inset-top,0px));padding-bottom:max(env(safe-area-inset-bottom,0px),var(--safe-area-inset-bottom,0px));box-sizing:border-box}body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Altimit OS</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>@font-face{font-family:"Saira Semi Condensed";font-weight:300;font-style:normal;font-display:swap;src:url(/a/saira-semi-condensed-latin-300-normal.woff2) format("woff2")}@font-face{font-family:"Saira Semi Condensed";font-weight:400;font-style:normal;font-display:swap;src:url(/a/saira-semi-condensed-latin-400-normal.woff2) format("woff2")}@font-face{font-family:"Saira Semi Condensed";font-weight:600;font-style:normal;font-display:swap;src:url(/a/saira-semi-condensed-latin-600-normal.woff2) format("woff2")}@font-face{font-family:"Share Tech Mono";font-weight:400;font-style:normal;font-display:swap;src:url(/a/share-tech-mono-latin-400-normal.woff2) format("woff2")}</style>
+<style>
+@font-face{font-family:"JetSet";src:url(/a/jetset.woff2) format("woff2");font-display:block}
+/* Layout: fixed icon rail on the left (Altimit sidebar), one window per section on the right, taskbar at the bottom. Single dark look, deliberately. */
+:root{
+  --void:#050506; --panel:rgba(14,14,16,.86); --panel-solid:#0e0e10;
+  --line:#6d6f75; --line-soft:rgba(200,205,212,.18);
+  --ink:#e4e6ea; --ink-dim:#9a9ca3; --ice:#cfe1e8; --hi:#ffffff;
+  --display:"JetSet","Share Tech Mono",monospace;
+  --body:"Saira Semi Condensed","Arial Narrow",system-ui,sans-serif;
+  --mono:"Share Tech Mono",ui-monospace,monospace;
+  --rail:86px;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--void);color:var(--ink);font-family:var(--body);font-size:15px;overflow:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--void)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:1px solid var(--ice);outline-offset:2px}
+.wall{position:fixed;inset:0;background:var(--void);z-index:0}
+.wall canvas{position:absolute;inset:0;width:100%;height:100%}
+.wall::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.2),rgba(0,0,0,0) 40%)}
+
+/* ---------- boot ---------- */
+#boot{position:fixed;inset:0;z-index:20;background:var(--void);display:flex;flex-direction:column;justify-content:center;gap:28px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+#boot[hidden]{display:none!important}
+#boot .log{font-family:var(--mono);font-size:13px;color:var(--ink-dim);line-height:1.7;min-height:11em;white-space:pre-wrap}
+#boot .log b{color:var(--ice);font-weight:400}
+#boot .brand{display:flex;align-items:center;gap:12px}
+#boot .brand img.logo{width:min(68vw,320px)}
+#boot .brand .tun{width:min(16vw,72px)}
+#boot .enter{align-self:flex-start;font-family:var(--display);font-size:15px;letter-spacing:.12em;color:var(--hi);border:1px solid var(--line);padding:10px 18px;opacity:0;transition:opacity .4s}
+#boot .enter.on{opacity:1}
+#boot .enter:hover{background:rgba(255,255,255,.06)}
+
+/* ---------- shell ---------- */
+.shell{position:relative;z-index:1;height:100%;display:grid;grid-template-columns:var(--rail) minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
+.rail{grid-row:1/3;background:rgba(10,10,12,.82);border-right:1px solid var(--line-soft);display:flex;flex-direction:column;gap:2px;padding-top:10px;padding-left:env(safe-area-inset-left,0px);padding-bottom:calc(52px + env(safe-area-inset-bottom,0px));overflow-y:auto}
+.rail button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px 10px;position:relative;opacity:.72;transition:opacity .2s}
+.rail button img{width:46px;height:46px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))}
+.rail button span{font-family:var(--display);font-size:10.5px;letter-spacing:.02em;color:var(--ink);white-space:nowrap}
+.rail button:hover{opacity:1}
+.rail button[aria-current="page"]{opacity:1}
+.rail button[aria-current="page"]::before{content:"";position:absolute;left:0;top:14px;bottom:24px;width:3px;background:var(--hi)}
+.rail .home{margin-top:auto;font-family:var(--display);font-size:10px;color:var(--ink-dim);padding:10px 0}
+
+main{min-width:0;display:flex;flex-direction:column;min-height:0}
+.titlebar{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding-block:14px 8px;padding-left:16px;padding-right:max(16px,env(safe-area-inset-right,0px));background:linear-gradient(180deg,rgba(0,0,0,.75),rgba(0,0,0,.35));border-bottom:1px solid var(--line-soft)}
+.titlebar h1{margin:0;white-space:nowrap;font-family:var(--body);font-weight:300;font-size:clamp(30px,8vw,46px);line-height:1;letter-spacing:-.01em;color:var(--hi);text-shadow:0 2px 0 rgba(0,0,0,.6)}
+.titlebar .ver{font-family:var(--mono);font-size:11px;color:var(--ink-dim);text-align:right;line-height:1.3}
+.view{flex:1;min-height:0;overflow-y:auto;padding-block:16px 24px;padding-left:12px;padding-right:max(12px,env(safe-area-inset-right,0px))}
+.view[hidden]{display:none!important}
+
+/* window frame, after the Visual Mailer look */
+.win{background:var(--panel);border:1px solid var(--line);box-shadow:inset 0 0 0 3px rgba(0,0,0,.6),inset 0 0 0 4px var(--line-soft);display:flex;flex-direction:column;min-width:0}
+.win+.win{margin-top:14px}
+.win .cap{font-family:var(--display);font-size:11px;letter-spacing:.08em;color:var(--ink);padding:6px 10px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,rgba(255,255,255,.08),rgba(255,255,255,0))}
+.win .body{padding:12px}
+.tag{font-family:var(--mono);font-size:10.5px;color:var(--void);background:var(--ink-dim);padding:1px 6px;letter-spacing:.06em;white-space:nowrap}
+.tag.soon{background:transparent;color:var(--ink-dim);border:1px solid var(--line)}
+.muted{color:var(--ink-dim)}
+.mono{font-family:var(--mono)}
+p{margin:0 0 10px;line-height:1.5;max-width:62ch}
+h2{font-family:var(--display);font-weight:400;font-size:13px;letter-spacing:.06em;margin:0 0 10px;color:var(--hi)}
+
+/* home */
+.home-hero{display:flex;flex-direction:column;gap:18px;padding-top:8px}
+.clock{font-family:var(--body);font-weight:300;font-size:clamp(56px,20vw,96px);line-height:.9;color:var(--hi);font-variant-numeric:tabular-nums}
+.date{font-family:var(--mono);font-size:13px;color:var(--ink-dim);letter-spacing:.08em;text-transform:uppercase}
+.brandline{display:flex;align-items:center;gap:8px}
+.brandline .logo{width:min(56vw,260px)}
+.brandline .tun{width:54px}
+.status{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;font-family:var(--mono);font-size:12.5px}
+.status dt{color:var(--ink-dim)} .status dd{margin:0;color:var(--ink)}
+
+/* list rows (mailer, board) */
+.rows{list-style:none;margin:0;padding:0}
+.rows li button{width:100%;text-align:left;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr);gap:10px;padding:7px 10px;border-bottom:1px solid var(--line-soft)}
+.rows li button:hover,.rows li button[aria-expanded="true"]{background:rgba(255,255,255,.07)}
+.rows .from{color:var(--ink-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rows .subj{color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rows .unread .subj::before{content:"\25B8 ";color:var(--hi)}
+.msg{padding:12px 12px 14px;border-bottom:1px solid var(--line-soft);background:rgba(0,0,0,.35)}
+.msg .meta{font-family:var(--mono);font-size:11.5px;color:var(--ink-dim);margin-bottom:8px}
+.msg p{font-size:14.5px}
+
+/* board */
+.post{padding:10px 12px;border-bottom:1px solid var(--line-soft)}
+.post .who{display:flex;gap:8px;align-items:baseline;font-family:var(--mono);font-size:12px;color:var(--ink-dim);margin-bottom:4px;flex-wrap:wrap}
+.post .who b{color:var(--ice);font-weight:400}
+.post .reply{margin-left:14px;padding-left:10px;border-left:1px solid var(--line);margin-top:8px}
+
+/* forms */
+textarea,input[type=text],input[type=time]{width:100%;box-sizing:border-box;background:rgba(0,0,0,.55);border:1px solid var(--line);color:var(--ink);font:inherit;font-size:15px;padding:8px 10px;border-radius:0}
+textarea{min-height:88px;resize:vertical;line-height:1.45}
+.btn{font-family:var(--display);font-size:11.5px;letter-spacing:.08em;border:1px solid var(--line);padding:8px 14px;color:var(--hi);background:rgba(255,255,255,.04)}
+.btn:hover{background:rgba(255,255,255,.1)}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.notes{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.notes li{border:1px solid var(--line-soft);padding:8px 10px;background:rgba(0,0,0,.35)}
+.notes .ts{font-family:var(--mono);font-size:11px;color:var(--ink-dim);display:flex;justify-content:space-between;gap:8px}
+.notes .ts button{color:var(--ink-dim);font-family:var(--mono);font-size:11px}
+.notes .ts button:hover{color:var(--hi)}
+.notes p{margin:4px 0 0;white-space:pre-wrap;word-wrap:break-word}
+
+/* alarms */
+.alarm{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 14px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line-soft)}
+.alarm .t{font-family:var(--body);font-weight:300;font-size:32px;color:var(--hi);font-variant-numeric:tabular-nums;line-height:1}
+.alarm .l{min-width:0}
+.alarm .l small{display:block;font-family:var(--mono);font-size:11px;color:var(--ink-dim)}
+.lvl{font-family:var(--mono);font-size:10.5px;padding:2px 6px;border:1px solid var(--line);color:var(--ink)}
+.lvl.red{background:var(--hi);color:var(--void);border-color:var(--hi)}
+
+/* audio */
+.deck{display:flex;flex-direction:column;gap:12px}
+.track{font-family:var(--mono);font-size:13px;color:var(--ice);min-height:1.4em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bars{display:flex;gap:3px;align-items:flex-end;height:34px}
+.bars i{flex:1;background:var(--ink-dim);height:15%;transition:height .12s}
+.playing .bars i{background:var(--hi)}
+audio{width:100%;filter:grayscale(1) invert(.9)}
+.filepick{position:relative;overflow:hidden;display:inline-block}
+.filepick input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.queue{list-style:none;margin:0;padding:0}
+.queue li button{width:100%;text-align:left;padding:7px 10px;border-bottom:1px solid var(--line-soft);font-family:var(--mono);font-size:12.5px;color:var(--ink-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.queue li button[aria-current="true"]{color:var(--hi);background:rgba(255,255,255,.06)}
+
+/* world */
+.gate{display:flex;flex-direction:column;align-items:flex-start;gap:14px}
+.gate .tun{width:110px;opacity:.9}
+canvas.tun{height:auto;aspect-ratio:1;display:block}
+.plan{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.plan li{display:grid;grid-template-columns:4.5em minmax(0,1fr);gap:10px;padding:8px 0;border-bottom:1px solid var(--line-soft)}
+.plan li .k{font-family:var(--mono);font-size:12px;color:var(--ink-dim)}
+
+/* taskbar */
+.taskbar{grid-column:2;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#000;border-top:1px solid var(--line-soft);padding-block:8px;padding-left:12px;padding-right:max(12px,env(safe-area-inset-right,0px));padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+.boxes{display:flex;gap:5px}
+.boxes i{width:22px;height:14px;border:1px solid var(--ink-dim)}
+.boxes i:first-child{width:38px;border-color:var(--ink)}
+.tb-clock{font-family:var(--mono);font-size:12px;color:var(--ink);font-variant-numeric:tabular-nums}
+
+@media (max-width:360px){:root{--rail:74px}.rail button img{width:40px;height:40px}.rail button span{font-size:9.5px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+
+<div class="wall" aria-hidden="true"><canvas id="wallc"></canvas></div>
+
+<div id="boot" role="dialog" aria-label="Arranque">
+  <div class="brand"><img class="logo" src="/a/logo.png" alt="Altimit"><canvas class="tun" width="160" height="160" aria-hidden="true"></canvas></div>
+  <div class="log mono" id="bootlog" aria-live="polite"></div>
+  <button class="enter" id="enter">[ ENTRAR ]</button>
+</div>
+
+<div class="shell">
+  <nav class="rail" aria-label="Secciones">
+    <button data-go="world"><img src="/a/world.png" alt=""><span>[THE WORLD]</span></button>
+    <button data-go="mailer"><img src="/a/mailer.png" alt=""><span>[MAILER]</span></button>
+    <button data-go="news"><img src="/a/news.png" alt=""><span>[NEWS]</span></button>
+    <button data-go="accessory"><img src="/a/accessory.png" alt=""><span>[ACCESSORY]</span></button>
+    <button data-go="audio"><img src="/a/audio.png" alt=""><span>[AUDIO]</span></button>
+    <button data-go="data"><img src="/a/data.png" alt=""><span>[DATA]</span></button>
+    <button class="home" data-go="desk">[DESKTOP]</button>
+  </nav>
+
+  <main>
+    <header class="titlebar">
+      <h1 id="ttl">Desktop</h1>
+      <div class="ver" id="ver">build 0.1</div>
+    </header>
+
+    <!-- DESKTOP -->
+    <section class="view" id="v-desk">
+      <div class="home-hero">
+        <div>
+          <div class="clock" id="bigclock">--:--</div>
+          <div class="date" id="bigdate"></div>
+        </div>
+        <div class="brandline"><img class="logo" src="/a/logo.png" alt="Altimit Operating Systems"><canvas class="tun" width="160" height="160" aria-hidden="true"></canvas></div>
+        <div class="win">
+          <div class="cap">SYSTEM STATUS</div>
+          <div class="body">
+            <dl class="status">
+              <dt>usuario</dt><dd>Thiriang</dd>
+              <dt>nodo</dt><dd>simulación privada · local</dd>
+              <dt>mailer</dt><dd id="st-mail">3 sin leer</dd>
+              <dt>red</dt><dd>sin servidor (etapa 3)</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MAILER -->
+    <section class="view" id="v-mailer" hidden>
+      <div class="win">
+        <div class="cap">VISUAL MAILER ver 6.0 · BANDEJA</div>
+        <ul class="rows" id="mail"></ul>
+      </div>
+      <div class="win">
+        <div class="cap">CUENTA EXTERNA</div>
+        <div class="body"><p class="muted">Acá se va a conectar tu Gmail para leer el correo real con esta pantalla. <span class="tag soon">ETAPA 2</span></p></div>
+      </div>
+    </section>
+
+    <!-- NEWS -->
+    <section class="view" id="v-news" hidden>
+      <div class="win">
+        <div class="cap">NEWS · BOLETÍN DEL SISTEMA</div>
+        <div class="body">
+          <div class="post"><div class="who"><b>ALTIMIT</b><span>28.10.2026</span></div><p>Build 0.1 en línea: escritorio, barra lateral y las seis secciones. Anotador local en DATA. Reproductor en AUDIO.</p></div>
+          <div class="post"><div class="who"><b>ALTIMIT</b><span>próximo</span></div><p>Titulares de noticias reales (fuentes que elijas) con formato de boletín.</p><span class="tag soon">ETAPA 2</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACCESSORY -->
+    <section class="view" id="v-accessory" hidden>
+      <div class="win">
+        <div class="cap">ALERT MONITOR · ALARMAS</div>
+        <div id="alarms"></div>
+        <div class="body">
+          <p class="muted">Ejemplos para ver el diseño. Las alarmas que suenan con el celu bloqueado llegan con la APK. <span class="tag soon">ETAPA 2</span></p>
+        </div>
+      </div>
+      <div class="win">
+        <div class="cap">RECORDATORIOS</div>
+        <div class="body">
+          <input type="text" id="rem-in" placeholder="Ej: llamar a Aduana" aria-label="Nuevo recordatorio"><div class="row" style="margin-top:8px"><input type="time" id="rem-t" aria-label="Hora" style="width:8em"><button class="btn" id="rem-add">AGREGAR</button></div>
+          <ul class="notes" id="rems"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- AUDIO -->
+    <section class="view" id="v-audio" hidden>
+      <div class="win" id="player">
+        <div class="cap">AUDIO DECK</div>
+        <div class="body deck">
+          <div class="track" id="now">— sin pista —</div>
+          <div class="bars" id="bars" aria-hidden="true"></div>
+          <audio id="aud" controls></audio>
+          <div class="row">
+            <label class="btn filepick">CARGAR MÚSICA<input type="file" id="files" accept="audio/*" multiple></label>
+            <span class="muted mono" style="font-size:12px">desde tu celu</span>
+          </div>
+          <ul class="queue" id="queue"></ul>
+        </div>
+      </div>
+      <div class="win">
+        <div class="cap">AUDIOS PRIVADOS</div>
+        <div class="body"><p class="muted">Mensajes de voz entre usuarios de Altimit, solo para quien los recibe. <span class="tag soon">ETAPA 3</span></p></div>
+      </div>
+    </section>
+
+    <!-- DATA -->
+    <section class="view" id="v-data" hidden>
+      <div class="win">
+        <div class="cap">DATA · ANOTADOR</div>
+        <div class="body">
+          <label for="note-in" class="muted mono" style="font-size:12px;display:block;margin-bottom:6px">nuevo registro</label>
+          <textarea id="note-in" placeholder="Escribí algo…"></textarea>
+          <div class="row" style="margin-top:8px;justify-content:space-between"><span class="muted mono" style="font-size:11.5px">se guarda en este celu</span><button class="btn" id="note-add">GUARDAR</button></div>
+          <ul class="notes" id="notes"></ul>
+        </div>
+      </div>
+      <div class="win">
+        <div class="cap">DATA · PIZARRA COMPARTIDA</div>
+        <div class="body">
+          <p class="muted">Así se va a ver: cada usuario deja noticias con su nick y los demás responden. Lo de abajo es un ejemplo. <span class="tag soon">ETAPA 3</span></p>
+          <div class="post"><div class="who"><b>Thiriang</b><span>hoy 09:12</span><span class="tag">EJEMPLO</span></div><p>Mañana cambia el horario de entrada a las 8:30.</p>
+            <div class="reply"><div class="who"><b>nick_amigo</b><span>hoy 09:40</span></div><p>Anotado, gracias.</p></div></div>
+          <div class="row" style="margin-top:10px"><input type="text" disabled placeholder="Responder con tu nick…" aria-label="Responder (deshabilitado)" style="flex:1;min-width:0"><button class="btn" disabled>ENVIAR</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- THE WORLD -->
+    <section class="view" id="v-world" hidden>
+      <div class="win">
+        <div class="cap">THE WORLD · ACCESO</div>
+        <div class="body gate">
+          <canvas class="tun" width="160" height="160" aria-hidden="true"></canvas>
+          <p><b style="color:var(--hi);font-weight:600">Área cerrada.</b> Acá vas a crear tu avatar con un nick fijo, entrar a un espacio por el que se camina y dejar comentarios para mejorar la app.</p>
+          <span class="tag soon">ETAPA 4</span>
+        </div>
+      </div>
+      <div class="win">
+        <div class="cap">PLAN DE OBRA</div>
+        <div class="body">
+          <ul class="plan">
+            <li><span class="k">AVATAR</span><span>Se crea una sola vez y queda grabado con tu nick.</span></li>
+            <li><span class="k">FORO</span><span>Comentarios para mejorar Altimit, firmados con el avatar.</span></li>
+            <li><span class="k">MUNDO</span><span>Un espacio para caminar con los otros avatares.</span></li>
+            <li><span class="k">DIFERENCIA</span><span>En DATA comentás con nick. En THE WORLD entrás con avatar y nick fijos.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="taskbar">
+    <div class="boxes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="tb-clock" id="tbclock">--:--</div>
+  </footer>
+</div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const store={get(k,d){try{const v=localStorage.getItem('altimit.'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('altimit.'+k,JSON.stringify(v))}catch(e){}}};
+const pad=n=>String(n).padStart(2,'0');
+const DIAS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function tick(){const d=new Date();const t=pad(d.getHours())+':'+pad(d.getMinutes());$('#bigclock').textContent=t;$('#tbclock').textContent=t+' · '+pad(d.getDate())+'.'+pad(d.getMonth()+1);$('#bigdate').textContent=DIAS[d.getDay()]+' '+d.getDate()+' de '+MESES[d.getMonth()]+' · '+d.getFullYear();}
+tick();setInterval(tick,10000);
+
+/* boot */
+const lines=['ALTIMIT OS  build 0.1','memoria ............ <b>ok</b>','nodo ............... simulación privada','usuario ............ <b>Thiriang</b>','mailer ............. 3 mensajes','the world .......... <b>cerrado</b>','','listo.'];
+const boot=$('#boot'),log=$('#bootlog'),enter=$('#enter');
+let skip=false;try{skip=sessionStorage.getItem('altimit.booted')==='1'}catch(e){}
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function closeBoot(){boot.hidden=true;try{sessionStorage.setItem('altimit.booted','1')}catch(e){}}
+if(skip){boot.hidden=true}else{
+  let i=0;const step=()=>{if(i<lines.length){log.innerHTML+=(i?'\n':'')+lines[i++];setTimeout(step,reduce?0:170)}else enter.classList.add('on')};step();
+  enter.addEventListener('click',closeBoot);boot.addEventListener('click',e=>{if(enter.classList.contains('on'))closeBoot()});
+}
+
+/* routing */
+const TITLES={desk:'Desktop',world:'The World',mailer:'Mailer',news:'News',accessory:'Accessory',audio:'Audio',data:'Data'};
+function show(){let k=location.hash.slice(1);if(!TITLES[k])k='desk';
+  document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!=='v-'+k);
+  document.querySelectorAll('.rail [data-go]').forEach(b=>b.toggleAttribute('aria-current',false)||b.removeAttribute('aria-current'));
+  const cur=document.querySelector('.rail [data-go="'+k+'"]');if(cur)cur.setAttribute('aria-current','page');
+  $('#ttl').textContent=TITLES[k];}
+document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.go;location.hash=k==='desk'?'':k;if(k==='desk')show();}));
+addEventListener('hashchange',show);show();
+
+/* mailer */
+const MAIL=[
+ {from:'ALTIMIT Sistema',subj:'Bienvenido a tu simulación',date:'28.10.2026 13:10',body:['Thiriang: este es tu escritorio privado. Por ahora todo vive en este celu y nadie más lo ve.','La barra de la izquierda te lleva a cada sección. Lo que todavía no funciona tiene la etapa marcada.']},
+ {from:'ALTIMIT Sistema',subj:'Hoja de ruta',date:'28.10.2026 13:10',body:['Etapa 1: escritorio y secciones (esto).','Etapa 2: alarmas y recordatorios reales, tu música, tu Gmail.','Etapa 3: usuarios con nick, pizarra compartida, audios privados.','Etapa 4: THE WORLD, con avatar y espacio para caminar.']},
+ {from:'ALTIMIT Sistema',subj:'Sobre la APK',date:'28.10.2026 13:11',body:['Esta versión corre en el navegador. Cuando la empaquetemos como APK va a poder sonar alarmas con el celu bloqueado y mandar notificaciones.']}
+];
+let read=store.get('read',[]);
+function renderMail(){const ul=$('#mail');ul.innerHTML='';MAIL.forEach((m,i)=>{const li=document.createElement('li');if(!read.includes(i))li.className='unread';
+  const b=document.createElement('button');b.setAttribute('aria-expanded','false');b.innerHTML='<span class="from"></span><span class="subj"></span>';b.children[0].textContent=m.from;b.children[1].textContent=m.subj;
+  const box=document.createElement('div');box.className='msg';box.hidden=true;box.innerHTML='<div class="meta"></div>';box.firstChild.textContent='De: '+m.from+' · '+m.date;m.body.forEach(t=>{const p=document.createElement('p');p.textContent=t;box.appendChild(p)});
+  b.addEventListener('click',()=>{const open=box.hidden;box.hidden=!open;b.setAttribute('aria-expanded',String(open));if(!read.includes(i)){read.push(i);store.set('read',read);li.className='';countMail();}});
+  li.append(b,box);ul.appendChild(li)});countMail();}
+function countMail(){const n=MAIL.length-read.length;$('#st-mail').textContent=n?n+' sin leer':'al día';}
+renderMail();
+
+/* alarms (examples) */
+const AL=[{t:'07:15',l:'Despertador',s:'lun a vie',lv:'normal'},{t:'09:30',l:'Presentación en Aduana',s:'alerta especial · repite 3 veces',lv:'red'},{t:'18:00',l:'Cierre de presupuestos',s:'lun a vie',lv:'normal'}];
+$('#alarms').innerHTML='';AL.forEach(a=>{const d=document.createElement('div');d.className='alarm';d.innerHTML='<span class="t"></span><span class="l"><span></span><small></small></span><span class="lvl"></span>';d.querySelector('.t').textContent=a.t;d.querySelector('.l span').textContent=a.l+' ';d.querySelector('small').textContent=a.s+' · ejemplo';const lv=d.querySelector('.lvl');lv.textContent=a.lv==='red'?'ALERTA':'NORMAL';if(a.lv==='red')lv.classList.add('red');$('#alarms').appendChild(d)});
+
+/* lists stored locally: reminders + notes */
+function listUI(key,ul,fmt){let items=store.get(key,[]);
+  function render(){ul.innerHTML='';if(!items.length){const li=document.createElement('li');li.className='muted';li.textContent=key==='notes'?'Todavía no hay registros. Escribí el primero arriba.':'Sin recordatorios. Agregá uno arriba.';li.style.border='0';li.style.background='none';li.style.padding='4px 0';ul.appendChild(li);return}
+   items.slice().reverse().forEach(it=>{const li=document.createElement('li');li.innerHTML='<div class="ts"><span></span><button>borrar</button></div><p></p>';li.querySelector('span').textContent=fmt(it);li.querySelector('p').textContent=it.text;li.querySelector('button').addEventListener('click',()=>{items=items.filter(x=>x.id!==it.id);store.set(key,items);render()});ul.appendChild(li)})}
+  render();return{add(o){items.push(Object.assign({id:Date.now()+Math.random()},o));store.set(key,items);render()}}}
+const stamp=ts=>{const d=new Date(ts);return pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear()+' '+pad(d.getHours())+':'+pad(d.getMinutes())};
+const notes=listUI('notes',$('#notes'),it=>'LOG '+stamp(it.ts));
+$('#note-add').addEventListener('click',()=>{const v=$('#note-in').value.trim();if(!v)return;notes.add({text:v,ts:Date.now()});$('#note-in').value=''});
+const rems=listUI('rems',$('#rems'),it=>(it.time?'⏱ '+it.time:'sin hora')+' · creado '+stamp(it.ts));
+$('#rem-add').addEventListener('click',()=>{const v=$('#rem-in').value.trim();if(!v)return;rems.add({text:v,time:$('#rem-t').value,ts:Date.now()});$('#rem-in').value='';$('#rem-t').value=''});
+$('#rem-in').addEventListener('keydown',e=>{if(e.key==='Enter')$('#rem-add').click()});
+
+/* audio */
+const bars=$('#bars');for(let i=0;i<24;i++)bars.appendChild(document.createElement('i'));
+const aud=$('#aud');let q=[],cur=-1,anim=null;
+function play(i){cur=i;aud.src=q[i].url;aud.play().catch(()=>{});$('#now').textContent='▸ '+q[i].name;renderQ()}
+function renderQ(){const ul=$('#queue');ul.innerHTML='';q.forEach((t,i)=>{const li=document.createElement('li');const b=document.createElement('button');b.textContent=pad(i+1)+'  '+t.name;if(i===cur)b.setAttribute('aria-current','true');b.addEventListener('click',()=>play(i));li.appendChild(b);ul.appendChild(li)})}
+$('#files').addEventListener('change',e=>{[...e.target.files].forEach(f=>q.push({name:f.name.replace(/\.[^.]+$/,''),url:URL.createObjectURL(f)}));renderQ();if(cur<0&&q.length)play(0)});
+aud.addEventListener('ended',()=>{if(cur+1<q.length)play(cur+1)});
+function wave(){[...bars.children].forEach(b=>b.style.height=(15+Math.random()*85)+'%');anim=setTimeout(wave,140)}
+aud.addEventListener('play',()=>{$('#player').classList.add('playing');if(!reduce&&!anim)wave()});
+aud.addEventListener('pause',()=>{$('#player').classList.remove('playing');clearTimeout(anim);anim=null;[...bars.children].forEach(b=>b.style.height='15%')});
+})();
+</script>
+
+<script>
+(function(){
+/* wallpaper: drawn on the device so it fits any screen */
+function wall(){const c=document.getElementById('wallc');const W=1280,H=Math.round(1280*innerHeight/Math.max(1,innerWidth));c.width=W;c.height=H;const x=c.getContext('2d');
+let s=7;const r=()=>{s=(s*16807)%2147483647;return (s-1)/2147483646};
+x.fillStyle='#000';x.fillRect(0,0,W,H);
+const sg=x.createLinearGradient(0,0,0,H);sg.addColorStop(0,'rgba(90,90,90,0)');sg.addColorStop(.35,'rgba(90,90,90,.35)');sg.addColorStop(1,'rgba(90,90,90,.15)');x.fillStyle=sg;x.fillRect(470,0,60,H);
+const R=62,hw=Math.sqrt(3)*R;
+function hex(cx,cy,a){x.beginPath();for(let i=0;i<6;i++){const t=Math.PI/180*(60*i-30);x.lineTo(cx+R*Math.cos(t),cy+R*Math.sin(t));}x.closePath();x.strokeStyle='rgba(255,255,255,'+a+')';x.lineWidth=2.4;x.stroke();}
+function blob(px,py){const b=[[0.95,0.12,0.55],[0.7,0.33,0.45],[0.85,0.55,0.4],[0.35,0.62,0.25],[0.9,0.85,0.3]];let v=0;for(const q of b){const d=Math.hypot(px/W-q[0],(py/H-q[1])*H/W*0.95);v=Math.max(v,1-d/q[2]);}return v;}
+for(let row=-1;row*R*1.5<H+R;row++){for(let col=-1;col*hw<W+hw;col++){const cx=col*hw+(row%2?hw/2:0),cy=row*R*1.5;const v=blob(cx,cy);if(v>0.08&&r()<v*1.25)hex(cx,cy,Math.min(.95,.35+v));}}
+function shard(ox,oy,ang,len,wid,g){const ca=Math.cos(ang),sa=Math.sin(ang),px=-sa,py=ca;
+ const p=[[ox,oy],[ox+ca*len*.25+px*wid,oy+sa*len*.25+py*wid],[ox+ca*len+px*wid*.25,oy+sa*len+py*wid*.25],[ox+ca*len*.92-px*wid*.3,oy+sa*len*.92-py*wid*.3],[ox+ca*len*.3-px*wid*.6,oy+sa*len*.3-py*wid*.6]];
+ const gr=x.createLinearGradient(ox,oy,ox+ca*len,oy+sa*len);gr.addColorStop(0,'rgba('+g+','+g+','+g+',.25)');gr.addColorStop(.5,'rgba('+(g+30)+','+(g+30)+','+(g+30)+',.85)');gr.addColorStop(1,'rgba(255,255,255,.55)');
+ x.beginPath();p.forEach(q=>x.lineTo(q[0],q[1]));x.closePath();x.fillStyle=gr;x.fill();x.strokeStyle='rgba(255,255,255,.7)';x.lineWidth=1.6;x.stroke();
+ x.beginPath();x.moveTo(p[1][0],p[1][1]);x.lineTo(p[2][0],p[2][1]);x.lineTo(p[3][0],p[3][1]);x.closePath();x.fillStyle='rgba(255,255,255,.12)';x.fill();}
+const O=[430,H*.667];
+for(let i=0;i<26;i++){const ang=-Math.PI/2+(-0.15+r()*1.35);const len=250+r()*700;const wid=20+r()*70;const g=110+Math.floor(r()*90);shard(O[0]+(r()-.5)*160,O[1]+(r()-.5)*260,ang,len,wid,g);}
+for(let i=0;i<18;i++){const a=r()*Math.PI*2,d=200+r()*500;shard(O[0]+Math.cos(a)*d,O[1]+Math.sin(a)*d*.8,r()*Math.PI*2,30+r()*70,8+r()*18,150);}
+const vg=x.createRadialGradient(W*.5,H*.5,H*.2,W*.5,H*.5,H*.75);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.6)');x.fillStyle=vg;x.fillRect(0,0,W,H);}
+wall();let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(wall,250)});
+/* tunnel: wireframe funnel, slowly turning */
+const tuns=[...document.querySelectorAll('canvas.tun')];const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function tunnel(c,ph){const x=c.getContext('2d'),S=c.width,cx=S/2,cy=S/2,R=S*.47;x.clearRect(0,0,S,S);x.strokeStyle='rgba(255,255,255,.92)';x.lineWidth=1.1;
+ const N=8,rings=[];for(let i=0;i<N;i++){const k=Math.pow(1-i/N,1.7);rings.push({r:R*k+2,ox:(1-k)*S*.13,oy:(1-k)*S*.02});}
+ rings.forEach(g=>{x.beginPath();x.arc(cx+g.ox,cy+g.oy,g.r,0,Math.PI*2);x.stroke()});
+ const sp=18;for(let j=0;j<sp;j++){const a=ph+j*Math.PI*2/sp;x.beginPath();rings.forEach((g,i)=>{const px=cx+g.ox+Math.cos(a)*g.r,py=cy+g.oy+Math.sin(a)*g.r;i?x.lineTo(px,py):x.moveTo(px,py)});x.stroke();}
+ const c0=rings[N-1];x.fillStyle='rgba(255,255,255,.85)';x.beginPath();x.arc(cx+c0.ox,cy+c0.oy,S*.022,0,Math.PI*2);x.fill();}
+let ph=0;function loop(){ph+=.004;tuns.forEach(c=>{if(c.offsetParent!==null||c.closest('#boot'))tunnel(c,ph)});if(!still)requestAnimationFrame(loop)}
+tuns.forEach(c=>tunnel(c,0));loop();
+})();
+</script>
+
+</body>
+</html>

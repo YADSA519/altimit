@@ -1,0 +1,9 @@
+{
+	"appId": "com.thiriang.altimit",
+	"appName": "Altimit OS",
+	"webDir": "www",
+	"backgroundColor": "#050506",
+	"android": {
+		"backgroundColor": "#050506"
+	}
+}

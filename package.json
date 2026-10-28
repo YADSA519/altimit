@@ -1,0 +1,16 @@
+{
+  "name": "altimit-os",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Altimit OS — simulación privada de Thiriang",
+  "scripts": {
+    "sync": "cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.2",
+    "@capacitor/core": "8.5.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.2"
+  }
+}
