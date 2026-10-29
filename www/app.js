@@ -535,7 +535,7 @@
     $('#pw-go').disabled = true; say('#pw-msg', 'guardando…'); const { error } = await sb.auth.updateUser({ password: p1 }); $('#pw-go').disabled = false;
     if (error) return say('#pw-msg', /reauth|nonce/i.test(error.message) ? 'Por seguridad, salí, volvé a entrar y probá de nuevo.' : 'No se pudo: ' + error.message, true);
     $('#pw-cancel').click(); toast('Contraseña cambiada.'); });
-  $('#enter-game').onclick = () => toast('Cenizas se está construyendo. Pronto vas a poder entrar desde acá.');
+  $('#enter-game').onclick = () => { $('#enter-game').disabled = true; location.href = '/cenizas.html'; };
 
   /* ================= ADMIN ================= */
   $$('[data-xtab]').forEach(b => b.onclick = () => { $$('[data-xtab]').forEach(x => x.setAttribute('aria-selected', String(x === b))); $('#adm-users').hidden = b.dataset.xtab !== 'users'; $('#f-news').hidden = b.dataset.xtab !== 'pub'; });
