@@ -1,14 +1,17 @@
 {
-  "name": "altimit-os",
+  "name": "the-of",
   "version": "0.1.0",
   "private": true,
-  "description": "Altimit OS — simulación privada de Thiriang",
+  "description": "THE O|F — red de sobrevivientes",
   "scripts": {
     "sync": "cap sync android"
   },
   "dependencies": {
     "@capacitor/android": "8.5.2",
-    "@capacitor/core": "8.5.2"
+    "@capacitor/app": "8.0.1",
+    "@capacitor/core": "8.5.2",
+    "@capacitor/filesystem": "8.1.4",
+    "@capacitor/local-notifications": "8.3.1"
   },
   "devDependencies": {
     "@capacitor/cli": "8.5.2"

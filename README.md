@@ -1,8 +1,9 @@
-# Altimit OS
+# THE O|F
 
-Simulación privada de Thiriang. App Android hecha con Capacitor.
+Red de sobrevivientes del universo Cenizas. App Android hecha con Capacitor.
 
-- `www/` es la app (HTML, íconos, fuentes). Lo que se cambia va acá.
-- `android/` es el envoltorio nativo. No hace falta tocarlo.
-- Cada vez que se sube un cambio, GitHub compila el APK solo
-  (pestaña **Actions**) y lo deja en **Releases** como `Altimit-OS.apk`.
+- `www/` es la app (pantallas, íconos por bando, fuentes). Lo que se cambia va acá.
+- `android/` es el envoltorio nativo.
+- `supabase/` tiene el SQL de la base: correr `01_altimit.sql` y después `02_the_of.sql`.
+- Cada vez que se sube un cambio, GitHub compila el APK solo (pestaña **Actions**)
+  y lo deja en **Releases**.

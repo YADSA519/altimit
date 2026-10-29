@@ -1,9 +1,15 @@
 {
 	"appId": "com.thiriang.altimit",
-	"appName": "Altimit OS",
+	"appName": "THE O|F",
 	"webDir": "www",
-	"backgroundColor": "#050506",
+	"backgroundColor": "#070707",
 	"android": {
-		"backgroundColor": "#050506"
+		"backgroundColor": "#070707"
+	},
+	"plugins": {
+		"LocalNotifications": {
+			"smallIcon": "ic_stat_theof",
+			"iconColor": "#FFFFFF"
+		}
 	}
 }
