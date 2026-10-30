@@ -186,7 +186,7 @@
     fillDesktop();
     await loadPeople();
     await Promise.all([loadMail(), loadNews(), loadAudios(), loadPhotos()]);
-    goLive();
+    goLive(); askNotifOnce();
   }
 
   /* ---------- navegación ---------- */
@@ -356,7 +356,16 @@
     await LN.createChannel({ id: 'alarmas', name: 'Alarmas', description: 'Alarmas de THE O|F', importance: 5, visibility: 1, vibration: true });
     await LN.createChannel({ id: 'alertas', name: 'Alertas especiales', description: 'Alarmas marcadas como alerta', importance: 5, visibility: 1, vibration: true, lights: true, lightColor: '#FF3B30' });
     await LN.createChannel({ id: 'recordatorios', name: 'Recordatorios y eventos', description: 'Recordatorios y eventos de la red', importance: 4, visibility: 1, vibration: true });
+    await LN.createChannel({ id: 'mensajes', name: 'Mensajes de la red', description: 'Mensajes, audios, fotos y noticias', importance: 4, visibility: 1, vibration: true });
     channelsReady = true; } catch (e) {} }
+  /* aviso en la barra del celu cuando llega algo y no estás mirando esa sección */
+  let pushSeq = 0;
+  async function notify(title, body, goTo) {
+    if (!LN) return; if (!document.hidden && cur === goTo && $('#app').dataset.view === 'section') return;
+    try { await setupChannels(); const id = 800000 + (Date.now() % 100000) + (pushSeq++ % 50);
+      await LN.schedule({ notifications: [{ id, title, body: body.slice(0, 140), channelId: 'mensajes', smallIcon: 'ic_stat_theof', extra: { go: goTo }, schedule: { at: new Date(Date.now() + 300), allowWhileIdle: true } }] }); } catch (e) {} }
+  if (LN && LN.addListener) LN.addListener('localNotificationActionPerformed', a => { const g = a && a.notification && a.notification.extra && a.notification.extra.go; if (g && me && me.faction) go(g); });
+  async function askNotifOnce() { if (!LN || store.get('notifAsked', false)) return; store.set('notifAsked', true); try { const p = await LN.checkPermissions(); if (p.display !== 'granted') await LN.requestPermissions(); } catch (e) {} }
   async function checkPerms() {
     const box = $('#al-perm'), txt = $('#al-perm-text'), go = $('#al-perm-go');
     if (!LN) { box.hidden = false; go.hidden = true; txt.textContent = 'Las alarmas suenan en la app instalada en el celu.'; return false; }
@@ -495,23 +504,42 @@
       else { const a = document.createElement('a'); a.href = 'data:image/jpeg;base64,' + b64; a.download = name; a.click(); }
     } catch (e) { toast('No se pudo guardar: ' + (e.message || e)); }
   }
-  // armado con filtro
-  let phBlob = null;
+  // armado con filtro (elegible)
+  let phBlob = null, phSrc = null, phFilter = store.get('phFilter', 'ceniza');
+  const FILTERS = [['original', 'ORIGINAL'], ['ceniza', 'CENIZA'], ['noche', 'NOCHE'], ['fotocopia', 'FOTOCOPIA'], ['vhs', 'VHS'], ['ork', 'ORK·SCAN'], ['termica', 'TÉRMICA']];
+  function renderFilters() { $('#ph-filters').innerHTML = FILTERS.map(([k, n]) => '<button type="button" data-f="' + k + '" aria-pressed="' + (k === phFilter) + '">' + n + '</button>').join(''); }
+  $('#ph-filters').addEventListener('click', async e => { const b = e.target.closest('[data-f]'); if (!b || !phSrc) return; phFilter = b.dataset.f; store.set('phFilter', phFilter); renderFilters(); await applyFilter(); });
+  async function applyFilter() { const cv = $('#ph-canvas'); filterImg(phSrc, cv, phFilter); phBlob = await new Promise(r => cv.toBlob(r, 'image/jpeg', .85)); }
   $('#ph-file').addEventListener('change', async e => { const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-    try { const img = await loadImg(f); const cv = $('#ph-canvas'); retro(img, cv); phBlob = await new Promise(r => cv.toBlob(r, 'image/jpeg', .82)); $('#ph-compose').hidden = false; say('#ph-msg', ''); $('#ph-cap').value = ''; }
+    try { phSrc = await loadImg(f); renderFilters(); await applyFilter(); $('#ph-compose').hidden = false; say('#ph-msg', ''); $('#ph-cap').value = ''; }
     catch (err) { toast('No se pudo abrir la imagen.'); } });
   function loadImg(file) { return new Promise((res, rej) => { const u = URL.createObjectURL(file); const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = u; }); }
-  function retro(img, cv) {
+  function filterImg(img, cv, mode) {
     const M = 1280, k = Math.min(1, M / Math.max(img.naturalWidth, img.naturalHeight)); const w = Math.round(img.naturalWidth * k), h = Math.round(img.naturalHeight * k);
-    cv.width = w; cv.height = h; const x = cv.getContext('2d'); x.drawImage(img, 0, 0, w, h);
-    const d = x.getImageData(0, 0, w, h), a = d.data; let s = 9; const rnd = () => { s = (s * 16807) % 2147483647; return s / 2147483647; };
-    for (let y = 0; y < h; y++) for (let xx = 0; xx < w; xx++) { const i = (y * w + xx) * 4;
-      let g = .3 * a[i] + .59 * a[i + 1] + .11 * a[i + 2]; g = (g - 128) * 1.22 + 128;
-      const dx = (xx - w / 2) / w, dy = (y - h / 2) / h, v = 1 - Math.max(0, Math.hypot(dx, dy) - .28) * 1.25; g = g * v + (rnd() - .5) * 34;
-      a[i] = Math.max(0, Math.min(255, g * 1.0 + 6)); a[i + 1] = Math.max(0, Math.min(255, g * .97 + 4)); a[i + 2] = Math.max(0, Math.min(255, g * .9)); }
+    cv.width = w; cv.height = h; const x = cv.getContext('2d'); x.drawImage(img, 0, 0, w, h); if (mode === 'original') return;
+    const d = x.getImageData(0, 0, w, h), a = d.data, src = mode === 'vhs' ? new Uint8ClampedArray(a) : null; let sd = 9; const rnd = () => { sd = (sd * 16807) % 2147483647; return sd / 2147483647; };
+    const cl = v => v < 0 ? 0 : v > 255 ? 255 : v;
+    for (let y = 0; y < h; y++) { const line = mode === 'vhs' ? Math.round(Math.sin(y * .05) * 2 + (rnd() < .01 ? (rnd() - .5) * 30 : 0)) : 0;
+      for (let xx = 0; xx < w; xx++) { const i = (y * w + xx) * 4; let r = a[i], gg = a[i + 1], bb = a[i + 2];
+        let g = .3 * r + .59 * gg + .11 * bb; const dx = (xx - w / 2) / w, dy = (y - h / 2) / h, rad = Math.hypot(dx, dy);
+        if (mode === 'ceniza') { g = (g - 128) * 1.22 + 128; const v = 1 - Math.max(0, rad - .28) * 1.25; g = g * v + (rnd() - .5) * 34; r = g + 6; gg = g * .97 + 4; bb = g * .9; }
+        else if (mode === 'noche') { g = Math.pow(g / 255, 1.15) * 255; g = (g - 100) * 1.25 + 105; const v = 1 - Math.max(0, rad - .18) * 1.8; g = g * v + (rnd() - .5) * 40; r = g * .86; gg = g * .93; bb = g * 1.08 + 6; }
+        else if (mode === 'fotocopia') { g = g * 1.25 + (rnd() - .5) * 50; g = g > 125 ? 236 - rnd() * 14 : g > 55 ? 125 : 18 + rnd() * 10; r = gg = bb = g; }
+        else if (mode === 'vhs') { const sx = Math.min(w - 1, Math.max(0, xx + line)); const j = (y * w + sx) * 4, jr = (y * w + Math.min(w - 1, sx + 4)) * 4, jb = (y * w + Math.max(0, sx - 4)) * 4;
+          r = src[jr] * 1.05; gg = src[j + 1] * .95; bb = src[jb + 2] * 1.1; const sl = (y % 3 === 0) ? .82 : 1; const n = (rnd() - .5) * 26; r = (r * .8 + 20) * sl + n; gg = (gg * .8 + 18) * sl + n; bb = (bb * .8 + 26) * sl + n; }
+        else if (mode === 'ork') { g = (g - 128) * 1.3 + 120; const sl = (y % 4 < 2) ? 1 : .72; const v = 1 - Math.max(0, rad - .3) * 1.4; g = g * sl * v + (rnd() - .5) * 22; r = g * 1.15 + 18; gg = g * .32; bb = g * .28; }
+        else if (mode === 'termica') { const t = cl(g + (rnd() - .5) * 10) / 255; const stops = [[0, 0, 40], [60, 0, 120], [200, 0, 90], [255, 90, 0], [255, 220, 40], [255, 255, 230]]; const f = t * (stops.length - 1), i0 = Math.floor(f), i1 = Math.min(stops.length - 1, i0 + 1), q = f - i0;
+          r = stops[i0][0] + (stops[i1][0] - stops[i0][0]) * q; gg = stops[i0][1] + (stops[i1][1] - stops[i0][1]) * q; bb = stops[i0][2] + (stops[i1][2] - stops[i0][2]) * q; }
+        a[i] = cl(r); a[i + 1] = cl(gg); a[i + 2] = cl(bb); } }
     x.putImageData(d, 0, 0);
-    const now = new Date(); const t = pad(now.getDate()) + ' ' + pad(now.getMonth() + 1) + " '" + String(now.getFullYear()).slice(2);
-    x.font = Math.round(w * .045) + 'px Elite, monospace'; x.textAlign = 'right'; x.fillStyle = 'rgba(255,140,50,.92)'; x.shadowColor = 'rgba(255,90,20,.6)'; x.shadowBlur = 6; x.fillText(t, w - w * .04, h - h * .045);
+    const now = new Date(), fs = Math.round(w * .042);
+    if (mode === 'ceniza' || mode === 'noche') { const t = pad(now.getDate()) + ' ' + pad(now.getMonth() + 1) + " '" + String(now.getFullYear()).slice(2);
+      x.font = fs + 'px Elite, monospace'; x.textAlign = 'right'; x.fillStyle = 'rgba(255,140,50,.92)'; x.shadowColor = 'rgba(255,90,20,.6)'; x.shadowBlur = 6; x.fillText(t, w - w * .04, h - h * .045); x.shadowBlur = 0; }
+    if (mode === 'vhs') { x.font = fs + 'px TechMono, monospace'; x.fillStyle = 'rgba(255,255,255,.9)'; x.textAlign = 'left'; x.fillText('PLAY ▶', w * .05, h * .1); x.textAlign = 'right'; x.fillText(pad(now.getHours()) + ':' + pad(now.getMinutes()) + '  ' + pad(now.getDate()) + '.' + pad(now.getMonth() + 1) + '.' + now.getFullYear(), w * .95, h * .94); }
+    if (mode === 'ork') { x.strokeStyle = 'rgba(255,80,60,.9)'; x.lineWidth = Math.max(2, w * .004); const m = w * .05, L = w * .08;
+      [[m, m, 1, 1], [w - m, m, -1, 1], [m, h - m, 1, -1], [w - m, h - m, -1, -1]].forEach(([px, py, sx, sy]) => { x.beginPath(); x.moveTo(px, py + L * sy); x.lineTo(px, py); x.lineTo(px + L * sx, py); x.stroke(); });
+      x.font = fs + 'px TechMono, monospace'; x.fillStyle = 'rgba(255,90,70,.95)'; x.textAlign = 'left'; x.fillText('● REC · VIREX', m + 8, m + fs * 1.4); x.textAlign = 'right'; x.fillText(pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds()), w - m - 8, h - m - 10); }
+    if (mode === 'fotocopia') { x.font = fs + 'px Elite, monospace'; x.fillStyle = 'rgba(20,20,20,.85)'; x.textAlign = 'left'; x.fillText('RESISTIR', w * .05, h * .94); }
   }
   $('#ph-cancel').onclick = () => { $('#ph-compose').hidden = true; phBlob = null; };
   $('#ph-send').onclick = async () => { const to = $('#ph-to').value; if (!to) return say('#ph-msg', 'Todavía no hay a quién mandarle.', true); if (!phBlob) return;
@@ -567,11 +595,11 @@
   function goLive() {
     if (live) sb.removeChannel(live);
     live = sb.channel('theof-' + me.id)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mails', filter: 'recipient=eq.' + me.id }, async p => { await loadMail(); if (openThread === p.new.sender && cur === 'mail') markThread(p.new.sender); else toast((p.new.kind === 'inv' ? 'Invitación de ' : 'Mensaje de ') + nickOf(p.new.sender) + ': ' + p.new.body.slice(0, 60), true); })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mails', filter: 'recipient=eq.' + me.id }, async p => { await loadMail(); const who = nickOf(p.new.sender); if (openThread === p.new.sender && cur === 'mail' && !document.hidden) markThread(p.new.sender); else { toast((p.new.kind === 'inv' ? 'Invitación de ' : 'Mensaje de ') + who + ': ' + p.new.body.slice(0, 60), true); notify((p.new.kind === 'inv' ? 'Invitación de ' : 'MAIL · ') + who, p.new.body, 'mail'); } })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'mails', filter: 'sender=eq.' + me.id }, () => loadMail())
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'news' }, async p => { await loadNews(); if (cur === 'news') markNewsSeen(); else if (p.new.author !== me.id) toast('NEWS · ' + (p.new.source || '') + ': ' + p.new.title, true); })
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'audios', filter: 'recipient=eq.' + me.id }, async p => { await loadAudios(); toast('Audio de ' + nickOf(p.new.sender) + ' por el walkie.', true); })
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'photos', filter: 'recipient=eq.' + me.id }, async p => { await loadPhotos(); toast(nickOf(p.new.sender) + ' te mandó una foto.', true); })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'news' }, async p => { await loadNews(); if (cur === 'news') markNewsSeen(); else if (p.new.author !== me.id) toast('NEWS · ' + (p.new.source || '') + ': ' + p.new.title, true); if (p.new.author !== me.id && (!p.new.faction || p.new.faction === me.faction)) notify('NEWS · ' + (p.new.source || 'THE O|F'), p.new.title, 'news'); })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'audios', filter: 'recipient=eq.' + me.id }, async p => { await loadAudios(); toast('Audio de ' + nickOf(p.new.sender) + ' por el walkie.', true); notify('AUDIO · ' + nickOf(p.new.sender), 'Te llegó un audio por el walkie.', 'audio'); })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'photos', filter: 'recipient=eq.' + me.id }, async p => { await loadPhotos(); toast(nickOf(p.new.sender) + ' te mandó una foto.', true); notify('DATA · ' + nickOf(p.new.sender), 'Te mandó una foto.', 'data'); })
       .subscribe();
   }
   document.addEventListener('visibilitychange', () => { if (!document.hidden && me && me.status === 'approved' && me.faction) { loadPeople(); loadMail(); loadNews(); loadAudios(); loadPhotos(); } });

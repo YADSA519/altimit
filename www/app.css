@@ -292,3 +292,8 @@ body{position:fixed;inset:0}
   .fac .pro{display:none}
   .pick .ttl{font-size:28px}
 }
+
+.filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:4px;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.filters button{flex:none;border:1px solid var(--line);padding:6px 10px 5px;font-size:11px;letter-spacing:.1em;color:var(--dim);background:rgba(255,255,255,.02)}
+.filters button[aria-pressed="true"]{border-color:var(--ash);color:var(--hi);background:rgba(255,255,255,.08)}
