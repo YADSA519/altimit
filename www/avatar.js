@@ -4,10 +4,15 @@
   /* ---------- avatares pixel (los de la 0.5) ---------- */
   const SKIN = ['#e3d6c8', '#c9ab92', '#9a7860', '#6a4c3c'];
   const HCOL = [['Negro', '#1d1b1a'], ['Castaño', '#4b3a2e'], ['Gris', '#8b8680'], ['Blanco', '#d6d2cc']];
-  const HAIR = ['Corto', 'Rapado', 'Largo', 'Revuelto', 'Rodete'];
+  const HAIR = ['Corto', 'Rapado', 'Largo', 'Revuelto', 'Rodete', 'Colitas'];
   const TOPS = { rebel: [['Campera de jean', '#56606c', '#3e4650', '#7a8592'], ['Buzo con capucha', '#6a6a6a', '#4e4e4e', '#868686'], ['Campera negra', '#2c2c2c', '#1c1c1c', '#454545']],
     ork: [['Uniforme gris', '#5a5a5a', '#3f3f3f', '#787878'], ['Chaqueta táctica', '#363636', '#232323', '#4d4d4d'], ['Bata de VIREX', '#b9b2a6', '#8f897e', '#d8d1c4']] };
   const ACC = ['Nada', 'Gorro', 'Capucha', 'Bufanda', 'Máscara'];
+  /* ORK: clases con su propia ropa y colores */
+  const OCLS = ['Militar', 'Científico', 'Espía'];
+  const OTOPS = [[['Verde oliva', '#4a5240', '#363c2e', '#5e6852'], ['Camuflaje gris', '#55585a', '#3c3e40', '#6e7274'], ['Negro táctico', '#26282a', '#18191a', '#3a3c3e']],
+    [['Bata blanca', '#d8d4cc', '#aaa59c', '#eeebe4'], ['Bata celeste', '#a9c4cc', '#7f9aa2', '#c6dce2'], ['Bata gris', '#9a9a9a', '#767676', '#b4b4b4']],
+    [['Traje negro', '#1c1c1e', '#0e0e10', '#2e2e30'], ['Gabardina gris', '#5a5650', '#423e3a', '#726e68'], ['Traje bordó', '#4a1c1e', '#341214', '#642a2c']]];
   const BODY = ['Hombre', 'Mujer'];
   const PANTS = '#38383a', BOOT = '#161616', RED = '#c9302a', PALO = '#6b5c4c';
   const scache = new Map();
@@ -18,13 +23,13 @@
     if (scache.has(key)) return scache.get(key);
     const base = document.createElement('canvas'); base.width = 16; base.height = 24; const g = base.getContext('2d');
     const px = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
-    const fac = look.fac === 'ork' ? 'ork' : 'rebel', top = TOPS[fac][look.top] || TOPS[fac][0], skin = SKIN[look.skin] || SKIN[0], hair = (HCOL[look.hcol] || HCOL[0])[1];
+    const fac = look.fac === 'ork' ? 'ork' : 'rebel', cls = fac === 'ork' ? (look.cls || 0) : -1, top = cls >= 0 ? (OTOPS[cls][look.top] || OTOPS[cls][0]) : (TOPS[fac][look.top] || TOPS[fac][0]), skin = SKIN[look.skin] || SKIN[0], hair = (HCOL[look.hcol] || HCOL[0])[1];
     const fem = look.body === 1, tx0 = fem ? 5 : 4, tw = fem ? 6 : 8;
     if (d === 'l') { const a = frame === 1 ? [4, 9] : frame === 2 ? [9, 4] : [6, 7];
       px(a[1], 16, 3, 5, '#2c2c2e'); px(a[1], 21, 3, 2, BOOT); px(a[0], 16, 3, 5, PANTS); px(a[0] - (frame ? 1 : 0), 21, 4, 2, BOOT); }
     else { const lu = frame === 1 ? 1 : 0, ru = frame === 2 ? 1 : 0; px(5, 16, 3, 5 - lu, PANTS); px(5, 21 - lu, 3, 2, BOOT); px(8, 16, 3, 5 - ru, PANTS); px(8, 21 - ru, 3, 2, BOOT); }
     if (d === 'l') { px(5, 9, 6, 7, top[1]); px(5, 9, 2, 7, top[3]); px(10, 9, 1, 7, top[2]); }
-    else { px(tx0, 9, tw, 7, top[1]); px(tx0 + tw - 1, 9, 1, 7, top[2]); if (d === 'd') { if (look.top === 0 && fac === 'rebel') px(7, 10, 2, 6, top[3]); if (fac === 'ork' && look.top === 2) px(7, 10, 2, 6, '#e8e2d6'); } }
+    else { px(tx0, 9, tw, 7, top[1]); px(tx0 + tw - 1, 9, 1, 7, top[2]); if (d === 'd') { if (look.top === 0 && fac === 'rebel') px(7, 10, 2, 6, top[3]); if (cls === 1) px(7, 10, 2, 6, '#e8e2d6'); } }
     if (fac === 'ork' && d !== 'l') px(d === 'd' ? 12 - (fem ? 1 : 0) : 3 + (fem ? 1 : 0), 11, 1, 2, RED);
     if (fac === 'ork' && d === 'd') px(6, 11, 1, 1, RED);
     if (d === 'l') { if (atk) { px(1, 11, 6, 2, top[1]); px(0, 11, 1, 2, skin); px(0, 5, 1, 7, PALO); px(1, 4, 1, 2, PALO); }
@@ -38,17 +43,24 @@
     if (d === 'l') { px(6, 5, 1, 1, '#151515'); px(5, 6, 1, 1, shade(skin)); }
     const hs = look.hair || 0;
     if (look.acc !== 2) {
-      if (d === 'u') { px(5, 1, 6, 7, hair); if (hs === 2 || fem) px(5, 8, 6, 3, hair); }
+      if (d === 'u') { px(5, 1, 6, 7, hair); if (hs === 2 || (fem && hs !== 5)) px(5, 8, 6, 3, hair); }
       if (hs === 0) { px(5, 1, 6, 2, hair); if (d === 'd') { px(4, 2, 1, 3, hair); px(11, 2, 1, 3, hair); } if (d === 'l') { px(8, 1, 3, 5, hair); px(11, 2, 1, 3, hair); } }
       if (hs === 1) { px(6, 1, 4, 1, hair); px(5, 2, 6, 1, hair); if (d === 'l') px(9, 2, 2, 3, hair); }
       if (hs === 2) { px(5, 1, 6, 2, hair); if (d === 'd') { px(4, 2, 1, 9, hair); px(11, 2, 1, 9, hair); } if (d === 'l') { px(8, 1, 4, 10, hair); } }
       if (hs === 3) { px(4, 1, 8, 2, hair); px(5, 0, 1, 1, hair); px(7, 0, 1, 1, hair); px(10, 0, 1, 1, hair); if (d !== 'u') { px(4, 3, 1, 2, hair); px(11, 3, 1, 2, hair); } if (d === 'l') px(9, 1, 3, 5, hair); }
       if (hs === 4) { px(5, 1, 6, 2, hair); px(6, 0, 4, 1, hair); px(7, -1, 3, 2, hair); if (d === 'l') px(9, 1, 2, 4, hair); }
-      if (fem && hs !== 2 && hs !== 4 && d === 'd') { px(4, 2, 1, 7, hair); px(11, 2, 1, 7, hair); } }
+      if (hs === 5) { px(5, 1, 6, 2, hair); px(4, 2, 1, 3, hair); px(11, 2, 1, 3, hair); if (d === 'd') { px(2, 3, 2, 5, hair); px(12, 3, 2, 5, hair); px(6, 3, 4, 1, hair); } if (d === 'l') { px(8, 1, 4, 4, hair); px(11, 3, 2, 5, hair); } if (d === 'u') { px(2, 3, 2, 5, hair); px(12, 3, 2, 5, hair); } }
+      if (fem && hs !== 2 && hs !== 4 && hs !== 5 && d === 'd') { px(4, 2, 1, 7, hair); px(11, 2, 1, 7, hair); } }
     if (look.acc === 1) { px(4, 0, 8, 3, '#3d3d3d'); px(4, 3, 8, 1, '#5a5a5a'); }
     if (look.acc === 2) { const c = top[1]; px(4, 1, 8, 2, c); px(4, 2, 1, 7, c); px(11, 2, 1, 7, c); px(5, 0, 6, 1, c); if (d === 'u') px(5, 2, 6, 6, c); if (d === 'l') px(8, 1, 4, 8, c); }
     if (look.acc === 3) { px(5, 8, 6, 2, '#4a4a4a'); px(6, 8, 1, 2, '#5e5e5e'); if (d === 'd') px(9, 10, 2, 3, '#4a4a4a'); }
     if (look.acc === 4 && d !== 'u') { if (d === 'd') { px(5, 6, 6, 2, '#262626'); px(5, 7, 1, 1, '#5a5a5a'); px(10, 7, 1, 1, '#5a5a5a'); } else { px(5, 6, 3, 2, '#262626'); px(5, 7, 1, 1, '#5a5a5a'); } }
+    // detalles de cada clase ORK
+    if (cls === 0) { const hc = shade(top[1]); if (d !== 'u') { px(4, 0, 8, 3, hc); px(4, 2, 8, 1, top[2]); if (d === 'd') { px(5, 7, 1, 2, '#2a2a2a'); px(10, 7, 1, 2, '#2a2a2a'); } } else px(4, 0, 8, 4, hc);
+      if (d === 'd') { px(tx0, 10, 1, 6, '#1e1e1e'); px(tx0 + tw - 1, 10, 1, 6, '#1e1e1e'); px(tx0, 14, tw, 1, '#2a2a2a'); } }
+    if (cls === 1) { if (d === 'l') px(5, 16, 6, 3, top[1]); else { px(tx0, 16, tw, 3, top[1]); px(tx0 + tw - 1, 16, 1, 3, top[2]); }
+      if (d === 'd') { px(5, 5, 2, 1, '#8fb0c0'); px(9, 5, 2, 1, '#8fb0c0'); px(7, 5, 2, 1, '#333'); } if (d === 'l') { px(5, 5, 2, 1, '#8fb0c0'); px(7, 5, 1, 1, '#333'); } }
+    if (cls === 2) { if (d === 'd') { px(5, 5, 6, 1, '#050505'); px(6, 5, 1, 1, '#2a2a2a'); px(9, 5, 1, 1, '#2a2a2a'); px(7, 9, 2, 1, '#e8e2d6'); px(7, 10, 2, 4, RED); } if (d === 'l') px(5, 5, 3, 1, '#050505'); }
     const out = document.createElement('canvas'); out.width = 18; out.height = 26; const o = out.getContext('2d');
     const src = g.getImageData(0, 0, 16, 24).data; const od = o.createImageData(18, 26);
     const A = (x, y) => (x < 0 || y < 0 || x > 15 || y > 23) ? 0 : src[(y * 16 + x) * 4 + 3];
@@ -60,5 +72,5 @@
     scache.set(key, res); return res;
   }
 
-  window.THEOF_AV = { sprite, SKIN, HCOL, HAIR, TOPS, ACC, BODY };
+  window.THEOF_AV = { sprite, SKIN, HCOL, HAIR, TOPS, ACC, BODY, OCLS, OTOPS };
 })();

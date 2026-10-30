@@ -54,7 +54,7 @@
     <button class="btn solid" type="submit" id="rc-go">MANDAR CÓDIGO</button>
     <button class="linkish" type="button" id="rc-back">volver</button>
   </form>
-  <div class="lfoot">THE O|F // v0.9 // NODO LOCAL</div>
+  <div class="lfoot">THE O|F // v1.3 // NODO LOCAL</div>
 </section>
 
 <!-- ================= EN ESPERA / BLOQUEADO ================= -->
@@ -104,7 +104,7 @@
     <dl class="mfoot">
       <dt>USUARIO</dt><dd><b id="mf-user">—</b></dd>
       <dt>EN LA RED</dt><dd><b id="mf-people">—</b></dd>
-      <dt>THE O|F</dt><dd>v0.9</dd>
+      <dt>THE O|F</dt><dd>v1.3</dd>
     </dl>
   </aside>
 
@@ -115,8 +115,9 @@
       <div class="body">
         <div class="hero"><img src="/a/hero.jpg" alt="Buenos Aires en ruinas al atardecer"><div class="over"><div class="words" id="hero-words">Conecta<br>Informa<br>Sobrevive</div><div class="quote" id="hero-quote">Una red entre sobrevivientes. Información real para un futuro incierto.</div></div></div>
         <div class="live"><span>USUARIOS EN LA RED</span><span id="live-n" style="color:var(--hi)">—</span><div class="spark" id="spark" style="grid-column:1/3"></div></div>
-        <button class="btn solid enter" id="enter-game">ENTRAR A CENIZAS</button>
-        <p class="note">Cenizas, el juego, se está construyendo. Cuando esté listo, entrás desde acá y tu personaje queda donde lo dejaste.</p>
+        <button class="btn solid enter" id="enter-game">ENTRAR A CENIZAS · MUNDO</button>
+        <button class="btn enter" id="enter-exp" style="margin-top:10px">MODO EXPERIMENTAL · PvP EN HAEDO</button>
+        <p class="note">MUNDO: la historia completa, tu nivel de siempre. EXPERIMENTAL: solo las 4 zonas de Haedo (Rivadavia, Estación, la Central y 11 de Septiembre), todos contra todos los del otro bando, con nivel y mochila aparte. Morir ahí no toca tu nivel del MUNDO.</p>
       </div>
     </section>
 
@@ -210,7 +211,13 @@
         <div class="id"><button class="pic" id="d-pic" type="button" aria-label="Girar avatar"><canvas id="d-av" width="24" height="32"></canvas></button>
           <div><div class="nm" id="d-nick">—</div><div class="hint" id="d-net"></div><div class="clock" id="d-clock">--:--</div><div class="tagline2" id="d-date"></div></div></div>
         <dl class="kv"><dt>ESTADO</dt><dd>ONLINE</dd><dt>EN CENIZAS</dt><dd id="d-game">—</dd><dt>BANDO</dt><dd id="d-fac">—</dd><dt>RANGO</dt><dd id="d-role">—</dd><dt>EN LA RED DESDE</dt><dd id="d-since">—</dd></dl>
-        <div class="row2" style="margin-top:18px"><button class="btn solid" id="av-open" type="button">EDITAR AVATAR</button><button class="btn" id="pw-open" type="button">CAMBIAR CONTRASEÑA</button></div>
+        <div class="row2" style="margin-top:18px"><button class="btn solid" id="av-open" type="button">EDITAR AVATAR</button><button class="btn" id="pw-open" type="button">CAMBIAR CONTRASEÑA</button><button class="btn" id="nk-open" type="button">CAMBIAR NOMBRE</button></div>
+        <form class="card pad" id="f-nk" novalidate hidden style="margin-top:12px">
+          <label class="section-title" for="nk-1">NOMBRE NUEVO</label><input id="nk-1" maxlength="20" autocomplete="off" autocapitalize="off">
+          <p class="note" style="margin:6px 0 0">De 3 a 20 letras o números, sin espacios. Tus skins y tu progreso siguen con tu cuenta.</p>
+          <div class="msgline" id="nk-msg" role="status"></div>
+          <div class="row2" style="justify-content:flex-end"><button class="btn" type="button" id="nk-cancel">CANCELAR</button><button class="btn solid" type="submit" id="nk-go">GUARDAR</button></div>
+        </form>
         <div class="card pad" id="av-edit" hidden style="margin-top:12px"><div class="section-title">TU SOBREVIVIENTE EN CENIZAS</div><div id="av-opts"></div>
           <div class="msgline" id="av-msg" role="status"></div>
           <div class="row2" style="justify-content:flex-end"><button class="btn" type="button" id="av-cancel">CANCELAR</button><button class="btn solid" type="button" id="av-save">GUARDAR</button></div></div>
@@ -264,6 +271,7 @@
 <script src="/a/supabase.js"></script>
 <script src="/config.js"></script>
 <script src="/avatar.js"></script>
+<script src="/cenizas-npc.js"></script>
 <script src="/icons.js"></script>
 <script src="/app.js"></script>
 </body>

@@ -204,7 +204,8 @@
   addEventListener('hashchange', () => { const k = location.hash.slice(1); if (me && me.faction && VIEWS[k] && k !== cur) go(k); });
   if (PL.App && PL.App.addListener) PL.App.addListener('backButton', () => { if (openThread) { closeThread(); return; } if ($('#app').dataset.view === 'section' && !$('#app').hidden) go('menu'); });
   function onShow(k) {
-    if (k === 'news') markNewsSeen();
+    if (k === 'news') { markNewsSeen(); clearPush('NEWS'); }
+    if (k === 'mail') { clearPush('MAIL'); clearPush('Invitación'); }
     if (k === 'accessory') { checkPerms(); renderEvents(); }
     if (k === 'audio') audTab(audTabCur);
     if (k === 'data') phTab(phTabCur);
@@ -436,8 +437,14 @@
   $$('[data-atab]').forEach(b => b.onclick = () => audTab(b.dataset.atab));
   function audTab(t) { audTabCur = t; $$('[data-atab]').forEach(x => x.setAttribute('aria-selected', String(x.dataset.atab === t))); $('#aud-talk').hidden = t !== 'talk'; $('#aud-inbox').hidden = t !== 'inbox'; if (t === 'inbox') renderAudios(); }
   $('#wave').innerHTML = Array.from({ length: 60 }, (_, i) => '<i style="height:' + (4 + Math.round(Math.abs(Math.sin(i * .9) * Math.cos(i * .31)) * 50)) + 'px"></i>').join('');
+  /* contadores: se recalculan apenas escuchás o ves algo, sin esperar al servidor */
+  const heardLocal = new Set(), seenLocal = new Set();
+  function audioBadge() { const n = audios.filter(a => a.recipient === me.id && !a.heard_at).length; setBadge('audio', n); const b = $('#n-aud'); b.hidden = !n; b.textContent = n; }
+  function photoBadge() { const n = photos.filter(p => p.recipient === me.id && !p.seen_at).length; setBadge('data', n); const b = $('#n-ph'); b.hidden = !n; b.textContent = n; }
+  /* saca de la barra del celu los avisos de esa sección */
+  async function clearPush(prefix) { if (!LN || !LN.getDeliveredNotifications) return; try { const r = await LN.getDeliveredNotifications(); const list = (r.notifications || []).filter(n => (n.title || '').indexOf(prefix) === 0); if (list.length) await LN.removeDeliveredNotifications({ notifications: list }); } catch (e) {} }
   async function loadAudios() { const { data, error } = await sb.from('audios').select('id,sender,recipient,path,seconds,created_at,heard_at').or('sender.eq.' + me.id + ',recipient.eq.' + me.id).order('created_at', { ascending: false }).limit(100);
-    if (error) return; audios = data || []; const n = audios.filter(a => a.recipient === me.id && !a.heard_at).length; setBadge('audio', n); const b = $('#n-aud'); b.hidden = !n; b.textContent = n; if (cur === 'audio' && audTabCur === 'inbox') renderAudios(); }
+    if (error) return; audios = data || []; audios.forEach(a => { if (heardLocal.has(a.id) && !a.heard_at) a.heard_at = 'local'; }); const n = audios.filter(a => a.recipient === me.id && !a.heard_at).length; setBadge('audio', n); const b = $('#n-aud'); b.hidden = !n; b.textContent = n; if (cur === 'audio' && audTabCur === 'inbox') renderAudios(); }
   let player = null, playingId = null;
   function renderAudios() { const box = $('#aud-list'); box.innerHTML = '';
     if (!audios.length) { box.appendChild(el('div', 'empty', 'No hay audios todavía.')); return; }
@@ -450,7 +457,7 @@
     const { data, error } = await sb.storage.from('audios').createSignedUrl(a.path, 600); if (error || !data) return toast('No se pudo bajar el audio.');
     player = new Audio(data.signedUrl); playingId = a.id; renderAudios(); player.play().catch(() => toast('No se pudo reproducir.'));
     player.onended = () => { player = null; playingId = null; renderAudios(); };
-    if (a.recipient === me.id && !a.heard_at) { a.heard_at = new Date().toISOString(); sb.rpc('mark_seen', { kind: 'audio', item_id: a.id }); loadAudios(); }
+    if (a.recipient === me.id && !a.heard_at) { a.heard_at = new Date().toISOString(); heardLocal.add(a.id); audioBadge(); clearPush('AUDIO'); await sb.rpc('mark_seen', { kind: 'audio', item_id: a.id }); loadAudios(); }
   }
   // grabar
   let rec = null, chunks = [], t0 = 0, iv = null, stream = null;
@@ -485,7 +492,7 @@
   $$('[data-dtab]').forEach(b => b.onclick = () => phTab(b.dataset.dtab));
   function phTab(t) { phTabCur = t; $$('[data-dtab]').forEach(x => x.setAttribute('aria-selected', String(x.dataset.dtab === t))); renderPhotos(); }
   async function loadPhotos() { const { data, error } = await sb.from('photos').select('id,sender,recipient,path,comment,created_at,seen_at').or('sender.eq.' + me.id + ',recipient.eq.' + me.id).order('created_at', { ascending: false }).limit(120);
-    if (error) return; photos = data || []; const n = photos.filter(p => p.recipient === me.id && !p.seen_at).length; setBadge('data', n); const b = $('#n-ph'); b.hidden = !n; b.textContent = n; if (cur === 'data') renderPhotos(); }
+    if (error) return; photos = data || []; photos.forEach(p => { if (seenLocal.has(p.id) && !p.seen_at) p.seen_at = 'local'; }); const n = photos.filter(p => p.recipient === me.id && !p.seen_at).length; setBadge('data', n); const b = $('#n-ph'); b.hidden = !n; b.textContent = n; if (cur === 'data') renderPhotos(); }
   async function urlFor(path) { if (urls[path] && urls[path].exp > Date.now()) return urls[path].u; const { data } = await sb.storage.from('fotos').createSignedUrl(path, 3600); if (!data) return ''; urls[path] = { u: data.signedUrl, exp: Date.now() + 3500e3 }; return data.signedUrl; }
   async function renderPhotos() {
     const g = $('#ph-grid'); g.innerHTML = ''; const list = photos.filter(p => phTabCur === 'in' ? p.recipient === me.id : p.sender === me.id);
@@ -494,7 +501,8 @@
       f.append(im, el('span', 'who', phTabCur === 'in' ? nickOf(p.sender) : 'para ' + nickOf(p.recipient)), el('figcaption', 'cap', p.comment || when(p.created_at)));
       const dl = el('button', 'dl'); dl.setAttribute('aria-label', 'Guardar en el celu'); dl.onclick = () => savePhoto(p); f.appendChild(dl); g.appendChild(f);
       urlFor(p.path).then(u => { im.src = u; });
-      if (p.recipient === me.id && !p.seen_at) { p.seen_at = new Date().toISOString(); sb.rpc('mark_seen', { kind: 'photo', item_id: p.id }); } }
+      if (p.recipient === me.id && !p.seen_at) { p.seen_at = new Date().toISOString(); seenLocal.add(p.id); sb.rpc('mark_seen', { kind: 'photo', item_id: p.id }).then(() => {}, () => {}); } }
+    photoBadge(); if (phTabCur === 'in') clearPush('DATA');
     if (phTabCur === 'in') setTimeout(loadPhotos, 1500);
   }
   async function savePhoto(p) {
@@ -555,23 +563,35 @@
   let gchar = null, avLook = null, avRot = 0, avFrame = 0, avTimer = null; const AVD = ['d', 'l', 'u', 'r'];
   function drawAv() { const cv = $('#d-av'); if (!cv || !window.THEOF_AV) return; const g = cv.getContext('2d'); g.imageSmoothingEnabled = false; g.clearRect(0, 0, 24, 32);
     const lk = avLook || (gchar && gchar.look); if (!lk || lk.body == null) { g.fillStyle = '#3c3c3c'; g.fillRect(9, 6, 6, 6); g.fillRect(7, 13, 10, 15); return; }
-    g.drawImage(THEOF_AV.sprite(Object.assign({}, lk, { fac: me.faction }), AVD[avRot], avFrame, false), 3, 4, 18, 26); }
-  async function loadGameChar() { const { data, error } = await sb.from('game_chars').select('look,zone,xp,kills').eq('user_id', me.id).maybeSingle();
+    const npc = lk.npc && window.CZ_NPC && CZ_NPC.C[lk.npc] && avSkins.includes(lk.npc);
+    g.drawImage(npc ? CZ_NPC.draw(lk.npc, AVD[avRot], avFrame) : THEOF_AV.sprite(Object.assign({}, lk, { fac: me.faction }), AVD[avRot], avFrame, false), 3, 4, 18, 26); }
+  /* skins: Pablo y Pol son de una cuenta; Renzo y Sam se ganan matando a Mercedes */
+  let avSkins = []; const SKN = { pablo: 'Pablo', pol: 'Pol', renzo: 'Renzo', sam: 'Sam' };
+  async function loadSkins() { const set = new Set((gchar && gchar.inv && gchar.inv.skins) || []); try { const { data } = await sb.from('game_skins').select('skin').eq('user_id', me.id); (data || []).forEach(r => set.add(r.skin)); } catch (e) {} avSkins = [...set].filter(k => SKN[k]); }
+  async function loadGameChar() { let { data, error } = await sb.from('game_chars').select('look,zone,xp,kills,inv').eq('user_id', me.id).maybeSingle();
+    if (error && /inv/.test(error.message || '')) ({ data, error } = await sb.from('game_chars').select('look,zone,xp,kills').eq('user_id', me.id).maybeSingle());
     if (error) { gchar = null; $('#d-avnote').hidden = false; $('#d-avnote').textContent = 'El avatar se activa cuando el admin corre el SQL de Cenizas.'; $('#av-open').hidden = true; return; }
-    gchar = data; const ZN = { parque: 'Parque del Nogal', barrio: 'Barrio Silencioso', plaza: 'Plaza de Mayo', subte: 'Corredor Subterráneo', complejo: 'Complejo de Contención', inferior: 'Zona Inferior', santuario: 'Santuario del Umbral' };
+    gchar = data; const ZN = { parque: 'Parque del Nogal', barrio: 'Barrio Silencioso', plaza: 'Plaza de Mayo', subte: 'Corredor Subterráneo', complejo: 'Complejo de Contención', inferior: 'Zona Inferior', santuario: 'Santuario del Umbral', z1: 'Rivadavia', z2: 'Estación Haedo', z3: 'Iglesia · Comisaría', z4: '11 de Septiembre' };
     $('#d-game').textContent = data ? 'NV ' + (Math.floor(Math.sqrt((data.xp || 0) / 50)) + 1) + ' · ' + (data.kills || 0) + ' caídos · ' + (ZN[data.zone] || '—') : 'todavía no entraste';
-    drawAv(); }
+    await loadSkins(); drawAv(); }
   $('#d-pic').onclick = () => { avRot = (avRot + 1) % 4; drawAv(); };
   $('#av-open').onclick = () => { const A = THEOF_AV; avLook = Object.assign({ body: 0, skin: 1, hair: 0, hcol: 1, top: 0, acc: 0 }, gchar && gchar.look && gchar.look.body != null ? gchar.look : {}, { fac: me.faction }); delete avLook.char;
-    const opts = [['CUERPO', 'body', A.BODY], ['PIEL', 'skin', ['Tono 1', 'Tono 2', 'Tono 3', 'Tono 4']], ['PELO', 'hair', A.HAIR], ['COLOR', 'hcol', A.HCOL.map(h => h[0])], ['ROPA', 'top', A.TOPS[me.faction === 'ork' ? 'ork' : 'rebel'].map(t => t[0])], ['ACCESORIO', 'acc', A.ACC]];
-    const box = $('#av-opts'); box.innerHTML = '';
-    opts.forEach(([lab, k, list]) => { const r = document.createElement('div'); r.className = 'avopt'; r.innerHTML = '<span>' + lab + '</span><button type="button" aria-label="anterior">‹</button><b></b><button type="button" aria-label="siguiente">›</button>';
-      const b = r.querySelector('b'), upd = () => b.textContent = list[avLook[k]] || list[0];
-      r.children[1].onclick = () => { avLook[k] = ((avLook[k] || 0) + list.length - 1) % list.length; upd(); drawAv(); };
-      r.children[3].onclick = () => { avLook[k] = ((avLook[k] || 0) + 1) % list.length; upd(); drawAv(); }; upd(); box.appendChild(r); });
+    const ork = me.faction === 'ork'; if (ork && avLook.cls == null) avLook.cls = 0;
+    const box = $('#av-opts');
+    const build = () => { box.innerHTML = '';
+      const opts = [['CUERPO', 'body', A.BODY], ['PIEL', 'skin', ['Tono 1', 'Tono 2', 'Tono 3', 'Tono 4']], ['PELO', 'hair', A.HAIR], ['COLOR', 'hcol', A.HCOL.map(h => h[0])], ['ROPA', 'top', ork ? A.OTOPS[avLook.cls].map(t => t[0]) : A.TOPS.rebel.map(t => t[0])], ['ACCESORIO', 'acc', A.ACC]];
+      if (ork) opts.unshift(['CLASE', 'cls', A.OCLS]);
+      if (avSkins.length) { opts.unshift(['PERSONAJE', 'npcI', ['Propio'].concat(avSkins.map(k => SKN[k]))]); avLook.npcI = avLook.npc ? avSkins.indexOf(avLook.npc) + 1 : 0; }
+      opts.forEach(([lab, k, list]) => { const r = document.createElement('div'); r.className = 'avopt'; r.innerHTML = '<span>' + lab + '</span><button type="button" aria-label="anterior">‹</button><b></b><button type="button" aria-label="siguiente">›</button>';
+        const b = r.querySelector('b'), upd = () => b.textContent = list[avLook[k] || 0] || list[0];
+        const mv = dv => { avLook[k] = ((avLook[k] || 0) + dv + list.length) % list.length; if (k === 'npcI') { if (avLook.npcI) avLook.npc = avSkins[avLook.npcI - 1]; else delete avLook.npc; } if (k === 'cls') { avLook.top = 0; build(); } else upd(); drawAv(); };
+        r.children[1].onclick = () => mv(-1); r.children[3].onclick = () => mv(1); upd(); box.appendChild(r); });
+      if (!ork) { const pk = document.createElement('p'); pk.className = 'note'; pk.style.marginTop = '8px'; pk.textContent = 'Rebeldes: corren más rápido y encuentran más cosas al matar Oscuros.'; box.appendChild(pk); }
+      if (ork) { const pk = document.createElement('p'); pk.className = 'note'; pk.style.marginTop = '8px'; pk.textContent = 'ORK: los Oscuros te sacan 15% menos. ' + ['Militar: los Perros te sacan 40% menos.', 'Científico: los Corredores te sacan 40% menos.', 'Espía: los Errantes te sacan 40% menos.'][avLook.cls]; box.appendChild(pk); } };
+    build();
     $('#av-edit').hidden = false; $('#av-open').hidden = true; say('#av-msg', ''); drawAv(); };
   $('#av-cancel').onclick = () => { avLook = null; $('#av-edit').hidden = true; $('#av-open').hidden = false; drawAv(); };
-  $('#av-save').onclick = async () => { $('#av-save').disabled = true; say('#av-msg', 'guardando…'); const look = Object.assign({}, avLook, { fac: me.faction });
+  $('#av-save').onclick = async () => { $('#av-save').disabled = true; say('#av-msg', 'guardando…'); const look = Object.assign({}, avLook, { fac: me.faction }); delete look.npcI;
     const r = gchar ? await sb.from('game_chars').update({ look, updated_at: new Date().toISOString() }).eq('user_id', me.id) : await sb.from('game_chars').insert({ user_id: me.id, look, zone: 'parque', x: 0, y: 0 });
     $('#av-save').disabled = false; if (r.error) return say('#av-msg', 'No se pudo guardar: ' + r.error.message, true);
     avLook = null; $('#av-edit').hidden = true; $('#av-open').hidden = false; toast('Avatar guardado. Así te van a ver en Cenizas.'); await loadGameChar(); };
@@ -588,6 +608,15 @@
     if (error) return say('#pw-msg', /reauth|nonce/i.test(error.message) ? 'Por seguridad, salí, volvé a entrar y probá de nuevo.' : 'No se pudo: ' + error.message, true);
     $('#pw-cancel').click(); toast('Contraseña cambiada.'); });
   $('#enter-game').onclick = () => { $('#enter-game').disabled = true; location.href = '/cenizas.html'; };
+  $('#enter-exp').onclick = () => { $('#enter-exp').disabled = true; location.href = '/cenizas.html?modo=exp'; };
+  /* cambiar el nombre (las skins quedan con la cuenta, no con el nombre) */
+  $('#nk-open').onclick = () => { $('#f-nk').hidden = false; $('#nk-open').hidden = true; $('#nk-1').value = me.nick; $('#nk-1').focus(); };
+  $('#nk-cancel').onclick = () => { $('#f-nk').hidden = true; $('#nk-open').hidden = false; say('#nk-msg', ''); };
+  $('#f-nk').addEventListener('submit', async e => { e.preventDefault(); const nk = $('#nk-1').value.trim();
+    if (!/^[A-Za-z0-9_.\-]{3,20}$/.test(nk)) return say('#nk-msg', 'De 3 a 20 letras o números, sin espacios (vale _ . -).', true); if (nk === me.nick) return $('#nk-cancel').click();
+    $('#nk-go').disabled = true; say('#nk-msg', 'guardando…'); const { error } = await sb.rpc('set_nick', { new_nick: nk }); $('#nk-go').disabled = false;
+    if (error) return say('#nk-msg', /usado|taken|unique|duplicate/i.test(error.message) ? 'Ese nombre ya lo tiene otro.' : /function|does not exist/i.test(error.message) ? 'Falta correr 07_skins_y_modos.sql en Supabase.' : 'No se pudo: ' + error.message, true);
+    me.nick = nk; $('#nk-cancel').click(); fillDesktop(); toast('Ahora te llamás ' + nk + '.'); });
 
   /* ================= ADMIN ================= */
   $$('[data-xtab]').forEach(b => b.onclick = () => { $$('[data-xtab]').forEach(x => x.setAttribute('aria-selected', String(x === b))); $('#adm-users').hidden = b.dataset.xtab !== 'users'; $('#f-news').hidden = b.dataset.xtab !== 'pub'; });

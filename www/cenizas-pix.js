@@ -86,6 +86,62 @@
     }, 'r' + frame + (hurt ? 'h' : ''));
   }
 
+
+  /* Incinerario: Oscuro que arde por dentro (de frente) */
+  function incinerario(frame, hurt) {
+    return make(20, 30, px => { const { B, H, D } = pal(hurt); const F1 = hurt ? '#fff' : '#ff8a2a', F2 = hurt ? '#ffe' : '#ffd36a', F3 = '#c9302a';
+      const fl = frame === 1 ? 1 : 0;
+      px(8, 0 - fl, 4, 2, F3); px(7, 1, 6, 2, F1); px(8, 1, 4, 1, F2);
+      px(6, 3, 8, 6, B); px(7, 5, 2, 1, F2); px(11, 5, 2, 1, F2); px(8, 7, 4, 1, F1);
+      px(5, 9, 10, 10, B); px(5, 9, 2, 10, H); px(9, 10, 2, 7, F1); px(8, 12, 4, 2, F2); px(7, 15, 1, 2, F1); px(12, 11, 1, 3, F1);
+      const sw = frame === 1 ? 1 : frame === 2 ? -1 : 0;
+      px(3, 10 + sw, 2, 10, B); px(3, 19 + sw, 2, 2, F1); px(15, 10 - sw, 2, 10, B); px(15, 19 - sw, 2, 2, F1);
+      const l = frame === 1 ? 1 : 0, r = frame === 2 ? 1 : 0;
+      px(6, 19, 3, 9 - l, B); px(11, 19, 3, 9 - r, B); px(5, 28 - l, 4, 2, D); px(11, 28 - r, 4, 2, D); px(7, 22, 1, 2, F3); px(12, 23, 1, 2, F3);
+    }, 'n' + frame + (hurt ? 'h' : ''));
+  }
+  /* La Mole: enorme, cabeza chica, brazos como columnas (de frente) */
+  function mole(frame, hurt) {
+    return make(36, 40, px => { const { B, H, D, E } = pal(hurt);
+      px(14, 4, 8, 6, B); px(15, 3, 6, 1, B); px(16, 6, 1, 1, '#c9302a'); px(19, 6, 1, 1, '#c9302a'); px(16, 8, 4, 1, D);
+      px(5, 8, 26, 9, B); px(5, 8, 26, 2, H); px(7, 10, 3, 2, H); px(26, 10, 3, 2, H);
+      px(8, 17, 20, 11, B); px(9, 17, 6, 6, H); px(8, 22, 20, 1, D); px(12, 25, 12, 1, D);
+      const s = frame === 1 ? 1 : frame === 2 ? -1 : 0;
+      px(0, 10 + s, 6, 18, B); px(0, 27 + s, 8, 6, B); px(0, 32 + s, 8, 1, D); px(1, 10 + s, 1, 18, H);
+      px(30, 10 - s, 6, 18, B); px(28, 27 - s, 8, 6, B); px(28, 32 - s, 8, 1, D);
+      const l = frame === 1 ? 1 : 0, r = frame === 2 ? 1 : 0;
+      px(9, 28, 7, 10 - l, B); px(20, 28, 7, 10 - r, B); px(8, 38 - l, 9, 2, D); px(19, 38 - r, 9, 2, D);
+    }, 'm' + frame + (hurt ? 'h' : ''));
+  }
+  /* Mercedes, el Oscuro Negro: negro puro, ojos rojos, corona de ceniza, garras largas (de frente) */
+  function jefe(frame, hurt) {
+    return make(24, 36, px => { const B = hurt ? '#d8d4cc' : '#050505', H = hurt ? '#fff' : '#161618', R = '#ff2a1a', C = hurt ? '#bbb' : '#2a2a2c';
+      px(9, 0, 1, 3, C); px(11, 0, 1, 2, C); px(13, 0, 1, 3, C); px(15, 1, 1, 2, C); px(7, 1, 1, 2, C);
+      px(8, 2, 8, 7, B); px(9, 5, 2, 1, R); px(13, 5, 2, 1, R); px(10, 7, 4, 1, H);
+      px(6, 9, 12, 13, B); px(7, 9, 2, 12, H); px(11, 11, 2, 9, H);
+      const sw = frame === 1 ? 1 : frame === 2 ? -1 : 0;
+      px(3, 10 + sw, 3, 14, B); px(2, 24 + sw, 1, 4, C); px(4, 24 + sw, 1, 4, C); px(3, 24 + sw, 1, 5, C);
+      px(18, 10 - sw, 3, 14, B); px(19, 24 - sw, 1, 5, C); px(21, 24 - sw, 1, 4, C); px(18, 24 - sw, 1, 4, C);
+      const l = frame === 1 ? 1 : 0, r = frame === 2 ? 1 : 0;
+      px(8, 22, 3, 12 - l, B); px(13, 22, 3, 12 - r, B); px(7, 34 - l, 4, 2, H); px(13, 34 - r, 4, 2, H);
+      px(5, 21, 1, 3, C); px(18, 20, 1, 4, C);
+    }, 'j' + frame + (hurt ? 'h' : ''));
+  }
+  /* Sofía: pelo largo negro, cara pálida, abrigo oscuro, bufanda roja, cuchillos (de frente) */
+  function sofia(frame, hurt) {
+    return make(20, 34, px => { const HAIR = hurt ? '#ddd' : '#0e0e10', SK = hurt ? '#fff' : '#d9d2c8', COAT = hurt ? '#ccc' : '#1c1c20', CO2 = hurt ? '#eee' : '#2c2c32', RED = '#b8231c', KN = '#d8dce0';
+      px(6, 1, 8, 3, HAIR); px(5, 3, 10, 9, HAIR); px(7, 4, 6, 6, SK); px(8, 6, 1, 1, '#000'); px(11, 6, 1, 1, '#000'); px(9, 8, 2, 1, '#8a6a6a');
+      px(4, 10, 2, 10, HAIR); px(14, 10, 2, 10, HAIR);
+      px(7, 10, 6, 2, RED); px(12, 11, 2, 5, RED);
+      px(6, 12, 8, 12, COAT); px(6, 12, 2, 12, CO2); px(9, 13, 1, 10, '#0a0a0c');
+      const sw = frame === 1 ? 1 : frame === 2 ? -1 : 0;
+      px(4, 13 + sw, 2, 9, COAT); px(4, 22 + sw, 2, 1, SK); px(3, 23 + sw, 1, 4, KN);
+      px(14, 13 - sw, 2, 9, COAT); px(14, 22 - sw, 2, 1, SK); px(16, 23 - sw, 1, 4, KN);
+      px(5, 24, 10, 3, COAT);
+      const l = frame === 1 ? 1 : 0, r = frame === 2 ? 1 : 0;
+      px(7, 27, 2, 6 - l, '#141416'); px(11, 27, 2, 6 - r, '#141416'); px(6, 33 - l, 3, 1, '#000'); px(11, 33 - r, 3, 1, '#000');
+    }, 'f' + frame + (hurt ? 'h' : ''));
+  }
   /* ---------- items (12×12) ---------- */
   const ICON = {
     botiquin: px => { px(1, 3, 10, 8, '#d8d4cc'); px(1, 3, 10, 1, '#f2efe8'); px(4, 1, 4, 2, '#8a8780'); px(5, 5, 2, 5, '#c9302a'); px(3, 6, 6, 2, '#c9302a'); px(1, 10, 10, 1, '#8a8780'); },
@@ -107,12 +163,16 @@
     lanza: px => { for (let i = 0; i < 9; i++) px(1 + i, 11 - i, 1, 1, '#6b5c4c'); px(9, 2, 2, 2, '#c9ccd0'); px(10, 0, 2, 2, '#e8ecf0'); px(8, 3, 1, 1, '#c9302a'); },
     pistola: px => { px(2, 3, 9, 3, '#3a3a3c'); px(2, 3, 9, 1, '#5a5a5c'); px(10, 4, 2, 1, '#1a1a1a'); px(3, 6, 3, 5, '#2a2a2c'); px(6, 6, 2, 2, '#2a2a2c'); px(6, 7, 1, 1, '#5a5a5c'); }
 ,
-    suero: px => { px(4, 0, 4, 2, '#8a8780'); px(3, 2, 6, 9, '#d8d4cc'); px(4, 4, 4, 6, '#7fd0a0'); px(4, 4, 4, 1, '#b8f0cc'); px(5, 1, 2, 1, '#c9302a'); px(3, 11, 6, 1, '#8a8780'); },
+    kitsune: px => { px(2, 1, 8, 9, '#ece8e0'); px(1, 0, 2, 3, '#ece8e0'); px(9, 0, 2, 3, '#ece8e0'); px(2, 1, 1, 1, '#c9302a'); px(9, 1, 1, 1, '#c9302a'); px(3, 4, 2, 1, '#c9302a'); px(7, 4, 2, 1, '#c9302a'); px(3, 5, 2, 1, '#111'); px(7, 5, 2, 1, '#111'); px(5, 7, 2, 1, '#c9302a'); px(4, 9, 4, 1, '#c9302a'); px(3, 10, 6, 1, '#b8b2a6'); },
+    suero: px => { px(4, 1, 4, 2, '#3a3a3a'); px(5, 2, 2, 1, '#111'); px(1, 3, 10, 8, '#d8d4cc'); px(1, 3, 10, 1, '#f2efe8'); px(1, 10, 10, 1, '#8a8780'); px(5, 4, 2, 6, '#c9302a'); px(3, 6, 6, 2, '#c9302a'); px(1, 6, 1, 1, '#8a8780'); px(10, 6, 1, 1, '#8a8780'); },
     campera: px => { px(2, 2, 8, 9, '#5a4a3c'); px(1, 3, 2, 6, '#5a4a3c'); px(9, 3, 2, 6, '#5a4a3c'); px(5, 2, 2, 9, '#3a2e24'); px(3, 2, 2, 1, '#7a6a5a'); px(7, 2, 2, 1, '#7a6a5a'); px(2, 10, 8, 1, '#3a2e24'); },
     chaleco: px => { px(2, 2, 8, 9, '#3a3d40'); px(2, 2, 2, 2, '#1e2022'); px(8, 2, 2, 2, '#1e2022'); px(3, 5, 6, 4, '#4a4e52'); px(3, 6, 6, 1, '#2a2c2e'); px(3, 8, 6, 1, '#2a2c2e'); px(5, 4, 2, 1, '#c9302a'); },
     armadura: px => { px(2, 1, 8, 10, '#6a6d72'); px(1, 2, 2, 4, '#7a7d82'); px(9, 2, 2, 4, '#7a7d82'); px(3, 3, 6, 1, '#9a9da2'); px(3, 6, 6, 1, '#4a4d52'); px(3, 9, 6, 1, '#4a4d52'); px(4, 4, 1, 1, '#c9ccd0'); px(7, 4, 1, 1, '#c9ccd0'); }
+,
+    vendas: px => { px(2, 3, 8, 6, '#e8e4da'); px(2, 4, 8, 1, '#bdb8ae'); px(2, 6, 8, 1, '#bdb8ae'); px(4, 4, 4, 4, '#cfcac0'); px(5, 5, 2, 2, '#c9302a'); px(9, 7, 3, 2, '#e8e4da'); },
+    moneda: px => { px(3, 1, 6, 10, '#c9a24a'); px(2, 2, 8, 8, '#c9a24a'); px(3, 2, 6, 1, '#f0d488'); px(2, 3, 1, 3, '#f0d488'); px(5, 3, 2, 6, '#8a6a20'); px(4, 4, 4, 1, '#8a6a20'); px(4, 7, 4, 1, '#8a6a20'); }
   };
   function icon(k) { return make(12, 12, ICON[k] || ICON.pagina, 'i' + k); }
 
-  window.CZ_PIX = { errante, corredor, perro, denso, sombra, rastrero, icon };
+  window.CZ_PIX = { errante, corredor, perro, denso, sombra, rastrero, incinerario, mole, jefe, sofia, icon };
 })();
