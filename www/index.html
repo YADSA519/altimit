@@ -54,7 +54,7 @@
     <button class="btn solid" type="submit" id="rc-go">MANDAR CÓDIGO</button>
     <button class="linkish" type="button" id="rc-back">volver</button>
   </form>
-  <div class="lfoot">THE O|F // v0.6.2 // NODO LOCAL</div>
+  <div class="lfoot">THE O|F // v0.9 // NODO LOCAL</div>
 </section>
 
 <!-- ================= EN ESPERA / BLOQUEADO ================= -->
@@ -104,7 +104,7 @@
     <dl class="mfoot">
       <dt>USUARIO</dt><dd><b id="mf-user">—</b></dd>
       <dt>EN LA RED</dt><dd><b id="mf-people">—</b></dd>
-      <dt>THE O|F</dt><dd>v0.6.2</dd>
+      <dt>THE O|F</dt><dd>v0.9</dd>
     </dl>
   </aside>
 
@@ -207,17 +207,20 @@
     <section class="view" id="v-desktop" hidden>
       <header class="head"><button class="back" data-go="menu" aria-label="Volver al menú"></button><h1>DESKTOP</h1><div class="meta"></div></header>
       <div class="body">
-        <div class="id"><div class="pic"><svg viewBox="0 0 100 120"><circle cx="50" cy="40" r="20"/><path d="M12 120c2-30 18-46 38-46s36 16 38 46z"/></svg></div>
+        <div class="id"><button class="pic" id="d-pic" type="button" aria-label="Girar avatar"><canvas id="d-av" width="24" height="32"></canvas></button>
           <div><div class="nm" id="d-nick">—</div><div class="hint" id="d-net"></div><div class="clock" id="d-clock">--:--</div><div class="tagline2" id="d-date"></div></div></div>
-        <dl class="kv"><dt>ESTADO</dt><dd>ONLINE</dd><dt>BANDO</dt><dd id="d-fac">—</dd><dt>RANGO</dt><dd id="d-role">—</dd><dt>EN LA RED DESDE</dt><dd id="d-since">—</dd></dl>
-        <div class="row2" style="margin-top:18px"><button class="btn" id="pw-open" type="button">CAMBIAR CONTRASEÑA</button></div>
+        <dl class="kv"><dt>ESTADO</dt><dd>ONLINE</dd><dt>EN CENIZAS</dt><dd id="d-game">—</dd><dt>BANDO</dt><dd id="d-fac">—</dd><dt>RANGO</dt><dd id="d-role">—</dd><dt>EN LA RED DESDE</dt><dd id="d-since">—</dd></dl>
+        <div class="row2" style="margin-top:18px"><button class="btn solid" id="av-open" type="button">EDITAR AVATAR</button><button class="btn" id="pw-open" type="button">CAMBIAR CONTRASEÑA</button></div>
+        <div class="card pad" id="av-edit" hidden style="margin-top:12px"><div class="section-title">TU SOBREVIVIENTE EN CENIZAS</div><div id="av-opts"></div>
+          <div class="msgline" id="av-msg" role="status"></div>
+          <div class="row2" style="justify-content:flex-end"><button class="btn" type="button" id="av-cancel">CANCELAR</button><button class="btn solid" type="button" id="av-save">GUARDAR</button></div></div>
         <form class="card pad" id="f-pw" novalidate hidden style="margin-top:12px">
           <label class="section-title" for="pw-1">CONTRASEÑA NUEVA</label><input type="password" id="pw-1" autocomplete="new-password">
           <label class="section-title" for="pw-2">REPETIR</label><input type="password" id="pw-2" autocomplete="new-password">
           <div class="msgline" id="pw-msg" role="status"></div>
           <div class="row2" style="justify-content:flex-end"><button class="btn" type="button" id="pw-cancel">CANCELAR</button><button class="btn solid" type="submit" id="pw-go">GUARDAR</button></div>
         </form>
-        <p class="note">El editor del avatar llega con Cenizas.</p>
+        <p class="note" id="d-avnote" hidden></p>
       </div>
     </section>
 
@@ -260,6 +263,7 @@
 
 <script src="/a/supabase.js"></script>
 <script src="/config.js"></script>
+<script src="/avatar.js"></script>
 <script src="/icons.js"></script>
 <script src="/app.js"></script>
 </body>

@@ -551,7 +551,31 @@
     $('#ph-compose').hidden = true; phBlob = null; toast('Foto enviada a ' + nickOf(to) + '.'); await loadPhotos(); phTab('out'); };
 
   /* ================= DESKTOP ================= */
-  function fillDesktop() { if (!me) return; $('#d-nick').textContent = me.nick.toUpperCase(); $('#d-fac').textContent = me.faction === 'ork' ? 'ORK / VIREX' : 'REBELDES';
+  /* avatar de Cenizas en DESKTOP */
+  let gchar = null, avLook = null, avRot = 0, avFrame = 0, avTimer = null; const AVD = ['d', 'l', 'u', 'r'];
+  function drawAv() { const cv = $('#d-av'); if (!cv || !window.THEOF_AV) return; const g = cv.getContext('2d'); g.imageSmoothingEnabled = false; g.clearRect(0, 0, 24, 32);
+    const lk = avLook || (gchar && gchar.look); if (!lk || lk.body == null) { g.fillStyle = '#3c3c3c'; g.fillRect(9, 6, 6, 6); g.fillRect(7, 13, 10, 15); return; }
+    g.drawImage(THEOF_AV.sprite(Object.assign({}, lk, { fac: me.faction }), AVD[avRot], avFrame, false), 3, 4, 18, 26); }
+  async function loadGameChar() { const { data, error } = await sb.from('game_chars').select('look,zone,xp,kills').eq('user_id', me.id).maybeSingle();
+    if (error) { gchar = null; $('#d-avnote').hidden = false; $('#d-avnote').textContent = 'El avatar se activa cuando el admin corre el SQL de Cenizas.'; $('#av-open').hidden = true; return; }
+    gchar = data; const ZN = { parque: 'Parque del Nogal', barrio: 'Barrio Silencioso', plaza: 'Plaza de Mayo', subte: 'Corredor Subterráneo', complejo: 'Complejo de Contención', inferior: 'Zona Inferior', santuario: 'Santuario del Umbral' };
+    $('#d-game').textContent = data ? 'NV ' + (Math.floor(Math.sqrt((data.xp || 0) / 50)) + 1) + ' · ' + (data.kills || 0) + ' caídos · ' + (ZN[data.zone] || '—') : 'todavía no entraste';
+    drawAv(); }
+  $('#d-pic').onclick = () => { avRot = (avRot + 1) % 4; drawAv(); };
+  $('#av-open').onclick = () => { const A = THEOF_AV; avLook = Object.assign({ body: 0, skin: 1, hair: 0, hcol: 1, top: 0, acc: 0 }, gchar && gchar.look && gchar.look.body != null ? gchar.look : {}, { fac: me.faction }); delete avLook.char;
+    const opts = [['CUERPO', 'body', A.BODY], ['PIEL', 'skin', ['Tono 1', 'Tono 2', 'Tono 3', 'Tono 4']], ['PELO', 'hair', A.HAIR], ['COLOR', 'hcol', A.HCOL.map(h => h[0])], ['ROPA', 'top', A.TOPS[me.faction === 'ork' ? 'ork' : 'rebel'].map(t => t[0])], ['ACCESORIO', 'acc', A.ACC]];
+    const box = $('#av-opts'); box.innerHTML = '';
+    opts.forEach(([lab, k, list]) => { const r = document.createElement('div'); r.className = 'avopt'; r.innerHTML = '<span>' + lab + '</span><button type="button" aria-label="anterior">‹</button><b></b><button type="button" aria-label="siguiente">›</button>';
+      const b = r.querySelector('b'), upd = () => b.textContent = list[avLook[k]] || list[0];
+      r.children[1].onclick = () => { avLook[k] = ((avLook[k] || 0) + list.length - 1) % list.length; upd(); drawAv(); };
+      r.children[3].onclick = () => { avLook[k] = ((avLook[k] || 0) + 1) % list.length; upd(); drawAv(); }; upd(); box.appendChild(r); });
+    $('#av-edit').hidden = false; $('#av-open').hidden = true; say('#av-msg', ''); drawAv(); };
+  $('#av-cancel').onclick = () => { avLook = null; $('#av-edit').hidden = true; $('#av-open').hidden = false; drawAv(); };
+  $('#av-save').onclick = async () => { $('#av-save').disabled = true; say('#av-msg', 'guardando…'); const look = Object.assign({}, avLook, { fac: me.faction });
+    const r = gchar ? await sb.from('game_chars').update({ look, updated_at: new Date().toISOString() }).eq('user_id', me.id) : await sb.from('game_chars').insert({ user_id: me.id, look, zone: 'parque', x: 0, y: 0 });
+    $('#av-save').disabled = false; if (r.error) return say('#av-msg', 'No se pudo guardar: ' + r.error.message, true);
+    avLook = null; $('#av-edit').hidden = true; $('#av-open').hidden = false; toast('Avatar guardado. Así te van a ver en Cenizas.'); await loadGameChar(); };
+  function fillDesktop() { if (!me) return; loadGameChar(); clearInterval(avTimer); avTimer = setInterval(() => { if (cur === 'desktop' && !document.hidden) { avFrame = (avFrame + 1) % 3; drawAv(); } }, 280); $('#d-nick').textContent = me.nick.toUpperCase(); $('#d-fac').textContent = me.faction === 'ork' ? 'ORK / VIREX' : 'REBELDES';
     $('#d-role').textContent = me.role === 'admin' ? 'ADMIN' : (me.faction === 'ork' ? 'AGENTE' : 'SOBREVIVIENTE'); $('#d-since').textContent = stamp(me.created_at).slice(0, 10);
     $('#d-net').textContent = SKIN[me.faction].pill.split(' · ')[0]; tick(); }
   function tick() { const d = new Date(); $('#d-clock').textContent = hhmm(d); $('#d-date').textContent = DIAS[d.getDay()] + ' ' + pad(d.getDate()) + '.' + pad(d.getMonth() + 1) + '.' + d.getFullYear(); $('#theof-meta').textContent = hhmm(d); }
