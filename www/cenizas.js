@@ -313,7 +313,10 @@
   const lvlOf = xp => Math.min(80, Math.floor(Math.sqrt(xp / 50)) + 1), xpFor = lv => 50 * (lv - 1) * (lv - 1), maxHp = lv => 100 + (lv - 1) * 12, dmgOf = lv => 1 + Math.floor((lv - 1) / 3);
 
   /* =================== ARRANQUE =================== */
-  async function boot() {
+  /* reglas que se cambian desde Supabase (tabla game_state, k = 'reglas') sin bajar el juego de nuevo */
+  const RULES = { muertePierdeNivel: false };
+  async function loadRules() { try { const { data } = await sb.from('game_state').select('v').eq('k', 'reglas').maybeSingle(); if (data && data.v) Object.assign(RULES, data.v); } catch (e) {} }
+  async function boot() { await loadRules();
     const { data: s } = await sb.auth.getSession(); if (!s.session) return location.replace('/index.html');
     const uid = s.session.user.id;
     const { data: prof } = await sb.from('profiles').select('id,nick,status,faction').eq('id', uid).maybeSingle();
@@ -475,10 +478,10 @@
     if (knock && knockFrom) { const dx = P.x - knockFrom.x, dy = P.y - knockFrom.y, l = Math.hypot(dx, dy) || 1; for (let i = 0; i < 6; i++) { const nx = P.x + dx / l * knock / 6, ny = P.y + dy / l * knock / 6; if (walkable(nx, ny)) { P.x = nx; P.y = ny; } } }
     if (P.hp <= 0) { P.hp = 0; P.dead = true; buzz([80, 60, 160]);
       /* MUNDO: si te mata un jugador o un jefe no perdés nivel; si te mata un Oscuro volvés al 1 */
-      const byBoss = !byId && mk && MOB[mk] && MOB[mk].boss, keep = !EXP && (byId || byBoss), rescued = me.faction === 'ork' ? 'ORK te rescató y te curaron.' : 'Los rebeldes te ayudaron y te volvieron a curar.';
+      const byBoss = !byId && mk && MOB[mk] && MOB[mk].boss, keep = !EXP && (byId || byBoss || !RULES.muertePierdeNivel), rescued = me.faction === 'ork' ? 'ORK te rescató y te curaron.' : 'Los rebeldes te ayudaron y te volvieron a curar.';
       let lostAb = 0; if (!keep) { P.lostLv = lvlOf(P.xp); P.xp = 0; lostAb = INV.ab.length; INV.ab = []; }
       if (byId) { const who = (others.get(byId) || {}).nick || 'alguien'; $('#ov-dead').querySelector('p').textContent = 'Te derribó ' + who + '. ' + (keep ? rescued : homeText()); pvpDrop(); net('died', { id: me.id, by: byId }); }
-      else $('#ov-dead').querySelector('p').textContent = (byBoss ? MOB[mk].name + ' te derribó. ' + rescued : 'La ceniza te cubrió. ' + homeText());
+      else $('#ov-dead').querySelector('p').textContent = (byBoss ? MOB[mk].name + ' te derribó. ' + rescued : 'La ceniza te cubrió. ' + (keep ? rescued : homeText()));
       $('#d-lv').textContent = keep ? 'No perdiste nivel: seguís en el ' + lvlOf(P.xp) + '.' : (P.lostLv > 1 ? 'Perdiste todo tu nivel: estabas en el ' + P.lostLv + ', volvés al 1.' : 'Volvés al nivel 1.') + (lostAb ? ' Perdiste tus habilidades.' : '');
       sendPos(true); persist(); setTimeout(() => $('#ov-dead').hidden = false, 700); }
     hud(); return true; }
