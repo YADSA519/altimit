@@ -561,17 +561,22 @@
   /* ================= DESKTOP ================= */
   /* avatar de Cenizas en DESKTOP */
   let gchar = null, avLook = null, avRot = 0, avFrame = 0, avTimer = null; const AVD = ['d', 'l', 'u', 'r'];
-  function drawAv() { const cv = $('#d-av'); if (!cv || !window.THEOF_AV) return; const g = cv.getContext('2d'); g.imageSmoothingEnabled = false; g.clearRect(0, 0, 24, 32);
-    const lk = avLook || (gchar && gchar.look); if (!lk || lk.body == null) { g.fillStyle = '#3c3c3c'; g.fillRect(9, 6, 6, 6); g.fillRect(7, 13, 10, 15); return; }
-    const npc = lk.npc && window.CZ_NPC && CZ_NPC.C[lk.npc] && avSkins.includes(lk.npc);
-    g.drawImage(npc ? CZ_NPC.draw(lk.npc, AVD[avRot], avFrame) : THEOF_AV.sprite(Object.assign({}, lk, { fac: me.faction }), AVD[avRot], avFrame, false), 3, 4, 18, 26); }
+  function drawAv() { const cv = $('#d-av'); if (!cv || !window.THEOF_AV) return; const HD = window.CZ_SHEETS;
+    if (HD && cv.width !== 96) { cv.width = 96; cv.height = 128; } const W = cv.width, H = cv.height, g = cv.getContext('2d'); g.clearRect(0, 0, W, H);
+    const lk = avLook || (gchar && gchar.look); if (!lk || lk.body == null) { g.fillStyle = '#3c3c3c'; g.fillRect(W * .37, H * .19, W * .25, H * .19); g.fillRect(W * .29, H * .4, W * .42, H * .47); return; }
+    const npc = lk.npc && avSkins.includes(lk.npc), dir = AVD[avRot];
+    if (HD) { const A = THEOF_AV, fac = me.faction === 'ork' ? 'ork' : 'rebel', cls = fac === 'ork' ? (lk.cls || 0) : -1, top = cls >= 0 ? (A.OTOPS[cls][lk.top] || A.OTOPS[cls][0]) : (A.TOPS[fac][lk.top] || A.TOPS[fac][0]);
+      const spr = npc ? HD.sheet(HD.NPC_SHEET[lk.npc] || lk.npc, dir, avFrame, false) : HD.base(lk.body === 1, lk.model || 0, [(HCOL6[lk.hcol] || HCOL6[1])[1], A.SKIN[lk.skin] || A.SKIN[1], top[1], (PANTC[lk.pant] || PANTC[0])[1], null], dir, avFrame, false);
+      if (spr) { HD.blit(g, spr, W / 2, H - 4, H * .86); return; } setTimeout(drawAv, 400); }
+    g.imageSmoothingEnabled = false; g.drawImage(npc && window.CZ_NPC && CZ_NPC.C[lk.npc] ? CZ_NPC.draw(lk.npc, dir, avFrame) : THEOF_AV.sprite(Object.assign({}, lk, { fac: me.faction }), dir, avFrame, false), W * .125, H * .125, W * .75, H * .81); }
   /* skins: Pablo y Pol son de una cuenta; Renzo y Sam se ganan matando a Mercedes */
-  let avSkins = []; const SKN = { pablo: 'Pablo', pol: 'Pol', renzo: 'Renzo', sam: 'Sam' };
+  let avSkins = []; const SKN = { pablo: 'Pablo 1', pablo2: 'Pablo 2', pablo3: 'Pablo 3', pol: 'Pol del futuro', polAlter: 'Pol alter', renzo: 'Renzo', sam: 'Sam', eze: 'Eze', esteban: 'Esteban', giuliana: 'Giuliana', lean: 'Lean', luis: 'Luis', norbert: 'Norbert', toby: 'Tobías', tomy: 'Tomy' };
+  const HCOL6 = [['Negro', '#1d1b1a'], ['Castaño', '#4b3a2e'], ['Gris', '#8b8680'], ['Blanco', '#d6d2cc'], ['Rubio', '#c9a24a'], ['Colorado', '#a8452a']], PANTC = [['Gris oscuro', '#38383a'], ['Jean', '#3e5a7a'], ['Caqui', '#7a6a4a'], ['Negro', '#1c1c1e'], ['Verde', '#4a5240']];
   async function loadSkins() { const set = new Set((gchar && gchar.inv && gchar.inv.skins) || []); try { const { data } = await sb.from('game_skins').select('skin').eq('user_id', me.id); (data || []).forEach(r => set.add(r.skin)); } catch (e) {} avSkins = [...set].filter(k => SKN[k]); }
   async function loadGameChar() { let { data, error } = await sb.from('game_chars').select('look,zone,xp,kills,inv').eq('user_id', me.id).maybeSingle();
     if (error && /inv/.test(error.message || '')) ({ data, error } = await sb.from('game_chars').select('look,zone,xp,kills').eq('user_id', me.id).maybeSingle());
     if (error) { gchar = null; $('#d-avnote').hidden = false; $('#d-avnote').textContent = 'El avatar se activa cuando el admin corre el SQL de Cenizas.'; $('#av-open').hidden = true; return; }
-    gchar = data; const ZN = { parque: 'Parque del Nogal', barrio: 'Barrio Silencioso', plaza: 'Plaza de Mayo', subte: 'Corredor Subterráneo', complejo: 'Complejo de Contención', inferior: 'Zona Inferior', santuario: 'Santuario del Umbral', z1: 'Rivadavia', z2: 'Estación Haedo', z3: 'Iglesia · Comisaría', z4: '11 de Septiembre' };
+    gchar = data; const ZN = { nogal: "El Nogal", calle: "La Calle De Pablo", callejon: "El Callejón", plazaArbol: "Plaza Del Árbol Muerto", interHaedo: "Intersección De Haedo", estHaedo: "Estación Haedo", mcd: "Esquina Del Mcdonald'S", patio: "Patio Ferroviario · Caballito", estOnce: "Estación Once", rivadavia: "Av. Rivadavia · Once", congreso: "Plaza Del Congreso", express: "Esquina Express", estatua: "La Estatua", portena: "Intersección Porteña", urbanoBA: "Cuadra Porteña", esperanza: "Esquina Del Fuego", abandono: "Esquina Del Portón", lezama: "Parque Lezama · Campamento Ork", plazaMayo: "Plaza De Mayo", refugioSub: "Refugio Subterráneo", nueveJulio: "Av. 9 De Julio · Obelisco", teatroAv: "Teatro Sobre La Avenida", colon: "Refugio Del Teatro Colón", libertador: "Cruce Libertador · Base Ork", muelle: "Campamento Del Muelle", puente: "Puente Sobre El Canal", bunker: "Búnker De Puerto Madero", lab: "Laboratorio · Puerto Madero" };
     $('#d-game').textContent = data ? 'NV ' + (Math.floor(Math.sqrt((data.xp || 0) / 50)) + 1) + ' · ' + (data.kills || 0) + ' caídos · ' + (ZN[data.zone] || '—') : 'todavía no entraste';
     await loadSkins(); drawAv(); }
   $('#d-pic').onclick = () => { avRot = (avRot + 1) % 4; drawAv(); };
@@ -579,7 +584,7 @@
     const ork = me.faction === 'ork'; if (ork && avLook.cls == null) avLook.cls = 0;
     const box = $('#av-opts');
     const build = () => { box.innerHTML = '';
-      const opts = [['CUERPO', 'body', A.BODY], ['PIEL', 'skin', ['Tono 1', 'Tono 2', 'Tono 3', 'Tono 4']], ['PELO', 'hair', A.HAIR], ['COLOR', 'hcol', A.HCOL.map(h => h[0])], ['ROPA', 'top', ork ? A.OTOPS[avLook.cls].map(t => t[0]) : A.TOPS.rebel.map(t => t[0])], ['ACCESORIO', 'acc', A.ACC]];
+      const opts = [['CUERPO', 'body', A.BODY], ['MODELO', 'model', ['Modelo 1', 'Modelo 2']], ['PIEL', 'skin', ['Tono 1', 'Tono 2', 'Tono 3', 'Tono 4']], ['PELO', 'hcol', HCOL6.map(h => h[0])], ['ROPA', 'top', ork ? A.OTOPS[avLook.cls].map(t => t[0]) : A.TOPS.rebel.map(t => t[0])], ['PANTALÓN', 'pant', PANTC.map(p => p[0])]];
       if (ork) opts.unshift(['CLASE', 'cls', A.OCLS]);
       if (avSkins.length) { opts.unshift(['PERSONAJE', 'npcI', ['Propio'].concat(avSkins.map(k => SKN[k]))]); avLook.npcI = avLook.npc ? avSkins.indexOf(avLook.npc) + 1 : 0; }
       opts.forEach(([lab, k, list]) => { const r = document.createElement('div'); r.className = 'avopt'; r.innerHTML = '<span>' + lab + '</span><button type="button" aria-label="anterior">‹</button><b></b><button type="button" aria-label="siguiente">›</button>';
@@ -592,7 +597,7 @@
     $('#av-edit').hidden = false; $('#av-open').hidden = true; say('#av-msg', ''); drawAv(); };
   $('#av-cancel').onclick = () => { avLook = null; $('#av-edit').hidden = true; $('#av-open').hidden = false; drawAv(); };
   $('#av-save').onclick = async () => { $('#av-save').disabled = true; say('#av-msg', 'guardando…'); const look = Object.assign({}, avLook, { fac: me.faction }); delete look.npcI;
-    const r = gchar ? await sb.from('game_chars').update({ look, updated_at: new Date().toISOString() }).eq('user_id', me.id) : await sb.from('game_chars').insert({ user_id: me.id, look, zone: 'parque', x: 0, y: 0 });
+    const r = gchar ? await sb.from('game_chars').update({ look, updated_at: new Date().toISOString() }).eq('user_id', me.id) : await sb.from('game_chars').insert({ user_id: me.id, look, zone: me.faction === 'ork' ? 'libertador' : 'nogal', x: 0, y: 0 });
     $('#av-save').disabled = false; if (r.error) return say('#av-msg', 'No se pudo guardar: ' + r.error.message, true);
     avLook = null; $('#av-edit').hidden = true; $('#av-open').hidden = false; toast('Avatar guardado. Así te van a ver en Cenizas.'); await loadGameChar(); };
   function fillDesktop() { if (!me) return; loadGameChar(); clearInterval(avTimer); avTimer = setInterval(() => { if (cur === 'desktop' && !document.hidden) { avFrame = (avFrame + 1) % 3; drawAv(); } }, 280); $('#d-nick').textContent = me.nick.toUpperCase(); $('#d-fac').textContent = me.faction === 'ork' ? 'ORK / VIREX' : 'REBELDES';

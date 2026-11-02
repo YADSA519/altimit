@@ -116,14 +116,14 @@
   const MOB = {
     errante: { coins: 1, name: 'Errante', art: 'errante', pw: 18, ph: 30, hp: 6, sp: 88, wsp: 30, dmg: 13, reach: 58, sight: 360, wind: .4, cd: 1.0, xp: 15, ai: 'chase', snd: 'growl' },
     corredor: { coins: 2, name: 'Corredor', art: 'corredor', pw: 26, ph: 24, hp: 5, sp: 125, dash: 400, wsp: 0, dmg: 16, reach: 62, sight: 500, wind: .45, cd: 1.3, xp: 26, ai: 'dash', snd: 'shriek' },
-    perro: { coins: 1, name: 'Perro Oscuro', art: 'perro', pw: 27, ph: 17, hp: 4, sp: 235, wsp: 60, dmg: 10, reach: 52, sight: 540, wind: .18, cd: .55, xp: 14, ai: 'flank', snd: 'bark' },
+    perro: { coins: 1, name: 'Sabueso', art: 'perro', pw: 27, ph: 17, hp: 4, sp: 235, wsp: 60, dmg: 10, reach: 52, sight: 540, wind: .18, cd: .55, xp: 14, ai: 'flank', snd: 'bark' },
     denso: { coins: 4, name: 'Denso', art: 'denso', pw: 26, ph: 34, hp: 24, sp: 58, wsp: 22, dmg: 32, reach: 96, aoe: 140, sight: 320, wind: .85, cd: 1.7, xp: 80, ai: 'slam', snd: 'roar', heavy: true },
     sombra: { coins: 2, name: 'Sombra', art: 'sombra', pw: 16, ph: 32, hp: 5, sp: 70, wsp: 25, dmg: 18, reach: 64, sight: 440, wind: .32, cd: .9, xp: 32, ai: 'blink', snd: 'whisper' },
     incinerario: { name: 'Incinerario', art: 'incinerario', pw: 20, ph: 30, hp: 12, sp: 75, wsp: 25, dmg: 16, reach: 430, keep: 270, pspeed: 380, sight: 520, wind: .7, cd: 2.0, xp: 50, coins: 3, ai: 'ranged', snd: 'roar' },
     mole: { name: 'La Mole', art: 'mole', pw: 36, ph: 40, hp: 90, sp: 58, wsp: 22, dmg: 22, big: 52, bigKnock: 340, reach: 100, sight: 360, wind: .7, cd: 1.15, xp: 240, coins: 10, ai: 'mole', snd: 'roar', heavy: true, respawn: 90000 },
     jefe: { name: 'MERCEDES', art: 'jefe', npc: 'mercedesMala', aura: '170,60,255', pw: 25, ph: 36, hp: 650, sp: 270, wsp: 60, dmg: 13, reach: 66, pspeed: 430, fdmg: 18, sight: 900, wind: .18, cd: .35, xp: 1800, coins: 25, ai: 'boss', snd: 'roar', heavy: true, boss: true, respawn: 480000 },
     sofia: { name: 'SOFÍA', art: 'sofia', npc: 'sofia', aura: '220,30,30', pw: 25, ph: 36, hp: 1100, sp: 255, wsp: 60, dmg: 15, reach: 64, pspeed: 720, fdmg: 14, sight: 900, wind: .2, cd: .4, xp: 6000, coins: 40, ai: 'sofia', snd: 'whisper', heavy: true, boss: true, respawn: 900000 },
-    rastrero: { coins: 1, name: 'Rastrero', art: 'rastrero', pw: 25, ph: 15, hp: 4, sp: 195, wsp: 45, dmg: 11, reach: 56, sight: 420, wind: .22, cd: .8, xp: 18, ai: 'zigzag', snd: 'hiss' }
+    rastrero: { coins: 1, name: 'Gato Oscuro', art: 'rastrero', pw: 25, ph: 15, hp: 4, sp: 195, wsp: 45, dmg: 11, reach: 56, sight: 420, wind: .22, cd: .8, xp: 18, ai: 'zigzag', snd: 'hiss' }
   };
   Object.values(MOB).forEach(T => { T.h = T.ph * PXS; });
   /* dibujo de un Oscuro: los jefes con forma humana usan el pixel de la historia */
@@ -556,8 +556,11 @@
     net('mdie', pl); onMobDie(pl); }
   function onMobDie(p) { const T = MOB[p.kind]; if (!T) return; const i = mobs.findIndex(o => o.id === p.id); if (i >= 0) mobs.splice(i, 1); SND.dissolve();
     const art = artOf(T, 0, false), g = art.getContext('2d').getImageData(0, 0, art.width, art.height).data;
-    for (let y = 0; y < art.height; y++) for (let x = 0; x < art.width; x++) { if (g[(y * art.width + x) * 4 + 3] < 10 || Math.random() < (T.boss ? .1 : .35)) continue;
-      const ks = T.ph / art.height; parts.push({ x: p.x + (p.f < 0 ? art.width / 2 - x : x - art.width / 2) * PXS * ks, y: p.y - (art.height - y) * PXS * ks, vx: rnd(-25, 45), vy: rnd(-70, -5) - (art.height - y) * 1.5, life: rnd(.9, 2.4), s: PXS * .9, c: Math.random() < .8 ? 40 : 150 }); }
+    /* ceniza corta y liviana: pocas partículas (máx. 45), se apagan rápido */
+    const st = Math.max(1, Math.round(art.width / 14)), pts = []; for (let y = 0; y < art.height; y += st) for (let x = 0; x < art.width; x += st) if (g[(y * art.width + x) * 4 + 3] >= 10) pts.push([x, y]);
+    const want = T.boss ? 45 : 22, hgt = art.hd ? T.ph * PXS * HD_K / (220 / art.height) : T.ph * PXS;
+    for (let n = 0; n < Math.min(want, pts.length); n++) { const [x, y] = pts[(Math.random() * pts.length) | 0], ks = hgt / art.height;
+      parts.push({ x: p.x + (p.f < 0 ? art.width / 2 - x : x - art.width / 2) * ks, y: p.y - (art.height - y) * ks * (art.hd ? 240 / 256 : 1), vx: rnd(-30, 50), vy: rnd(-90, -20), life: rnd(.35, .7), s: PXS * .9, c: Math.random() < .8 ? 40 : 150 }); }
     if (T.boss) { shake = .6; toast(T.name + ' cayó.'); }
     if (!p.by.includes(me.id)) return;
     const lvBefore = lvlOf(P.xp), mL = mobLevel(p.id, p.kind), gx = Math.round(T.xp * (mL ? lvXp(mL) : 1)), gc = (T.coins || 1) + Math.floor(mL / 8); P.kills++; P.xp += gx; INV.coins += gc; buzz(30);
