@@ -572,7 +572,8 @@
   /* skins: Pablo y Pol son de una cuenta; Renzo y Sam se ganan matando a Mercedes */
   let avSkins = []; const SKN = { pablo: 'Pablo 1', pablo2: 'Pablo 2', pablo3: 'Pablo 3', pol: 'Pol del futuro', polAlter: 'Pol alter', renzo: 'Renzo', sam: 'Sam', eze: 'Eze', esteban: 'Esteban', giuliana: 'Giuliana', lean: 'Lean', luis: 'Luis', norbert: 'Norbert', toby: 'Tobías', tomy: 'Tomy' };
   const HCOL6 = [['Negro', '#1d1b1a'], ['Castaño', '#4b3a2e'], ['Gris', '#8b8680'], ['Blanco', '#d6d2cc'], ['Rubio', '#c9a24a'], ['Colorado', '#a8452a']], PANTC = [['Gris oscuro', '#38383a'], ['Jean', '#3e5a7a'], ['Caqui', '#7a6a4a'], ['Negro', '#1c1c1e'], ['Verde', '#4a5240']];
-  async function loadSkins() { const set = new Set((gchar && gchar.inv && gchar.inv.skins) || []); try { const { data } = await sb.from('game_skins').select('skin').eq('user_id', me.id); (data || []).forEach(r => set.add(r.skin)); } catch (e) {} avSkins = [...set].filter(k => SKN[k]); }
+  const sknName = k => { if (SKN[k]) return SKN[k]; const H = window.CZ_SHEETS; return H && H.ALL.includes(H.NPC_SHEET[k] || k) ? (k.charAt(0).toUpperCase() + k.slice(1)).replace(/_/g, ' ') : null; };
+  async function loadSkins() { const set = new Set((gchar && gchar.inv && gchar.inv.skins) || []); try { const { data } = await sb.from('game_skins').select('skin').eq('user_id', me.id); (data || []).forEach(r => set.add(r.skin)); } catch (e) {} avSkins = [...set].filter(k => sknName(k)); }
   async function loadGameChar() { let { data, error } = await sb.from('game_chars').select('look,zone,xp,kills,inv').eq('user_id', me.id).maybeSingle();
     if (error && /inv/.test(error.message || '')) ({ data, error } = await sb.from('game_chars').select('look,zone,xp,kills').eq('user_id', me.id).maybeSingle());
     if (error) { gchar = null; $('#d-avnote').hidden = false; $('#d-avnote').textContent = 'El avatar se activa cuando el admin corre el SQL de Cenizas.'; $('#av-open').hidden = true; return; }
@@ -586,7 +587,7 @@
     const build = () => { box.innerHTML = '';
       const opts = [['CUERPO', 'body', A.BODY], ['MODELO', 'model', ['Modelo 1', 'Modelo 2']], ['PIEL', 'skin', ['Tono 1', 'Tono 2', 'Tono 3', 'Tono 4']], ['PELO', 'hcol', HCOL6.map(h => h[0])], ['ROPA', 'top', ork ? A.OTOPS[avLook.cls].map(t => t[0]) : A.TOPS.rebel.map(t => t[0])], ['PANTALÓN', 'pant', PANTC.map(p => p[0])]];
       if (ork) opts.unshift(['CLASE', 'cls', A.OCLS]);
-      if (avSkins.length) { opts.unshift(['PERSONAJE', 'npcI', ['Propio'].concat(avSkins.map(k => SKN[k]))]); avLook.npcI = avLook.npc ? avSkins.indexOf(avLook.npc) + 1 : 0; }
+      if (avSkins.length) { opts.unshift(['PERSONAJE', 'npcI', ['Propio'].concat(avSkins.map(k => sknName(k)))]); avLook.npcI = avLook.npc ? avSkins.indexOf(avLook.npc) + 1 : 0; }
       opts.forEach(([lab, k, list]) => { const r = document.createElement('div'); r.className = 'avopt'; r.innerHTML = '<span>' + lab + '</span><button type="button" aria-label="anterior">‹</button><b></b><button type="button" aria-label="siguiente">›</button>';
         const b = r.querySelector('b'), upd = () => b.textContent = list[avLook[k] || 0] || list[0];
         const mv = dv => { avLook[k] = ((avLook[k] || 0) + dv + list.length) % list.length; if (k === 'npcI') { if (avLook.npcI) avLook.npc = avSkins[avLook.npcI - 1]; else delete avLook.npc; } if (k === 'cls') { avLook.top = 0; build(); } else upd(); drawAv(); };

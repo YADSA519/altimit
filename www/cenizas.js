@@ -110,6 +110,7 @@
   /* dibuja un personaje (pixel 18×26 o planilla HD) con los pies en (sx, sy) */
   function blitChar(ctx, spr, sx, sy, S, k) { if (spr.hd) return HD.blit(ctx, spr, sx, sy + S, 25 * S * (k == null ? HD_K : k)); ctx.imageSmoothingEnabled = false; ctx.drawImage(spr, Math.round(sx - 9 * S), Math.round(sy - 25 * S), Math.round(18 * S), Math.round(26 * S)); }
   const SKIN_NAMES = { pablo: 'Pablo 1', pablo2: 'Pablo 2', pablo3: 'Pablo 3', pol: 'Pol del futuro', polAlter: 'Pol alter', renzo: 'Renzo', sam: 'Sam', eze: 'Eze', esteban: 'Esteban', giuliana: 'Giuliana', lean: 'Lean', luis: 'Luis', norbert: 'Norbert', toby: 'Tobías', tomy: 'Tomy' };
+  const skinName = k => { const n = SKIN_NAMES[k]; if (n) return n; const H = window.CZ_SHEETS; if (H && H.ALL.includes(H.NPC_SHEET[k] || k)) return (k.charAt(0).toUpperCase() + k.slice(1)).replace(/_/g, ' '); return null; };
   /* tipos de Oscuro: h = altura en mundo; las imágenes laterales miran a la derecha */
   /* Oscuros en pixel: PXS = tamaño de cada pixel en el mundo (igual que los avatares) */
   const PIX = window.CZ_PIX, PXS = 6.4, CELL_HD = 256, HD_K = .75; // HD_K: tamaño de los personajes en planilla respecto del pixel viejo
@@ -335,7 +336,7 @@
   let mySkins = [];
   async function loadSkins(uid, gc) { const set = new Set((gc && gc.inv && gc.inv.skins) || []);
     try { const { data } = await sb.from('game_skins').select('skin').eq('user_id', uid); (data || []).forEach(r => set.add(r.skin)); } catch (e) {}
-    return [...set].filter(k => SKIN_NAMES[k]); }
+    return [...set].filter(k => skinName(k)); }
   /* EXPERIMENTAL: nivel, mochila y lugar guardados aparte (game_exp, o el teléfono si falta la tabla) */
   let noExpTable = false;
   async function loadExp(uid) { let row = null;
@@ -357,7 +358,7 @@
         ['ROPA', 'top', () => me.faction === 'ork' ? OTOPS[look.cls].map(t => t[0]) : TOPS.rebel.map(t => t[0])], ['ACCESORIO', 'acc', () => ACC]];
       if (HD) { for (let i = opts.length - 1; i >= 0; i--) if (opts[i][1] === 'hair' || opts[i][1] === 'acc') opts.splice(i, 1); opts.push(['PANTALÓN', 'pant', () => PANTC.map(p => p[0])]); opts.splice(opts.findIndex(o => o[1] === 'body') + 1, 0, ['MODELO', 'model', () => ['Modelo 1', 'Modelo 2']]); }
       if (me.faction === 'ork') opts.unshift(['CLASE', 'cls', () => OCLS]);
-      if (mySkins.length) opts.unshift(['PERSONAJE', 'npcI', () => ['Propio'].concat(mySkins.map(k => SKIN_NAMES[k] || k))]);
+      if (mySkins.length) opts.unshift(['PERSONAJE', 'npcI', () => ['Propio'].concat(mySkins.map(k => skinName(k)))]);
       look.npcI = look.npc ? mySkins.indexOf(look.npc) + 1 : 0;
       const first = box.firstChild;
       opts.forEach(([lab, k, lf]) => { const list = lf(); const r = document.createElement('div'); r.className = 'opt';
@@ -434,7 +435,7 @@
     store.set('cz-exp-' + me.id, JSON.stringify(row)); if (noExpTable) return; try { const { error } = await sb.from('game_exp').upsert(row); if (error) noExpTable = true; } catch (e) {} }
   /* skins del MUNDO: se guardan en la mochila del modo MUNDO */
   async function grantSkins(list) { if (EXP) return; INV.skins = INV.skins || []; const nw = list.filter(k => !INV.skins.includes(k)); if (!nw.length) return; INV.skins.push(...nw); try { sb.rpc('game_grant_boss_skins').then(() => {}, () => {}); } catch (e) {} nw.forEach(k => { if (!mySkins.includes(k)) mySkins.push(k); });
-    setTimeout(() => toast('DESBLOQUEASTE A ' + nw.map(k => SKIN_NAMES[k].toUpperCase()).join(' Y ') + ' · elegilos en DESKTOP'), 1400); persist(); }
+    setTimeout(() => toast('DESBLOQUEASTE A ' + nw.map(k => (skinName(k) || k).toUpperCase()).join(' Y ') + ' · elegilos en DESKTOP'), 1400); persist(); }
   /* ---------- el suero: uno solo en todo el mundo, cambia de lugar cada 3 minutos ---------- */
   const SLOT_MS = 180000, MAP_KEYS = Object.keys(MAPS); const suero = { slot: -1, map: null, taken: -1 };
   function seeded(n) { let a = (n * 2654435761) >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }

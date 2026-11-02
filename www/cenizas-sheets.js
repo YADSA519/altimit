@@ -38,5 +38,6 @@
   function blit(ctx, cv, x, y, h) { const k = h / 220, s = CELL * k; ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(cv, Math.round(x - 128 * k), Math.round(y - 240 * k), Math.round(s), Math.round(s)); }
   /* precarga lo que se usa siempre */
   ['base_h1', 'base_h2', 'base_m1', 'base_m2'].flatMap(b => [b, b + '_reg']).concat(Object.values(NPC_SHEET), Object.values(MOB_SHEET)).forEach(n => load('/a/pj/' + n + '.png'));
-  window.CZ_SHEETS = { CELL, MODELS, NPC_SHEET, MOB_SHEET, sheet, base, blit, load };
+  const ALL = ["ani", "anita", "anixa", "arshi", "azu", "bong", "carolina", "cin", "claudia", "corredor_final", "corredor_incinerario", "cyn", "dario", "ding", "el_sabio", "espectro", "eze", "gato", "giuliana", "gusty", "ignacio", "irene", "jaqui", "jem", "joaco", "jota", "jota_viejo", "julieta", "kamikaze", "laura", "le_cape", "lean", "leti", "lilia", "lucas", "lucas_hermano", "luis", "mariano", "mariela", "marta", "mary_futuro", "maxi", "mercedes", "mole", "natsume", "norbert", "oscuro_hombre", "oscuro_mujer", "pablo_1", "pablo_2", "pablo_3", "pol_alter", "pol_futuro", "raul", "renzo", "rocio", "romina", "rosa", "ruben", "sabueso", "sam", "sasha", "sofia_buena", "sofia_mala", "teby", "tincho", "toby", "tomy", "vanesa", "yuki"];
+  window.CZ_SHEETS = { CELL, MODELS, ALL, NPC_SHEET, MOB_SHEET, sheet, base, blit, load };
 })();
