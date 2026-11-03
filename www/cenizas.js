@@ -9,7 +9,7 @@
   const EXP = /[?&]modo=exp\b/.test(location.search);
   /* PvP: solo los mapas marcados pvp; las salidas a mapas que no son del PvP quedan cerradas */
   const ZONES = window.CZ_PVP || [];
-  const MAPS = EXP ? ZONES.reduce((o, k) => { const m = Object.assign({}, window.CZ_MAPS[k]); m.exits = m.exits.filter(e => ZONES.includes(e.to)); m.mobs = m.mobs ? Object.fromEntries(Object.entries(m.mobs).map(([a, n]) => [a, Math.max(1, Math.round(n / 2))])) : {}; o[k] = m; return o; }, {}) : window.CZ_MAPS;
+  const MAPS = EXP ? ZONES.reduce((o, k) => { const m = Object.assign({}, window.CZ_MAPS[k]); m.exits = m.exits.filter(e => ZONES.includes(e.to));  o[k] = m; return o; }, {}) : window.CZ_MAPS;
   const NPC = window.CZ_NPC || null;
   const ICON_PNG = { katana: 'katana', bate: 'bate', cuchillo: 'cuchillo', barra: 'barra', pistola: 'pistola', escopeta: 'escopeta', mascara: 'mascara', kitsune: 'capa', chaleco: 'chaleco', armadura: 'chaleco', campera: 'chaleco', palo: 'palo',
     b_contencion: 'brazalete', b_resonancia: 'brazalete', brz_ork: 'brazalete', brz_reb: 'brazalete', vendas: 'vendas', botiquin: 'vendas', suero: 'maletin', kit: 'maletin', cigarrillo: 'cigarrillo', manzana: 'manzana', credencial: 'credencial', pista_ork: 'credencial', pista_reb: 'pagina', pista: 'pagina', pagina: 'pagina', lanza: 'lanza', baston: 'lanza' };
@@ -130,6 +130,19 @@
   MOB.maxi = Object.assign({}, MOB.jefe, { name: 'MAXI', npc: 'maxi', aura: '60,200,255', hp: 800, dmg: 14, xp: 2600, coins: 30 });
   MOB.lilia = Object.assign({}, MOB.jefe, { name: 'LILIA', npc: 'lilia', aura: '210,60,200', hp: 1300, dmg: 17, xp: 7000, coins: 45 });
   const BOSS_AT = { estatua: 'ignacio', lezama: 'maxi', lab: 'lilia' };
+  const nm_ = (base, o) => Object.assign({}, MOB[base], { npc: undefined, aura: undefined }, o);
+  MOB.oscura = nm_('errante', { name: 'Oscura', sheet: 'oscura' });
+  MOB.cuervo = nm_('perro', { name: 'Cuervo', sheet: 'cuervo', sp: 250, hp: 4 });
+  MOB.reptante = nm_('rastrero', { name: 'Reptante', sheet: 'reptante', hp: 6, dmg: 13 });
+  MOB.insecto = nm_('corredor', { name: 'Insecto', sheet: 'insecto', hp: 7, dmg: 17, xp: 30 });
+  MOB.lodo = nm_('denso', { name: 'Hombre de Lodo', sheet: 'lodo', hp: 26, xp: 85 });
+  MOB.babosa = nm_('incinerario', { name: 'Babosa', sheet: 'babosa', hp: 16, sp: 45, xp: 60 });
+  /* jefes de mapa: uno solo, si lo matan vuelve a la hora */
+  MOB.garras = nm_('jefe', { name: 'GARRAS', sheet: 'garras', aura: '170,80,255', hp: 700, dmg: 14, xp: 2200, coins: 25, respawn: 3600000, hourly: true });
+  MOB.electrico = nm_('jefe', { name: 'EL ELECTROCUTADO', sheet: 'electrico', aura: '150,170,255', hp: 600, dmg: 13, xp: 1900, coins: 22, respawn: 3600000, hourly: true });
+  MOB.pantallas = nm_('jefe', { name: 'EL VIGÍA', sheet: 'pantallas', aura: '200,120,255', hp: 900, dmg: 15, xp: 3000, coins: 30, respawn: 3600000, hourly: true });
+  MOB.serpiente = nm_('mole', { name: 'LA SERPIENTE DE CABLES', sheet: 'serpiente', aura: '140,60,220', hp: 260, big: 60, xp: 2600, coins: 28, boss: true, respawn: 3600000, hourly: true });
+  const HOURLY_AT = { patio: 'electrico', nueveJulio: 'garras', muelle: 'serpiente', teatroAv: 'pantallas' };
   Object.values(MOB).forEach(T => { T.h = T.ph * PXS; });
   /* dibujo de un Oscuro: los jefes con forma humana usan el pixel de la historia */
   /* brillo de los Oscuros horneado una vez por dibujo (el filtro en vivo calentaba el celu) */
@@ -138,7 +151,7 @@
     const cv = document.createElement('canvas'); cv.width = art.width; cv.height = art.height; const g = cv.getContext('2d'); const bl = Math.max(1, art.width / (au ? 22 : 45));
     g.filter = 'drop-shadow(0 0 ' + bl.toFixed(1) + 'px rgba(' + (au || '230,225,215') + ',' + (au ? '.95' : '.75') + '))'; g.drawImage(art, 0, 0); g.filter = 'none'; if (!cv.width) return art; m[k] = cv; return cv; }
   function artOf(T, frame, hurt, moving, atk) { const dir = moving ? 'r' : 'd';
-    if (HD) { const nm = T.npc ? (HD.NPC_SHEET[T.npc] || T.npc) : HD.MOB_SHEET[T.art]; const s = nm && HD.sheet(nm, dir, frame, atk); if (s) return s; }
+    if (HD) { const nm = T.sheet || (T.npc ? (HD.NPC_SHEET[T.npc] || T.npc) : HD.MOB_SHEET[T.art]); const s = nm && HD.sheet(nm, dir, frame, atk); if (s) return s; }
     if (T.npc && NPC && NPC.C[T.npc]) return NPC.draw(T.npc, dir, frame); return PIX[T.art](frame, hurt); }
   /* lo que aparece cuando se desbloquea cada jefe (por mapa) */
   const EXTRA = { incinerario: { patio: 2, estOnce: 2, lezama: 2, muelle: 2 }, mole: { congreso: 1, puente: 1 }, jefe: { lab: 1 }, sofia: { nueveJulio: 1 } };
@@ -182,6 +195,14 @@
     fragmento: { n: 'Fragmento temporal', t: 'Especial · épico', d: 'Residuo anómalo de las instalaciones. Vibra cuando lo tocás.' },
     kitsune: { n: 'Máscara kitsune', t: 'Objeto · 2 usos · la vende Rosa', d: 'Te ponés la máscara y desaparecés 3 segundos: los Oscuros y los otros jugadores no te ven. Después de 2 usos se rompe.', use: 'kitsune', uses: 2 }
   };
+  const MOBS_T = {
+    bajo: { errante: 3, oscura: 3, perro: 2, rastrero: 2, cuervo: 2 },
+    medio: { errante: 3, oscura: 2, corredor: 2, perro: 1, sombra: 2, cuervo: 2, insecto: 2, reptante: 1 },
+    alto: { errante: 2, oscura: 2, corredor: 2, sombra: 2, denso: 1, lodo: 2, insecto: 2, reptante: 2, babosa: 1, cuervo: 1, incinerario: 1 },
+    tope: { errante: 2, oscura: 2, corredor: 2, sombra: 2, denso: 2, lodo: 2, insecto: 2, reptante: 2, babosa: 2, incinerario: 1 },
+    pvp: { errante: 3, oscura: 3, perro: 2, cuervo: 2, rastrero: 2, corredor: 1 } };
+  Object.entries(MAPS).forEach(([k, m]) => { if (m.safeAll || m.base) { m.mobs = {}; return; } const top = (m.lv || [1, 3])[1];
+    m.mobs = EXP ? MOBS_T.pvp : top <= 12 ? MOBS_T.bajo : top <= 28 ? MOBS_T.medio : top <= 40 ? MOBS_T.alto : MOBS_T.tope; });
   const LOOT_T = {
     bajo: [['pilas', 3], ['campera', 1.2], ['vendas', 2], ['linterna', 1], ['barra', 1], ['cuchillo', .7], ['bate', .5], ['pista', .5]],
     medio: [['pilas', 2], ['campera', 1], ['chaleco', .7], ['vendas', 2], ['lanza', .5], ['pistola', .4], ['katana', .3], ['mascara', .8], ['pista', .6]],
@@ -418,12 +439,12 @@
   function yukiTouch() { if (!yuki || P.dead || Math.hypot(yuki.x - P.x, (yuki.y - P.y) * 1.2) > 110) return; const k = Math.random() < .7 ? 'baston' : PISTA();
     addItem(k); INV.yuki = yuki.day; yuki = null; SND.pick(); buzz([20, 30, 20]); toast('Yuki chilla, te deja algo y desaparece: ' + ITEMS[k].n + '.');
     if (EXP && /^pista_/.test(k) && INV.items[k] >= 3) { INV.items[k] -= 3; if (!INV.items[k]) delete INV.items[k]; addItem(BRZ()); } persist(); }
-  function enterMap(k, x, y, first) { yuki = null;
+  function enterMap(k, x, y, first) { yuki = null; loadHourly(k);
     loadMap(k);
     const okPos = x && y && walkable(x, y);
     P.x = okPos ? x : MAP.spawn[0] * WS; P.y = okPos ? y : MAP.spawn[1] * WS; P.inv = 4; exitLock = true;
     mobs.length = 0; parts.length = 0; floats.length = 0; pickups.length = 0;
-    const nPick = MAP.safeAll ? 2 : 6; for (let i = 0; i < nPick; i++) spawnPickup();
+    const nPick = MAP.safeAll ? 1 : 3; for (let i = 0; i < nPick; i++) spawnPickup();
     sueroTick(true);
     Object.keys(INV.lost).forEach(w => { if (INV.lost[w] === k) { spawnPickup(w); delete INV.lost[w]; } }); shots.length = 0;
     hud(); healBtn(); abButtons();
@@ -524,7 +545,7 @@
     const diario = QS.length ? '<p><b>MISIONES</b><br>' + QS.map(n => n.nm + ': ' + Object.entries(n.quest.need).map(([k, c]) => ITEMS[k].n + ' ' + Math.min(c, INV.items[k] || 0) + '/' + c).join(', ')).join('<br>') + '</p>' : '';
     if (!invSel || !hasItem(invSel)) { det.innerHTML = diario + '<p>Tocá un objeto para ver qué hace.</p>'; return; }
     const it = ITEMS[invSel]; let act = '';
-    if (it.use === 'heal' || it.use === 'venda' || it.use === 'kitsune') act = '<button class="btn solid" data-a="use">USAR</button>';
+    if (it.use === 'heal' || it.use === 'venda' || it.use === 'kitsune' || it.use === 'furia' || it.use === 'comer') act = '<button class="btn solid" data-a="use">USAR</button>';
     if (it.use === 'pilas') act = '<button class="btn solid" data-a="use">CARGAR LINTERNA</button>';
     if (it.eq) { const on = INV.eq[it.eq] === invSel; act = '<button class="btn solid" data-a="eq">' + (on ? (it.eq === 'arma' ? 'GUARDAR Y USAR EL PALO' : it.eq === 'luz' ? 'APAGAR' : 'SACAR') : (it.eq === 'luz' ? 'PRENDER' : it.eq === 'arma' ? 'TENER EN LA MANO' : 'EQUIPAR')) + '</button>'; }
     det.innerHTML = '<b>' + it.n + (INV.items[invSel] > 1 ? ' ×' + INV.items[invSel] : '') + '</b><small>' + it.t.toUpperCase() + (it.uses ? ' · ' + (invSel === 'pistola' ? 'TIROS ' : 'USOS ') + (INV.dur[invSel] != null ? INV.dur[invSel] : it.uses) + '/' + it.uses : '') + (it.shield ? ' · QUEDA ' + (INV.dur[invSel] != null ? INV.dur[invSel] : it.shield) + '/' + it.shield : '') + '</small><p>' + it.d + '</p>' + (act ? '<div class="row">' + act + '</div>' : '');
@@ -558,10 +579,12 @@
   function spawnMob(kind, minDist, at) { if (!isHost || !MOB[kind]) return null; const p = at || randomMobCell(minDist); if (!p) return null; const o = newMob(kind, me.id.slice(0, 4) + '-' + (mobSeq++) + '-' + ((Math.random() * 1e4) | 0), p[0], p[1]); mobs.push(o);
     if (o.T.boss) { toast('⚠ ' + o.T.name + ' está en ' + MAP.name.toLowerCase()); net('boss', { k: kind }); } return o; }
   const dayN = () => Math.floor((Date.now() - 3 * 3600e3) / 864e5), minOfDay = () => Math.floor(((Date.now() - 3 * 3600e3) % 864e5) / 6e4);
-  function hordeOn(k) { const m = MAPS[k]; if (!m || m.safeAll || m.base || EXP) return false; const d = dayN(), now = minOfDay();
-    return [hashStr(k + d) % 1440, hashStr(k + d + 'b') % 1440].some(a => now >= a && now < a + 6); }
+  function hordeOn(k) { const m = MAPS[k]; if (!m || m.safeAll || m.base) return false; const d = dayN(), now = minOfDay();
+    return ['a', 'b', 'c', 'd'].some(x => { const a = hashStr(k + d + x) % 1440; return now >= a && now < a + 6; }); }
+  const hourlyDead = {};
+  function loadHourly(k) { const b = HOURLY_AT[k]; if (!b) return; try { sb.from('game_state').select('v').eq('k', 'jefe_' + b).maybeSingle().then(r => { const v = r && r.data && r.data.v; if (v && v.t) hourlyDead[b] = Math.max(hourlyDead[b] || 0, v.t); }, () => {}); } catch (e) {} }
   const bossOn = k => { const b = BOSS_AT[k]; if (!b || EXP) return false; const m = (minOfDay() + hashStr(b) % 120) % 120; return m < 20; };
-  function wantMobs() { const w = Object.assign({}, MAP.mobs || {}); if (hordeOn(mapKey)) Object.keys(w).forEach(k => w[k] *= 3); if (bossOn(mapKey)) w[BOSS_AT[mapKey]] = 1; if (EXP) return w; Object.keys(EXTRA).forEach(k => { if (unlocks[k] && EXTRA[k][mapKey]) w[k] = (w[k] || 0) + EXTRA[k][mapKey]; }); return w; }
+  function wantMobs() { const w = Object.assign({}, MAP.mobs || {}); if (hordeOn(mapKey)) Object.keys(w).forEach(k => w[k] *= 3); if (bossOn(mapKey)) w[BOSS_AT[mapKey]] = 1; if (EXP) return w; Object.keys(EXTRA).forEach(k => { if (EXTRA[k][mapKey]) w[k] = (w[k] || 0) + EXTRA[k][mapKey]; }); const hb = HOURLY_AT[mapKey]; if (hb && Date.now() - (hourlyDead[hb] || 0) > 3600000) w[hb] = 1; return w; }
   function maintainMobs() { if (!isHost || !roomReady || MAP.safeAll) return; const w = wantMobs(), now = Date.now();
     Object.entries(w).forEach(([k, n]) => { let have = mobs.filter(o => o.kind === k).length; const wait = MOB[k].respawn || 12000;
       if (!lastDeath[k]) { while (have < n) { if (!spawnMob(k, 560)) break; have++; } lastDeath[k] = 1; }
@@ -573,6 +596,7 @@
     for (let i = 0; i < 10; i++) parts.push({ x: o.x, y: o.y - o.T.h * .6, vx: rnd(-140, 140), vy: rnd(-110, -30), life: .6, s: rnd(2, 4), c: 25 });
     if (isHost) mobHit(o, dmg, kx, ky, me.id); else net('mhit', { id: o.id, d: dmg, kx: Math.round(kx), ky: Math.round(ky), by: me.id }); }
   function killMob(o) { const i = mobs.indexOf(o); if (i >= 0) mobs.splice(i, 1); lastDeath[o.kind] = Date.now();
+    if (o.T.hourly) { hourlyDead[o.kind] = Date.now(); try { sb.from('game_state').upsert({ k: 'jefe_' + o.kind, v: { t: Date.now() }, updated_at: new Date().toISOString() }).then(() => {}, () => {}); } catch (e) {} }
     const pl = { id: o.id, kind: o.kind, x: Math.round(o.x), y: Math.round(o.y), f: o.face, by: [...o.hitters] };
     net('mdie', pl); onMobDie(pl); }
   function onMobDie(p) { const T = MOB[p.kind]; if (!T) return; const i = mobs.findIndex(o => o.id === p.id); if (i >= 0) mobs.splice(i, 1); SND.dissolve();
@@ -584,18 +608,18 @@
       parts.push({ x: p.x + (p.f < 0 ? art.width / 2 - x : x - art.width / 2) * ks, y: p.y - (art.height - y) * ks * (art.hd ? 240 / 256 : 1), vx: rnd(-30, 50), vy: rnd(-90, -20), life: rnd(.35, .7), s: PXS * .9, c: Math.random() < .8 ? 40 : 150 }); }
     if (T.boss) { shake = .6; toast(T.name + ' cayó.'); }
     if (!p.by.includes(me.id)) return;
-    const lvBefore = lvlOf(P.xp), mL = mobLevel(p.id, p.kind), gx = Math.round(T.xp * (mL ? lvXp(mL) : 1)), gc = (T.coins || 1) + Math.floor(mL / 8); P.kills++; P.xp += gx; INV.coins += gc; buzz(30);
+    const lvBefore = lvlOf(P.xp), mL = mobLevel(p.id, p.kind), gx = Math.round(T.xp * 2 * (mL ? lvXp(mL) : 1)), gc = (T.coins || 1) + Math.floor(mL / 8); P.kills++; P.xp += gx; INV.coins += gc; buzz(30);
     floats.push({ x: p.x, y: p.y - T.h - 10, t: 1.4, txt: '+' + gx + ' XP · +' + gc + ' $', c: '#e8e4da' });
     const r = Math.random() / (me.faction === 'rebel' ? 1.5 : 1), at = [p.x, p.y];
     if (p.kind === 'denso' && r < .35) spawnPickup(Math.random() < .5 ? 'b_contencion' : 'b_resonancia', at);
     else if (p.kind === 'sombra' && r < .2) spawnPickup('pagina', at);
     else if (p.kind === 'mole' && r < .5) spawnPickup(pickW([['armadura', 1], ['chaleco', 2]]), at);
-    else if (r < .3) spawnPickup('vendas', at);
-    else if (r < .4) spawnPickup(pickW([['pilas', 3], ['campera', 1], ['chaleco', .4]]), at);
+    else if (r < .1) spawnPickup('vendas', at);
+    else if (r < .14) spawnPickup(pickW([['pilas', 3], ['campera', 1], ['chaleco', .4]]), at);
     const r2 = Math.random();
-    if (r2 < .07) { const pool = [['cuchillo', 3], ['bate', 3], ['barra', 2]]; if (mL >= 10) pool.push(['lanza', 2], ['pistola', 1.5]); if (mL >= 18) pool.push(['katana', 1.5]); if (mL >= 28) pool.push(['escopeta', 1]); spawnPickup(pickW(pool), [p.x + 30, p.y]); }
-    else if (r2 < .11) spawnPickup('pista', [p.x - 30, p.y]);
-    else if (r2 < .16) spawnPickup(pickW([['cigarrillo', 2], ['manzana', 1.5], ['receptor', mL >= 18 ? .5 : 0], ['ganzuas', mL >= 30 ? .4 : 0], ['fragmento', mL >= 40 ? .3 : 0], ['credencial', p.kind === 'corredor' ? 1.5 : 0], ['linterna', .3]]), [p.x, p.y + 30]);
+    if (r2 < .03) { const pool = [['cuchillo', 3], ['bate', 3], ['barra', 2]]; if (mL >= 10) pool.push(['lanza', 2], ['pistola', 1.5]); if (mL >= 18) pool.push(['katana', 1.5]); if (mL >= 28) pool.push(['escopeta', 1]); spawnPickup(pickW(pool), [p.x + 30, p.y]); }
+    else if (r2 < .055) spawnPickup('pista', [p.x - 30, p.y]);
+    else if (r2 < .09) spawnPickup(pickW([['cigarrillo', 2], ['manzana', 1.5], ['receptor', mL >= 18 ? .5 : 0], ['ganzuas', mL >= 30 ? .4 : 0], ['fragmento', mL >= 40 ? .3 : 0], ['credencial', p.kind === 'corredor' ? 1.5 : 0], ['linterna', .3]]), [p.x, p.y + 30]);
     if (p.kind === 'jefe') grantSkins(['renzo', 'sam']);
     if (p.kind === 'sofia') { const can = Object.keys(AB).filter(a => !INV.ab.includes(a)); if (can.length) { const a = can[(Math.random() * can.length) | 0]; INV.ab.push(a); setTimeout(() => toast('HABILIDAD NUEVA: ' + AB[a].n + ' · ' + AB[a].d + ' Si morís, la perdés.'), 900); abButtons(); } }
     if (lvlOf(P.xp) > lvBefore) { P.hp += maxHp(lvlOf(P.xp)) - maxHp(lvBefore); SND.level(); buzz([40, 40, 90]); setTimeout(() => toast('SUBISTE A NIVEL ' + lvlOf(P.xp) + ' · pegás ' + playerDmg()), 500); checkUnlocks(); }
@@ -766,7 +790,8 @@
   $('#btn-x').addEventListener('pointerdown', e => { e.preventDefault(); goGhost(); });
   /* tienda de Plaza de Mayo */
   const SHOP = [['kit', 100, 'Vida completa'], ['vendas', 3, 'Cura 30 de vida · 3 s entre vendas'], ['pilas', 2, 'Recargan la linterna'], ['lanza', 8, 'Llega lejos y atraviesa · 30 golpes'], ['kitsune', 10, 'Desaparecés 3 segundos · 2 usos']];
-  let curShop = null; function openShop(n) { if (n && n.shop) curShop = n.shop.map(([k, p]) => [k, p, ITEMS[k].d]); else { const r = npcsHere().find(x => x.act === 'shop' || x.shop); if (!r || P.dead) return; curShop = r.shop ? r.shop.map(([k, p]) => [k, p, ITEMS[k].d]) : SHOP; } if (P.dead) return; paused = true; $('#ov-shop').hidden = false; renderShop(); }
+  let curShop = null; function openShop(n) { if (!n || !n.nm) n = npcsHere().find(x => x.act === 'shop' || x.shop); if (!n || P.dead) return; curShop = n.shop ? n.shop.map(([k, p]) => [k, p, ITEMS[k].d]) : SHOP;
+    $('#ov-shop h2').textContent = n.nm; $('#ov-shop p i').textContent = '"' + n.line + '"'; paused = true; $('#ov-shop').hidden = false; renderShop(); }
   function renderShop() { $('#shop-c').textContent = INV.coins + ' monedas'; const box = $('#shop-l'); box.innerHTML = '';
     (curShop || SHOP).forEach(([k, price, d]) => { const r = document.createElement('div'); r.className = 'shopr'; const cv = document.createElement('canvas'); cv.width = 48; cv.height = 48; { const g_ = cv.getContext('2d'), ic = iconOf(k); g_.imageSmoothingEnabled = !!ic.naturalWidth; g_.drawImage(ic, 0, 0, 48, 48); } r.appendChild(cv);
       const tx = document.createElement('div'); tx.innerHTML = '<b>' + ITEMS[k].n + '</b><small>' + d + ' · tenés ' + (INV.items[k] || 0) + '</small>'; r.appendChild(tx);
@@ -866,7 +891,7 @@
         toast('Encontraste: ' + ITEMS[q.k].n + (ITEMS[q.k].eq ? ' · equipalo desde la MOCHILA' : ''));
         if (q.k === 'pagina') { const n = INV.items.pagina; floats.push({ x: P.x, y: P.y - 210, t: 1.6, txt: 'página ' + n, c: '#e8e4da' }); }
         if (q.k === 'suero') net('suero', { slot: suero.slot, by: me.nick }); abButtons();
-        if (!q.pid) { const mk = mapKey; setTimeout(() => { if (mapKey === mk && pickups.length < (MAP.safeAll ? 2 : 6)) spawnPickup(); }, rnd(40000, 75000)); } persist(); } }
+        if (!q.pid) { const mk = mapKey; setTimeout(() => { if (mapKey === mk && pickups.length < (MAP.safeAll ? 1 : 3)) spawnPickup(); }, rnd(120000, 240000)); } persist(); } }
     if (yuki) { yuki.t += dt; yukiTouch(); }
     // salidas
     const ix0 = P.x / WS, iy0 = P.y / WS; let inExit = null;
