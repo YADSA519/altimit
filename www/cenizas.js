@@ -128,6 +128,11 @@
   };
   Object.values(MOB).forEach(T => { T.h = T.ph * PXS; });
   /* dibujo de un Oscuro: los jefes con forma humana usan el pixel de la historia */
+  /* brillo de los Oscuros horneado una vez por dibujo (el filtro en vivo calentaba el celu) */
+  const GLOW = new WeakMap();
+  function glowOf(art, au) { let m = GLOW.get(art); if (!m) { m = {}; GLOW.set(art, m); } const k = au || '_'; if (m[k]) return m[k];
+    const cv = document.createElement('canvas'); cv.width = art.width; cv.height = art.height; const g = cv.getContext('2d'); const bl = Math.max(1, art.width / (au ? 22 : 45));
+    g.filter = 'drop-shadow(0 0 ' + bl.toFixed(1) + 'px rgba(' + (au || '230,225,215') + ',' + (au ? '.95' : '.75') + '))'; g.drawImage(art, 0, 0); g.filter = 'none'; if (!cv.width) return art; m[k] = cv; return cv; }
   function artOf(T, frame, hurt, moving, atk) { const dir = moving ? 'r' : 'd';
     if (HD) { const nm = T.npc ? HD.NPC_SHEET[T.npc] : HD.MOB_SHEET[T.art]; const s = nm && HD.sheet(nm, dir, frame, atk); if (s) return s; }
     if (T.npc && NPC && NPC.C[T.npc]) return NPC.draw(T.npc, dir, frame); return PIX[T.art](frame, hurt); }
@@ -802,10 +807,11 @@
   const ctx = cv.getContext('2d'); let DPR = 1, VW = 0, VH = 0, zoom = 1, last = 0, t = 0;
   const dark = document.createElement('canvas'), dg = dark.getContext('2d');
   const tint = document.createElement('canvas'), tg = tint.getContext('2d');
-  function resize() { DPR = Math.min(2, devicePixelRatio || 1); VW = innerWidth; VH = innerHeight; cv.width = VW * DPR; cv.height = VH * DPR; dark.width = Math.ceil(VW / 2); dark.height = Math.ceil(VH / 2); zoom = Math.max(.55, Math.min(1.35, VH / 600)); }
+  function resize() { DPR = Math.min(1.5, devicePixelRatio || 1); VW = innerWidth; VH = innerHeight; cv.width = VW * DPR; cv.height = VH * DPR; dark.width = Math.ceil(VW / 2); dark.height = Math.ceil(VH / 2); zoom = Math.max(.55, Math.min(1.35, VH / 600)); }
   addEventListener('resize', resize); resize();
   function newAsh(any) { return { x: Math.random() * VW, y: any ? Math.random() * VH : -10, v: 12 + Math.random() * 26, w: Math.random() * 6.28, s: .8 + Math.random() * 1.8, o: .2 + Math.random() * .45 }; }
-  function loop(now) { const dt = Math.min(.05, (now - last) / 1000); last = now; t += dt; if (!paused && !warping) update(dt); render(); requestAnimationFrame(loop); }
+  function loop(now) { requestAnimationFrame(loop); if (document.hidden || now - last < 1000 / 40 - 2) return; const dt = Math.min(.05, (now - last) / 1000); last = now; t += dt; if (!paused && !warping) update(dt); render(); }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) last = performance.now(); });
 
   function update(dt) {
     // jugador
@@ -1000,7 +1006,7 @@
       shadow(sx, sy, Math.max(22, T.pw * 1.6));
       c.save(); c.translate(Math.round(sx + lx + jx), Math.round(sy)); if (o.face < 0) c.scale(-1, 1);
       c.globalAlpha = o.alpha * vis * (T.ai === 'blink' ? (.75 + Math.sin(t * 12 + o.x) * .2) : 1); c.imageSmoothingEnabled = false;
-      const AU = T.aura || o.au; c.filter = AU ? 'drop-shadow(0 0 ' + Math.max(3, 7 * zoom).toFixed(1) + 'px rgba(' + AU + ',.95))' : 'drop-shadow(0 0 ' + Math.max(2, 3 * zoom).toFixed(1) + 'px rgba(230,225,215,.75))'; c.drawImage(art, Math.round(-AW / 2), Math.round(-AY), Math.round(AW), Math.round(AH)); c.filter = 'none';
+      const AU = T.aura || o.au; c.drawImage(glowOf(art, AU), Math.round(-AW / 2), Math.round(-AY), Math.round(AW), Math.round(AH));
       if (T.npc && o.hurt > 0) { c.globalCompositeOperation = 'lighter'; c.globalAlpha = .35 * vis; c.drawImage(art, Math.round(-AW / 2), Math.round(-AY), Math.round(AW), Math.round(AH)); c.globalCompositeOperation = 'source-over'; }
       if (o.wind > 0 || o.st === 'aim') { c.globalAlpha = .25 + Math.sin(t * 40) * .15; c.globalCompositeOperation = 'lighter'; c.drawImage(art, Math.round(-AW / 2), Math.round(-AY), Math.round(AW), Math.round(AH)); c.globalCompositeOperation = 'source-over'; }
       c.restore(); c.globalAlpha = 1; c.imageSmoothingEnabled = true;
