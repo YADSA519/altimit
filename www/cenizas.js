@@ -448,6 +448,9 @@
     let inv = gc.inv && gc.inv.items ? gc.inv : null; if (!inv && !EXP) { try { inv = JSON.parse(store.get('cz-inv-' + me.id) || 'null'); } catch (e) {} }
     INV = Object.assign({ items: {}, eq: { arma: 'palo', luz: null, cara: null, brazo: null }, bat: 0 }, inv || {}); INV.eq = Object.assign({ arma: 'palo', luz: null, cara: null, brazo: null }, INV.eq || {}); INV.items = INV.items || {}; INV.dur = INV.dur || {}; INV.lost = INV.lost || {}; INV.eq.ropa = INV.eq.ropa || null; delete INV.items.botiquin; INV.coins = INV.coins || 0; INV.ab = INV.ab || []; P.best = Math.max(gc.best_xp || 0, gc.xp || 0);
     /* 2.1: reinicio de objetos y niveles (una sola vez); se conservan los personajes desbloqueados */
+    /* reinicio general (lo marca el SQL en game_state 'reglas'.reset): mochila, nivel, misiones y lugar a cero */
+    if (RULES.reset && INV.reset !== RULES.reset) { const sk = INV.skins; INV = { items: { vendas: 3 }, eq: { arma: 'palo', luz: null, cara: null, brazo: null, ropa: null }, bat: 0, dur: {}, lost: {}, coins: 10, ab: [], q: { cura: 'vendas', esp: null }, ver: VER, reset: RULES.reset }; if (sk) INV.skins = sk;
+      P.xp = 0; P.kills = 0; P.best = 0; P.hp = maxHp(1); gc = Object.assign({}, gc, { zone: null }); setTimeout(() => toast('Reinicio general: arrancás de cero, nivel 1, en la base de tu bando.'), 1800); }
     if (INV.ver !== VER) { if (INV.ver !== '2.1') { P.xp = 0; P.kills = 0; INV.ab = []; P.hp = maxHp(1); } INV.ver = VER; gc = Object.assign({}, gc, { zone: null }); setTimeout(() => toast('THE O|F 2.1 · nivel reiniciado: arrancás en la base de tu bando.'), 1800); }
     INV.q = INV.q || { cura: 'vendas', esp: null };
     $('#h-nick').textContent = me.nick + (EXP ? ' · PVP' : ' · HISTORIA'); ['#hud', '#topr', '#pads', '#hintL', '#stick'].forEach(s => $(s).hidden = false); if (EXP) $('#d-fac').hidden = true;
