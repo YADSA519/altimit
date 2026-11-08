@@ -224,6 +224,13 @@
     alto: { errante: 2, oscura: 2, corredor: 2, sombra: 2, denso: 1, lodo: 2, insecto: 2, reptante: 2, babosa: 1, cuervo: 1, incinerario: 1 },
     tope: { errante: 2, oscura: 2, corredor: 2, sombra: 2, denso: 2, lodo: 2, insecto: 2, reptante: 2, babosa: 2, incinerario: 1 },
     pvp: { errante: 4, oscura: 3, perro: 2, cuervo: 2, rastrero: 2 } };
+  /* MODO HISTORIA · niveles por avance: los mapas de arranque (cerca del Nogal y de Libertador) van de 1 a 5;
+     cuanto más lejos, más alto. Puerto Madero suma extra. Las bases enemigas tienen guardias de nivel alto. */
+  if (STORY) { const bfs = s0 => { const d = { [s0]: 0 }, q = [s0]; while (q.length) { const k = q.shift(); for (const e of (MAPS[k].exits || [])) if (e.to && MAPS[e.to] && !(e.to in d)) { d[e.to] = d[k] + 1; q.push(e.to); } } return d; };
+    const dA = bfs('nogal'), dB = MAPS.libertador ? bfs('libertador') : {}, PM = { muelle: 3, puente: 5, bunker: 6, lab: 7, lab_cuarentena: 7, arena_final: 9 };
+    const FIX = { libertador: [36, 45], centro_ork: [30, 40], complejo8c_ev: [34, 44] };
+    Object.entries(MAPS).forEach(([k, m]) => { if (FIX[k]) { m.lv = FIX[k]; return; } const d = Math.min(dA[k] == null ? 99 : dA[k], dB[k] == null ? 99 : dB[k]); if (d >= 99) return; const sc = d + (PM[k] || 0);
+      if (sc <= 1) m.lv = [1, 4]; else if (sc === 2) m.lv = [2, 5]; else { const a = Math.round(4 + (sc - 3) * 3.3); m.lv = [a, a + 3 + Math.round(sc / 3)]; } }); }
   Object.entries(MAPS).forEach(([k, m]) => { if (m.safeAll || m.base) { m.mobs = {}; return; } const top = (m.lv || [1, 3])[1];
     m.mobs = EXP ? MOBS_T.pvp : top <= 12 ? MOBS_T.bajo : top <= 28 ? MOBS_T.medio : top <= 40 ? MOBS_T.alto : MOBS_T.tope; });
   /* soldados ORK en bases y asentamientos ORK; rebeldes armados en asentamientos rebeldes. Sólo atacan al otro bando. */
@@ -655,10 +662,10 @@
   const mshots = [], clouds = [];
   const AB = { invis: { n: 'INVISIBLE', d: 'Botón HUIR: 3 segundos invisible para escapar.' }, rapido: { n: 'GOLPE RÁPIDO', d: 'Pegás 30% más rápido.' }, cuchillos: { n: 'CUCHILLOS', d: 'Cada golpe también tira un cuchillo hacia adelante.' } };
   const hashStr = s_ => { let h = 2166136261; for (let i = 0; i < s_.length; i++) { h ^= s_.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
-  function mobLevel(id, kind) { const T = MOB[kind]; if (!T || T.boss) return 0; if (T.lv1) return 1; const [a, b] = (MAP && MAP.lv) || [1, 3]; return a + hashStr(String(id)) % (b - a + 1); }
+  function mobLevel(id, kind) { const T = MOB[kind]; if (!T) return 0; if (T.boss) { if (!STORY) return 0; const top = ((MAP && MAP.lv) || [1, 3])[1]; return Math.min(70, Math.max(30, top + 6)); } if (T.lv1) return 1; const [a, b] = (MAP && MAP.lv) || [1, 3]; return a + hashStr(String(id)) % (b - a + 1); }
   const lvHp = L => 1 + (L - 1) * .3, lvDmg = L => 1 + (L - 1) * .09, lvXp = L => 1 + (L - 1) * .7;
   function auraOf(L) { return L >= 45 ? '255,40,40' : L >= 30 ? '255,140,0' : L >= 15 ? '240,215,80' : null; }
-  function newMob(kind, id, x, y) { const T = MOB[kind], L = mobLevel(id, kind), mhp = L ? Math.round(T.hp * lvHp(L)) : T.hp; return { id, kind, T, lv: L, lvK: L ? lvDmg(L) : 1, mhp, au: L ? auraOf(L) : null, x, y, tx: x, ty: y, hp: mhp, face: 1, vx: 0, vy: 0, t: Math.random() * 9, hurt: 0, wind: 0, cd: 0, wx: x, wy: y, wt: 0, alpha: 0, chasing: false, stuck: 0, lx: x, ly: y, lunge: 0,
+  function newMob(kind, id, x, y) { const T = MOB[kind], L = mobLevel(id, kind), mhp = L ? Math.round(T.hp * (T.boss ? 1 + (L - 1) * .12 : lvHp(L))) : T.hp; return { id, kind, T, lv: L, lvK: L ? lvDmg(L) : 1, mhp, au: L ? auraOf(L) : null, x, y, tx: x, ty: y, hp: mhp, face: 1, vx: 0, vy: 0, t: Math.random() * 9, hurt: 0, wind: 0, cd: 0, wx: x, wy: y, wt: 0, alpha: 0, chasing: false, stuck: 0, lx: x, ly: y, lunge: 0,
     st: 'idle', stT: 0, side: Math.random() < .5 ? -1 : 1, vis: T.ai === 'blink' ? .2 : 1, dx: 0, dy: 0, hitDone: false, combo: 0, hitters: new Set(), ab: rnd(5, 8), shotT: 0, volleys: 0 }; }
   function spawnMob(kind, minDist, at) { if (!isHost || !MOB[kind]) return null; const p = at || randomMobCell(minDist); if (!p) return null; const o = newMob(kind, me.id.slice(0, 4) + '-' + (mobSeq++) + '-' + ((Math.random() * 1e4) | 0), p[0], p[1]); mobs.push(o);
     if (o.T.boss) { toast('⚠ ' + o.T.name + ' está en ' + MAP.name.toLowerCase()); net('boss', { k: kind }); } if (kind === 'yuki') toast('Yuki anda suelta por las ruinas. Si la alcanzás, deja su brazalete.'); return o; }
@@ -695,7 +702,7 @@
     if (T.boss) { shake = .6; toast(T.name + ' cayó.'); }
     if (!p.by.includes(me.id)) return;
     INV.racha = 0; if (window.CZ_STORY && STORY) CZ_STORY.kill(p.kind, p.x, p.y);
-    const lvBefore = lvlOf(P.xp), mL = mobLevel(p.id, p.kind), gx = Math.round(T.xp * 2 * (mL ? lvXp(mL) : 1) * (EXP ? 3 : 1)), gc = (T.coins || 1) + Math.floor(mL / 8); P.kills++; P.xp += gx; INV.coins += gc; buzz(30);
+    const lvBefore = lvlOf(P.xp), mL = mobLevel(p.id, p.kind), gx = Math.round(T.xp * 2 * (mL && !T.boss ? lvXp(mL) : T.boss && mL ? 1 + mL / 20 : 1) * (EXP ? 3 : 1)), gc = (T.coins || 1) + Math.floor((T.boss ? 0 : mL) / 8); P.kills++; P.xp += gx; INV.coins += gc; buzz(30);
     floats.push({ x: p.x, y: p.y - T.h - 10, t: 1.4, txt: '+' + gx + ' XP · +' + gc + ' $', c: '#e8e4da' });
     const r = Math.random() / (me.faction === 'rebel' ? 1.5 : 1), at = [p.x, p.y];
     if (p.kind === 'denso' && r < .35) spawnPickup(Math.random() < .5 ? 'b_contencion' : 'b_resonancia', at);
