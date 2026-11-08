@@ -72,7 +72,7 @@ body.cine #st-dlg{display:block}
     $('#st-s').textContent = '▸ ' + step.txt + extra; }
   function setMission(i, fresh) { S.m = i; mis = list[i]; S.s = fresh ? 0 : S.s; S.c = fresh ? 0 : S.c; if (!mis) { step = null; objective(); return; } step = mis.steps[S.s]; save();
     if (fresh) card('MISIÓN ' + String(i + 1).padStart(2, '0'), mis.t, '', () => say(mis.intro, () => { prep(); objective(); })); else { prep(); objective(); } }
-  function advance() { S.s++; S.c = 0; spawned = {}; if (S.s >= mis.steps.length) return finish(); step = mis.steps[S.s]; save(); prep(); objective(); A.toast('▸ ' + step.txt); }
+  function advance() { S.s++; S.c = 0; S.loose = false; spawned = {}; if (S.s >= mis.steps.length) return finish(); step = mis.steps[S.s]; save(); prep(); objective(); A.toast('▸ ' + step.txt); }
   function finish() { const r = mis.reward || {}; if (r.xp) A.giveXp(r.xp); if (r.coins) A.giveCoins(r.coins); Object.entries(r.items || {}).forEach(([k, n]) => A.addItem(k, n)); A.quickBtns(); A.INV.racha = 0;
     const done = mis; S.done = (S.done || []).concat(done.id); step = null; mis = null; objective(); save();
     card('MISIÓN CUMPLIDA', done.t, '+' + (r.xp || 0) + ' XP · +' + (r.coins || 0) + ' $' + Object.entries(r.items || {}).map(([k, n]) => ' · ' + (A.ITEMS[k] ? A.ITEMS[k].n : k) + ' ×' + n).join(''), () => {
@@ -85,7 +85,7 @@ body.cine #st-dlg{display:block}
   let spawned = {}, place = {};
   function prep() { if (!step || A.mapKey !== step.map && !(step.go && A.mapKey === step.go)) return; const k = S.m + '-' + S.s + '-' + A.mapKey; if (spawned[k]) return; spawned[k] = 1;
     if ((step.talk || step.use) && step.map === A.mapKey) place[k] = posOf(step);
-    if (step.kill && step.spawn) { const ks = kindsOf(step.kill); setTimeout(() => { for (let i = 0; i < step.n - S.c; i++) { const p = randomAround(500, 900); if (p) A.spawnMob(ks[i % ks.length], p[0], p[1]); } }, 900); }
+    if (step.kill && step.spawn) { const ks = kindsOf(step.kill); setTimeout(() => { for (let i = 0; i < step.n - S.c; i++) { const p = randomAround(500, 900); if (!p || !A.spawnMob(ks[i % ks.length], p[0], p[1])) S.loose = true; } }, 900); }
     if (step.get) { const have = A.INV.items[step.get] || 0; for (let i = have; i < step.n; i++) setTimeout(() => A.spawnPickup(step.get), 600 + i * 200); } }
   function randomAround(min, max) { const P = A.P; for (let k = 0; k < 80; k++) { const a = Math.random() * 6.28, r = min + Math.random() * (max - min), x = P.x + Math.cos(a) * r, y = P.y + Math.sin(a) * r * .7; if (A.walkable(x, y)) return [x, y]; } return null; }
   /* ---------- camino al objetivo: BFS por las salidas ---------- */
