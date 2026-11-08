@@ -566,7 +566,7 @@
     const lk = avLook || (gchar && gchar.look); if (!lk || lk.body == null) { g.fillStyle = '#3c3c3c'; g.fillRect(W * .37, H * .19, W * .25, H * .19); g.fillRect(W * .29, H * .4, W * .42, H * .47); return; }
     const npc = lk.npc && avSkins.includes(lk.npc), dir = AVD[avRot];
     if (HD) { const A = THEOF_AV, fac = me.faction === 'ork' ? 'ork' : 'rebel', cls = fac === 'ork' ? (lk.cls || 0) : -1, top = cls >= 0 ? (A.OTOPS[cls][lk.top] || A.OTOPS[cls][0]) : (A.TOPS[fac][lk.top] || A.TOPS[fac][0]);
-      const spr = npc ? HD.sheet(HD.NPC_SHEET[lk.npc] || lk.npc, dir, avFrame, false) : HD.base(lk.body === 1, lk.model || 0, [(HCOL6[lk.hcol] || HCOL6[1])[1], A.SKIN[lk.skin] || A.SKIN[1], top[1], (PANTC[lk.pant] || PANTC[0])[1], null], dir, avFrame, false);
+      const spr = npc ? HD.sheet(HD.NPC_SHEET[lk.npc] || lk.npc, dir, avFrame, false) : lk.pj ? HD.sheet(lk.pj, dir, avFrame, false) : HD.base(lk.body === 1, lk.model || 0, [(HCOL6[lk.hcol] || HCOL6[1])[1], A.SKIN[lk.skin] || A.SKIN[1], top[1], (PANTC[lk.pant] || PANTC[0])[1], null], dir, avFrame, false);
       if (spr) { HD.blit(g, spr, W / 2, H - 4, H * .86); return; } setTimeout(drawAv, 400); }
     g.imageSmoothingEnabled = false; g.drawImage(npc && window.CZ_NPC && CZ_NPC.C[lk.npc] ? CZ_NPC.draw(lk.npc, dir, avFrame) : THEOF_AV.sprite(Object.assign({}, lk, { fac: me.faction }), dir, avFrame, false), W * .125, H * .125, W * .75, H * .81); }
   /* skins: Pablo y Pol son de una cuenta; Renzo y Sam se ganan matando a Mercedes */
@@ -587,17 +587,18 @@
     const build = () => { box.innerHTML = '';
       const opts = [['CUERPO', 'body', A.BODY], ['MODELO', 'model', ['Modelo 1', 'Modelo 2']], ['PIEL', 'skin', ['Tono 1', 'Tono 2', 'Tono 3', 'Tono 4']], ['PELO', 'hcol', HCOL6.map(h => h[0])], ['ROPA', 'top', ork ? A.OTOPS[avLook.cls].map(t => t[0]) : A.TOPS.rebel.map(t => t[0])], ['PANTALÓN', 'pant', PANTC.map(p => p[0])]];
       if (ork) opts.unshift(['CLASE', 'cls', A.OCLS]);
+      const SEL = (window.CZ_SHEETS && CZ_SHEETS.SEL) || []; if (SEL.length) { opts.unshift(['ASPECTO', 'pjI', ['Armable'].concat(SEL.map((k, i) => 'Sobreviviente ' + (i + 1)))]); avLook.pjI = avLook.pj ? SEL.indexOf(avLook.pj) + 1 : 0; }
       if (avSkins.length) { opts.unshift(['PERSONAJE', 'npcI', ['Propio'].concat(avSkins.map(k => sknName(k)))]); avLook.npcI = avLook.npc ? avSkins.indexOf(avLook.npc) + 1 : 0; }
       opts.forEach(([lab, k, list]) => { const r = document.createElement('div'); r.className = 'avopt'; r.innerHTML = '<span>' + lab + '</span><button type="button" aria-label="anterior">‹</button><b></b><button type="button" aria-label="siguiente">›</button>';
         const b = r.querySelector('b'), upd = () => b.textContent = list[avLook[k] || 0] || list[0];
-        const mv = dv => { avLook[k] = ((avLook[k] || 0) + dv + list.length) % list.length; if (k === 'npcI') { if (avLook.npcI) avLook.npc = avSkins[avLook.npcI - 1]; else delete avLook.npc; } if (k === 'cls') { avLook.top = 0; build(); } else upd(); drawAv(); };
+        const mv = dv => { avLook[k] = ((avLook[k] || 0) + dv + list.length) % list.length; if (k === 'npcI') { if (avLook.npcI) avLook.npc = avSkins[avLook.npcI - 1]; else delete avLook.npc; } if (k === 'pjI') { const SEL = CZ_SHEETS.SEL; if (avLook.pjI) avLook.pj = SEL[avLook.pjI - 1]; else delete avLook.pj; } if (k === 'cls') { avLook.top = 0; build(); } else upd(); drawAv(); };
         r.children[1].onclick = () => mv(-1); r.children[3].onclick = () => mv(1); upd(); box.appendChild(r); });
       if (!ork) { const pk = document.createElement('p'); pk.className = 'note'; pk.style.marginTop = '8px'; pk.textContent = 'Rebeldes: corren más rápido y encuentran más cosas al matar Oscuros.'; box.appendChild(pk); }
       if (ork) { const pk = document.createElement('p'); pk.className = 'note'; pk.style.marginTop = '8px'; pk.textContent = 'ORK: los Oscuros te sacan 15% menos. ' + ['Militar: los Perros te sacan 40% menos.', 'Científico: los Corredores te sacan 40% menos.', 'Espía: los Errantes te sacan 40% menos.'][avLook.cls]; box.appendChild(pk); } };
     build();
     $('#av-edit').hidden = false; $('#av-open').hidden = true; say('#av-msg', ''); drawAv(); };
   $('#av-cancel').onclick = () => { avLook = null; $('#av-edit').hidden = true; $('#av-open').hidden = false; drawAv(); };
-  $('#av-save').onclick = async () => { $('#av-save').disabled = true; say('#av-msg', 'guardando…'); const look = Object.assign({}, avLook, { fac: me.faction }); delete look.npcI;
+  $('#av-save').onclick = async () => { $('#av-save').disabled = true; say('#av-msg', 'guardando…'); const look = Object.assign({}, avLook, { fac: me.faction }); delete look.npcI; delete look.pjI;
     const r = gchar ? await sb.from('game_chars').update({ look, updated_at: new Date().toISOString() }).eq('user_id', me.id) : await sb.from('game_chars').insert({ user_id: me.id, look, zone: me.faction === 'ork' ? 'libertador' : 'nogal', x: 0, y: 0 });
     $('#av-save').disabled = false; if (r.error) return say('#av-msg', 'No se pudo guardar: ' + r.error.message, true);
     avLook = null; $('#av-edit').hidden = true; $('#av-open').hidden = false; toast('Avatar guardado. Así te van a ver en Cenizas.'); await loadGameChar(); };

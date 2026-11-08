@@ -41,10 +41,11 @@ body.cine #st-dlg{display:block}
     $('#st-top').addEventListener('pointerdown', e => { e.stopPropagation(); next(); }); $('#st-bot').addEventListener('pointerdown', e => { e.stopPropagation(); next(); });
   }
   /* ---------- retratos: dibujados (a/av) o busto sacado de la planilla ---------- */
-  const busts = {};
+  const busts = {}; const AVSEL = ["sel06a", "sel06b", "sel06c", "sel06d", "sel06e", "sel10a", "sel10b", "sel10c", "sel10d", "sel10e", "sel19a", "sel19b", "sel19c", "sel19d", "sel19e", "sel28a", "sel28b", "sel28c", "sel28d", "sel28e", "sel30a", "sel30b", "sel30c", "sel30d", "sel30e", "sel32a", "sel32b", "sel32c", "sel32d", "sel32e", "sel33a", "sel33b", "sel33c", "sel33d", "sel33e"];
   function portrait(k) {
     if (D.portraits[k]) return '/a/av/' + D.portraits[k] + '.jpg';
     if (k === 'RADIO') return '/a/it/radio.png';
+    if (k === 'VOS' && A.look && AVSEL.includes(A.look.pj)) return '/a/av/' + A.look.pj + '.jpg';
     if (busts[k]) return busts[k];
     let spr = null; try { spr = k === 'VOS' ? A.charSprite(A.look || {}, 'd', 0, false) : A.charSprite({ npc: k }, 'd', 0, false); } catch (e) {}
     if (!spr || !spr.hd) return '/a/it/aviso.png';
