@@ -8,7 +8,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         // número de versión que siempre sube (lo pone GitHub en cada compilación)
-        versionCode ((System.getenv("GITHUB_RUN_NUMBER") ?: "28") as Integer) + 100
+        versionCode = Integer.parseInt(System.getenv("GITHUB_RUN_NUMBER") ?: "28") + 100
         versionName "2.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
