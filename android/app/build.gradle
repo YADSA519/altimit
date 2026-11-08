@@ -7,7 +7,8 @@ android {
         applicationId "com.thiriang.altimit"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 22
+        // número de versión que siempre sube (lo pone GitHub en cada compilación)
+        versionCode ((System.getenv("GITHUB_RUN_NUMBER") ?: "28") as Integer) + 100
         versionName "2.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
@@ -16,8 +17,21 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    /* firma FIJA: sin esto cada compilación salía con una clave distinta y el teléfono rechazaba la actualización */
+    signingConfigs {
+        theof {
+            storeFile file('theof.keystore')
+            storePassword '68eae58be7508d2185f2d54b9cd10fd4'
+            keyAlias 'theof'
+            keyPassword '68eae58be7508d2185f2d54b9cd10fd4'
+        }
+    }
     buildTypes {
+        debug {
+            signingConfig signingConfigs.theof
+        }
         release {
+            signingConfig signingConfigs.theof
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
