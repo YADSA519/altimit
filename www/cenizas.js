@@ -1167,7 +1167,7 @@
       if (mx < -200 || mx > VW + 200 || my < -200 || my > VH + 200) return; const a = .45 + Math.sin(t * 3) * .25;
       if (!e.to) { c.fillStyle = 'rgba(200,40,30,' + a * .18 + ')'; c.fillRect(x0, y0, Math.max(6, x1 - x0), Math.max(6, y1 - y0)); return; }
       c.fillStyle = 'rgba(240,236,226,' + a * .25 + ')'; c.fillRect(x0, y0, Math.max(6, x1 - x0), Math.max(6, y1 - y0));
-      const lx = Math.max(90, Math.min(VW - 90, mx)), ly = Math.max(60, Math.min(VH - 40, my)); const arrow = { l: '◀ ', r: '', u: '▲ ', d: '▼ ' }[e.side] || '', arrowR = e.side === 'r' ? ' ▶' : '';
+      const lx = Math.max(90, Math.min(VW - 90, mx)), ly = Math.max(120, Math.min(VH - 150, my)); const arrow = { l: '◀ ', r: '', u: '▲ ', d: '▼ ' }[e.side] || '', arrowR = e.side === 'r' ? ' ▶' : '';
       c.font = '13px TechMono, monospace'; c.textAlign = 'center'; const txt = arrow + e.label + arrowR; const w = c.measureText(txt).width + 14;
       c.fillStyle = 'rgba(0,0,0,.65)'; c.fillRect(lx - w / 2, ly - 12, w, 20); c.fillStyle = 'rgba(240,236,226,' + (.6 + a * .4) + ')'; c.fillText(txt, lx, ly + 3); });
     (MAP.tiles || []).forEach(p => { const [sx, sy] = W2S(p[0] * WS, p[1] * WS), a = .35 + Math.sin(t * 4 + p[0]) * .2; c.strokeStyle = 'rgba(120,220,255,' + a + ')'; c.lineWidth = 3; c.beginPath(); c.ellipse(sx, sy, 46 * zoom, 18 * zoom, 0, 0, 7); c.stroke(); });
