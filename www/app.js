@@ -613,8 +613,8 @@
     $('#pw-go').disabled = true; say('#pw-msg', 'guardando…'); const { error } = await sb.auth.updateUser({ password: p1 }); $('#pw-go').disabled = false;
     if (error) return say('#pw-msg', /reauth|nonce/i.test(error.message) ? 'Por seguridad, salí, volvé a entrar y probá de nuevo.' : 'No se pudo: ' + error.message, true);
     $('#pw-cancel').click(); toast('Contraseña cambiada.'); });
-  $('#enter-game').onclick = () => { $('#enter-game').disabled = true; location.href = '/cenizas.html'; };
-  $('#enter-exp').onclick = () => { $('#enter-exp').disabled = true; location.href = '/cenizas.html?modo=exp'; };
+  $('#enter-game').onclick = () => { $('#enter-game').disabled = true; location.href = '/cenizas.html?modo=historia'; };
+  $('#enter-exp').onclick = () => { $('#enter-exp').disabled = true; location.href = '/cenizas.html?modo=pvp'; };
   /* cambiar el nombre (las skins quedan con la cuenta, no con el nombre) */
   $('#nk-open').onclick = () => { $('#f-nk').hidden = false; $('#nk-open').hidden = true; $('#nk-1').value = me.nick; $('#nk-1').focus(); };
   $('#nk-cancel').onclick = () => { $('#f-nk').hidden = true; $('#nk-open').hidden = false; say('#nk-msg', ''); };

@@ -10,7 +10,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="THE O|F">
-<title>CENIZAS</title>
+<title>THE O|F 2.1</title>
 <style>
 @font-face{font-family:"Bebas";src:url(/a/bebas.woff2) format("woff2");font-display:block}
 @font-face{font-family:"Elite";src:url(/a/elite.woff2) format("woff2");font-display:swap}
@@ -113,6 +113,20 @@ body{position:fixed;inset:0}
 .fade{position:fixed;inset:0;background:#000;pointer-events:none;opacity:0;transition:opacity .6s;z-index:15}
 .fade.on{opacity:1}
 .toast{position:fixed;z-index:25;left:50%;top:max(54px,env(safe-area-inset-top,0px));transform:translateX(-50%);background:rgba(0,0,0,.8);border:1px solid var(--ash);padding:8px 14px;font-size:13px;max-width:80vw;text-align:center}
+
+/* 2.1: acceso rápido, joystick fijo, botón hablar aparte */
+.pads{display:flex;gap:10px;align-items:flex-end}
+.pads .pb.b{width:96px;height:96px;order:9}
+.pads .pb.r,.pads .pb.x{position:static;width:56px;height:56px;font-size:22px}
+.qs{position:relative;width:62px;height:62px;border-radius:12px;border:2px solid rgba(255,255,255,.45);background:rgba(0,0,0,.45);display:grid;place-items:center;padding:0}
+.qs canvas{width:40px;height:40px}.qs i{position:absolute;right:4px;top:2px;font-style:normal;font-size:11px;color:var(--hi);text-shadow:0 1px 2px #000}
+.qs small{position:absolute;left:0;right:0;bottom:-15px;font-size:9px;letter-spacing:.08em;color:var(--ash);text-align:center}
+.qs.off{opacity:.45}.qs:active{background:rgba(255,255,255,.18)}
+#btn-w i{left:2px;right:2px;top:auto;bottom:2px;font-size:8px;text-align:center}
+.stick{opacity:.55;transition:opacity .15s}.stick.live{opacity:1}
+.talk{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:4;padding:8px 18px 7px;border:1px solid #e8c070;border-radius:20px;background:rgba(0,0,0,.65);color:#e8c070;font-size:13px;letter-spacing:.08em}
+.talk b{font-weight:400}
+.kitr{display:flex;flex-wrap:wrap;gap:6px;align-items:center;border-top:1px solid #222;padding:8px 0}.kitr small{width:100%;color:var(--dim);font-size:11px;letter-spacing:.1em}.kitr .btn{font-size:15px;padding:6px 10px 4px}
 </style>
 </head>
 <body>
@@ -122,16 +136,17 @@ body{position:fixed;inset:0}
   <div><div class="nk" id="h-nick">—</div></div>
   <div><div class="bar"><i id="h-hp" style="width:100%"></i></div><div class="bar xp"><i id="h-xp" style="width:0"></i></div><div class="bar st"><i id="h-st" style="width:100%"></i></div><small id="h-lv">NV 1 · PALO</small></div>
 </div>
-<div class="topr" id="topr" hidden><div class="sala" id="h-sala">conectando…</div><button class="menub" id="shop-b" hidden>TIENDA</button><button class="menub" id="inv-b">MOCHILA</button><button class="menub" id="menu-b">MENÚ</button></div>
+<div class="topr" id="topr" hidden><div class="sala" id="h-sala">conectando…</div><button class="menub" id="shop-b" hidden>TIENDA</button><button class="menub" id="say-b">DECIR</button><button class="menub" id="inv-b">MOCHILA</button><button class="menub" id="menu-b">MENÚ</button></div>
 <div class="pads" id="pads" hidden>
-  <button class="pb h" id="btn-h" hidden aria-label="Usar venda">+<small>VENDA <span id="h-n">0</span></small></button>
+  <button class="qs" id="btn-w" aria-label="Arma: cambiar"><canvas width="48" height="48"></canvas><i></i><small>ARMA</small></button>
+  <button class="qs" id="btn-h" aria-label="Cura rápida"><canvas width="48" height="48"></canvas><i></i><small>CURA</small></button>
+  <button class="qs" id="btn-s" aria-label="Objeto especial"><canvas width="48" height="48"></canvas><i></i><small>ESPECIAL</small></button>
   <button class="pb r" id="btn-r" aria-label="Correr">»<small>CORRER</small></button>
   <button class="pb x" id="btn-x" hidden aria-label="Huir invisible">◌<small>HUIR</small></button>
-  <button class="pb w" id="btn-w" aria-label="Cambiar de arma">⇄<small>ARMA</small></button>
-  <button class="pb a" id="btn-a" aria-label="Hablar o usar">A<small id="a-lab">HABLAR</small></button>
   <button class="pb b" id="btn-b" aria-label="Golpear">B<small>GOLPEAR</small></button>
 </div>
 <div class="stick" id="stick" hidden><i id="knob"></i></div>
+<button class="talk" id="btn-a" hidden aria-label="Hablar">💬 <b id="a-lab">HABLAR</b></button>
 <div class="hintL" id="hintL" hidden>arrastrá acá para caminar</div>
 <div class="fade" id="fade"></div>
 <div class="zone" id="zone"><b id="zone-n"></b><small id="zone-s"></small></div>
@@ -139,7 +154,7 @@ body{position:fixed;inset:0}
 
 <div class="say" id="say" hidden><input id="say-in" maxlength="80" placeholder="Decí algo…" autocomplete="off"><button class="btn solid" id="say-go">DECIR</button></div>
 
-<div class="ov" id="ov-load"><div class="box"><h2>CENIZAS</h2><p id="load-t">entrando a las cenizas…</p></div></div>
+<div class="ov" id="ov-load"><div class="box"><h2>THE O|F 2.1</h2><p id="load-t">cargando…</p></div></div>
 
 <div class="ov" id="ov-menu" hidden><div class="box"><h2>PAUSA</h2><p>Tu personaje queda donde está. La próxima vez arrancás acá mismo.</p>
   <div class="row" style="margin-bottom:10px"><button class="btn" id="m-snd">SONIDO: SÍ</button></div>
@@ -172,6 +187,8 @@ body{position:fixed;inset:0}
 <script src="/cenizas-pix.js"></script>
 <script src="/cenizas-npc.js"></script>
 <script src="/cenizas-sheets.js"></script>
+<script src="/cenizas-story-data.js"></script>
+<script src="/cenizas-story.js"></script>
 <script src="/cenizas.js"></script>
 </body>
 </html>
