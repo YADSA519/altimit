@@ -713,7 +713,9 @@
     const r2 = Math.random();
     if (r2 < .018) { const pool = [['cuchillo', 3], ['bate', 3], ['barra', 2]]; if (mL >= 10) pool.push(['lanza', 2], ['pistola', 1.5]); if (mL >= 18) pool.push(['katana', 1.5]); if (mL >= 28) pool.push(['escopeta', 1]); spawnPickup(pickW(pool), [p.x + 30, p.y]); }
     else if (r2 < .032) spawnPickup('pista', [p.x - 30, p.y]);
-    else if (r2 < .055) spawnPickup(pickW([['venda_q', T.burn || mL >= 15 ? 1.2 : .3], ['antiveneno', T.poison || mL >= 15 ? 1.2 : .3], ['trampa', .5], ['fragmento', mL >= 10 ? .25 : 0], ['metralleta', mL >= 25 ? .15 : 0], ['cigarrillo', 2], ['manzana', 1.5], ['receptor', mL >= 18 ? .5 : 0], ['ganzuas', mL >= 30 ? .4 : 0], ['fragmento', mL >= 40 ? .3 : 0], ['credencial', p.kind === 'corredor' ? 1.5 : 0], ['linterna', .3]]), [p.x, p.y + 30]);
+    else if (r2 < .055) spawnPickup(pickW([['venda_q', T.burn || mL >= 15 ? 1.2 : .3], ['antiveneno', T.poison || mL >= 15 ? 1.2 : .3], ['trampa', .5], ['fragmento', mL >= 10 ? .25 : 0], ['metralleta', mL >= 25 ? .15 : 0], ['cigarrillo', 2], ['manzana', 1.5], ['receptor', mL >= 18 ? .5 : 0], ['fragmento', mL >= 40 ? .3 : 0], ['credencial', p.kind === 'corredor' ? 1.5 : 0], ['linterna', .3]]), [p.x, p.y + 30]);
+    /* ganzúas: antes solo caían de Oscuros nivel 30+; ahora en todos los niveles (los jefes siempre dejan una) */
+    if (T.boss || Math.random() < (mL >= 15 ? .07 : .05)) spawnPickup('ganzuas', [p.x - 30, p.y + 20]);
     if (p.kind === 'jefe') grantSkins(['renzo', 'sam']);
     if (p.kind === 'yuki') { addItem('brz_jefe'); quickBtns(); toast('¡Alcanzaste a Yuki! Te dejó su brazalete: activalo desde ESPECIAL.'); persist(); }
     if (p.kind === 'sofia') { const can = Object.keys(AB).filter(a => !INV.ab.includes(a)); if (can.length) { const a = can[(Math.random() * can.length) | 0]; INV.ab.push(a); setTimeout(() => toast('HABILIDAD NUEVA: ' + AB[a].n + ' · ' + AB[a].d + ' Si morís, la perdés.'), 900); abButtons(); } }
@@ -900,7 +902,7 @@
   ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => rb.addEventListener(ev, () => { runHeld = false; rb.classList.remove('on'); }));
   $('#btn-x').addEventListener('pointerdown', e => { e.preventDefault(); goGhost(); });
   /* tienda de Plaza de Mayo */
-  const SHOP = [['kit', 100, 'Vida completa'], ['vendas', 3, 'Cura 30 de vida · 3 s entre vendas'], ['pilas', 2, 'Recargan la linterna'], ['lanza', 8, 'Llega lejos y atraviesa · 30 golpes'], ['kitsune', 10, 'Desaparecés 3 segundos · 2 usos']];
+  const SHOP = [['kit', 100, 'Vida completa'], ['vendas', 3, 'Cura 30 de vida · 3 s entre vendas'], ['pilas', 2, 'Recargan la linterna'], ['lanza', 8, 'Llega lejos y atraviesa · 30 golpes'], ['kitsune', 10, 'Desaparecés 3 segundos · 2 usos'], ['ganzuas', 6, 'Abren un casillero · se gastan']];
   let curShop = null; function openShop(n) { if (!n || !n.nm) n = npcsHere().find(x => x.act === 'shop' || x.shop); if (!n || P.dead) return; curShop = (n.shop ? n.shop.map(([k, p]) => [k, p, ITEMS[k].d]) : SHOP.slice()); [['venda_q', 6], ['antiveneno', 6], ['trampa', 12], ['fragmento', 45]].concat(n.shop && n.shop.some(([k]) => ITEMS[k] && ITEMS[k].eq === 'arma' && WEAP[k] && WEAP[k].gun) ? [['metralleta', 110]] : []).forEach(([k, p]) => { if (!curShop.some(r => r[0] === k)) curShop.push([k, p, ITEMS[k].d]); });
     $('#ov-shop h2').textContent = n.nm; $('#ov-shop p i').textContent = '"' + n.line + '"'; paused = true; $('#ov-shop').hidden = false; renderShop(); }
   const SELL = { metralleta: 20, trampa: 5, antiveneno: 3, venda_q: 3, pagina: 4, cigarrillo: 3, credencial: 6, receptor: 8, ganzuas: 6, filtro: 5, fragmento: 15, pista: 3, manzana: 2, pilas: 1, tarjeta: 10, expediente: 10, fusible: 4, radio: 6, cartucho: 10, canister: 10, contenedor: 8, energia: 8, mascara: 8, b_contencion: 12, b_resonancia: 12, campera: 5, chaleco: 10, armadura: 18, linterna: 4, cuchillo: 3, bate: 4, barra: 3, lanza: 6, pistola: 8, katana: 10, escopeta: 14, lanzallamas: 18, pista_ork: 4, pista_reb: 4 };
@@ -1283,7 +1285,7 @@
     if (P.hurtT > 0) { c.fillStyle = 'rgba(160,20,10,' + P.hurtT * .8 + ')'; c.fillRect(0, 0, VW, VH); }
     if (P.ghost > 0) { c.fillStyle = 'rgba(180,200,220,.08)'; c.fillRect(0, 0, VW, VH); }
     // barra del jefe
-    const boss = gotFull && mobs.find(o => o.T.boss); const bb = $('#boss'); if (boss) { bb.hidden = false; $('#boss-n').textContent = boss.T.name; $('#boss-hp').style.width = Math.max(0, boss.hp / boss.T.hp * 100) + '%'; } else bb.hidden = true;
+    const boss = gotFull && mobs.find(o => o.T.boss); const bb = $('#boss'); if (boss) { bb.hidden = false; $('#boss-n').textContent = boss.T.name; $('#boss-hp').style.width = Math.max(0, Math.min(100, boss.hp / (boss.mhp || boss.T.hp) * 100)) + '%'; } else bb.hidden = true;
     const lv = lvlOf(P.xp); if (!P.dead && P.hp < maxHp(lv) * .25) { c.fillStyle = 'rgba(120,10,5,' + (.12 + Math.sin(t * 5) * .08) + ')'; c.fillRect(0, 0, VW, VH); }
   }
 

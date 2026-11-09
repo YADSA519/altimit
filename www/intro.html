@@ -62,6 +62,10 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;touch-action:mani
     const dot = document.createElement('i'); bar.appendChild(dot);
     return d;
   });
+  /* música de misterio: arranca sola si el teléfono la deja; si no, con el primer toque */
+  const mus = new Audio('/a/intro/musica.mp3'); mus.preload = 'auto'; mus.volume = .85;
+  let musOn = false; const playMus = () => { if (musOn || done) return; mus.play().then(() => { musOn = true; }).catch(() => {}); };
+  ['pointerdown', 'touchstart', 'keydown'].forEach(ev => document.addEventListener(ev, playMus, { once: false, passive: true }));
   let cur = -1, timer = null, done = false;
   function show(i) {
     if (done) return;
@@ -78,13 +82,14 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;touch-action:mani
     if (done) return; done = true; clearTimeout(timer);
     try { localStorage.setItem('theof_intro_vista', '1'); } catch (_) {}
     document.getElementById('black').style.opacity = 1;
+    { const v0 = mus.volume; let k = 0; const fi = setInterval(() => { k++; mus.volume = Math.max(0, v0 * (1 - k / 12)); if (k >= 12) { clearInterval(fi); mus.pause(); } }, 100); }
     setTimeout(() => { location.replace(NEXT); }, 1200);
   }
   document.getElementById('skip').addEventListener('click', e => { e.stopPropagation(); finish(); });
   stage.addEventListener('click', () => show(cur + 1));
   document.addEventListener('keydown', e => { if (e.key === 'Escape') finish(); else if (e.key === ' ' || e.key === 'ArrowRight' || e.key === 'Enter') show(cur + 1); });
   /* arranca cuando cargó la primera viñeta (o a los 2 s igual) */
-  const first = els[0].firstChild; let started = false; const go = () => { if (!started) { started = true; show(0); } };
+  const first = els[0].firstChild; let started = false; const go = () => { if (!started) { started = true; playMus(); show(0); } };
   if (first.complete) go(); else { first.onload = go; first.onerror = go; setTimeout(go, 2000); }
 })();
 </script>

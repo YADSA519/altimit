@@ -92,8 +92,11 @@ body.cine #st-dlg{display:block}
   /* ---------- camino al objetivo: BFS por las salidas ---------- */
   function route(from, to) { if (from === to) return null; const prev = { [from]: null }, q = [from]; while (q.length) { const k = q.shift(); for (const e of (A.MAPS[k].exits || [])) { if (!e.to || !A.MAPS[e.to] || e.to in prev) continue; prev[e.to] = [k, e]; if (e.to === to) { let cur = to, first = null; while (prev[cur]) { first = prev[cur][1]; cur = prev[cur][0]; } return first; } q.push(e.to); } } return null; }
   function target() { if (!step) return null; const tm = step.go || step.map; if (!tm) return null;
-    if (A.mapKey !== tm) { const e = route(A.mapKey, tm); return e ? { x: (e.r[0] + e.r[2]) / 2, y: (e.r[1] + e.r[3]) / 2, lab: e.label } : null; }
-    if (step.talk || step.use) { const k = S.m + '-' + S.s + '-' + A.mapKey; const n = (step.talk && worldNpc()) || null; if (n) return { x: n.x, y: n.y }; const p = place[k]; return p ? { x: p[0], y: p[1] } : null; }
+    if (A.mapKey !== tm) { const e = route(A.mapKey, tm); return e ? { x: (e.r[0] + e.r[2]) / 2, y: (e.r[1] + e.r[3]) / 2, lab: e.label || 'SALIDA' } : null; }
+    if (step.talk || step.use) { const k = S.m + '-' + S.s + '-' + A.mapKey; const n = (step.talk && worldNpc()) || null; if (n) return { x: n.x, y: n.y, lab: nameOf(step.talk) }; const p = place[k]; return p ? { x: p[0], y: p[1], lab: step.use ? 'ACTIVAR' : 'HABLAR' } : null; }
+    const P = A.P, WS_ = A.WS, near = (arr) => { let b = null, bd = 1e18; arr.forEach(o => { const d = (o.x - P.x) ** 2 + (o.y - P.y) ** 2; if (d < bd) { bd = d; b = o; } }); return b; };
+    if (step.kill) { const ks = kindsOf(step.kill); const m = near(A.mobs.filter(o => o.hp > 0 && (o.story || ks.includes(o.kind)))); if (m) return { x: m.x / WS_, y: m.y / WS_, lab: 'ENEMIGO' }; }
+    if (step.get) { const q = near(A.pickups.filter(q => q.k === step.get)); if (q) return { x: q.x / WS_, y: q.y / WS_, lab: 'BUSCAR' }; }
     return null; }
   function worldNpc() { const n = ((A.MAP && A.MAP.npcs) || []).find(x => x.k === step.talk); return n || null; }
 
@@ -126,10 +129,17 @@ body.cine #st-dlg{display:block}
       ents.push({ y: p[1] * WS - 1, draw: () => { if (!A.ok(im)) return; const [sx, sy] = W2S(p[0] * WS, p[1] * WS), h = 150 * zoom, w = im.naturalWidth / im.naturalHeight * h; c.drawImage(im, sx - w / 2, sy - h + 10 * zoom, w, h);
         const a = .5 + Math.sin(performance.now() / 300) * .4; c.strokeStyle = 'rgba(232,192,112,' + a + ')'; c.lineWidth = 2; c.beginPath(); c.ellipse(sx, sy + 6 * zoom, w * .55, 16 * zoom, 0, 0, 7); c.stroke();
         c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; c.fillStyle = '#e8c070'; c.fillText(step.nm, sx, sy - h - 2); } }); },
-    draw(c, W2S, VW, VH, zoom, WS) { const tg = target(); if (!tg || !A.P) return; const [sx, sy] = W2S(tg.x * WS, tg.y * WS); const on = sx > 30 && sx < VW - 30 && sy > 60 && sy < VH - 30, t_ = performance.now() / 1000;
-      if (on) { const b = Math.sin(t_ * 4) * 6; c.fillStyle = '#e8c070'; c.beginPath(); c.moveTo(sx, sy - 150 * zoom + b); c.lineTo(sx - 10, sy - 168 * zoom + b); c.lineTo(sx + 10, sy - 168 * zoom + b); c.closePath(); c.fill(); return; }
-      const cx = VW / 2, cy = VH / 2, ang = Math.atan2(sy - cy, sx - cx), r = Math.min(VW, VH) * .42, ax = cx + Math.cos(ang) * r, ay = cy + Math.sin(ang) * r;
-      c.save(); c.translate(ax, ay); c.rotate(ang); c.fillStyle = 'rgba(232,192,112,.85)'; c.beginPath(); c.moveTo(18, 0); c.lineTo(-8, -11); c.lineTo(-8, 11); c.closePath(); c.fill(); c.restore(); },
+    draw(c, W2S, VW, VH, zoom, WS) { const tg = target(); if (!tg || !A.P) return; const [sx, sy] = W2S(tg.x * WS, tg.y * WS), [px, py] = W2S(A.P.x, A.P.y - 90); const t_ = performance.now() / 1000;
+      const on = sx > 40 && sx < VW - 40 && sy > 70 && sy < VH - 40, dist = Math.hypot(sx - px, sy - py);
+      if (on) { const b = Math.sin(t_ * 4) * 7, y0 = sy - 150 * zoom + b; c.fillStyle = '#e8c070'; c.strokeStyle = 'rgba(0,0,0,.7)'; c.lineWidth = 3; c.beginPath(); c.moveTo(sx, y0); c.lineTo(sx - 15, y0 - 24); c.lineTo(sx + 15, y0 - 24); c.closePath(); c.stroke(); c.fill();
+        c.font = '12px TechMono, monospace'; c.textAlign = 'center'; c.lineWidth = 3; c.strokeText(tg.lab || '', sx, y0 - 32); c.fillText(tg.lab || '', sx, y0 - 32); }
+      if (on && dist < 260) return;
+      /* flecha alrededor del personaje que apunta al objetivo (o a la salida que lleva a él) */
+      const ang = Math.atan2(sy - py, sx - px), r = 115 * Math.max(.8, zoom), ax = px + Math.cos(ang) * r, ay = py + Math.sin(ang) * r, pulse = 1 + Math.sin(t_ * 5) * .08;
+      c.save(); c.translate(ax, ay); c.rotate(ang); c.scale(pulse, pulse); c.fillStyle = 'rgba(232,192,112,.95)'; c.strokeStyle = 'rgba(0,0,0,.75)'; c.lineWidth = 3;
+      c.beginPath(); c.moveTo(26, 0); c.lineTo(-12, -16); c.lineTo(-4, 0); c.lineTo(-12, 16); c.closePath(); c.stroke(); c.fill(); c.restore();
+      const lx = px + Math.cos(ang) * (r + 44), ly = py + Math.sin(ang) * (r + 44) + 4; c.font = '12px TechMono, monospace'; c.textAlign = 'center'; c.lineWidth = 3; c.strokeStyle = 'rgba(0,0,0,.8)'; c.fillStyle = '#f0d696';
+      const txt = (tg.lab || 'OBJETIVO') + ' · ' + Math.max(1, Math.round(dist / Math.max(.3, zoom) / 40)) + ' m'; c.strokeText(txt, lx, ly); c.fillText(txt, lx, ly); },
     say, card,
     jump(m, s_) { S.m = m; S.s = s_; S.c = 0; mis = list[m]; step = mis.steps[s_]; spawned = {}; place = {}; prep(); objective(); return step; },
     get step() { return step; }, get list() { return list; }
