@@ -40,8 +40,8 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;touch-action:mani
     {d:7,   z:1.12, ox:'65%', oy:'35%'},
     {d:7,   z:1.08, ox:'60%', oy:'40%'},
     {d:6.5, z:1.10, ox:'70%', oy:'40%'},
-    {d:7,   z:1.10, ox:'60%', oy:'40%'},
-    {d:7.5, z:1.06, ox:'50%', oy:'40%'},
+    {d:7.5, z:1.06, ox:'40%', oy:'45%'},
+    {d:8,   z:1.05, ox:'35%', oy:'55%'},
     {d:7,   z:1.08, ox:'50%', oy:'50%'},
     {d:6,   z:1.10, ox:'55%', oy:'45%'},
     {d:6,   z:1.10, ox:'65%', oy:'40%'},
@@ -63,7 +63,7 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;touch-action:mani
     return d;
   });
   /* música de misterio: arranca sola si el teléfono la deja; si no, con el primer toque */
-  const mus = new Audio('/a/intro/musica.mp3'); mus.preload = 'auto'; mus.volume = .85;
+  const mus = new Audio('/a/intro/musica.mp3'); mus.preload = 'auto'; mus.loop = true; mus.volume = .85;
   let musOn = false; const playMus = () => { if (musOn || done) return; mus.play().then(() => { musOn = true; }).catch(() => {}); };
   ['pointerdown', 'touchstart', 'keydown'].forEach(ev => document.addEventListener(ev, playMus, { once: false, passive: true }));
   let cur = -1, timer = null, done = false;
