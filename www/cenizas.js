@@ -1175,7 +1175,7 @@
     // entidades
     const ents = [];
     const occIm = MAP.occ && MAP.occ.length ? img('/a/m/' + mapKey + '-occ.png') : null;
-    if (occIm && ok(occIm)) MAP.occ.forEach(o => { const [sx, sy] = W2S(o[0] * WS, o[1] * WS), w = o[2] * WS * zoom, h = o[3] * WS * zoom; if (sx > VW || sy > VH || sx + w < 0 || sy + h < 0) return; ents.push({ y: o[4] * WS, occ: [sx, sy, w, h], draw: () => c.drawImage(occIm, 0, o[5], o[2], o[3], sx, sy, w, h) }); });
+    if (occIm && ok(occIm)) MAP.occ.forEach(o => { const [sx, sy] = W2S(o[0] * WS, o[1] * WS), w = o[2] * WS * zoom, h = o[3] * WS * zoom; if (sx > VW || sy > VH || sx + w < 0 || sy + h < 0) return; ents.push({ y: MAP.occTop ? 1e12 : o[4] * WS, occ: [sx, sy, w, h], draw: () => c.drawImage(occIm, 0, o[5], o[2], o[3], sx, sy, w, h) }); });
     if (STORY && window.CZ_STORY) CZ_STORY.ents(ents, W2S, c, zoom, WS);
     ents.push({ y: P.y, draw: () => drawChar(P, look, me.nick, me.faction, true) });
     others.forEach(o => { if (o.look) ents.push({ y: o.y, draw: () => drawChar(o, o.look, o.nick, o.fac, false) }); });
@@ -1199,9 +1199,7 @@
       if (gx != null) { const [px, py] = W2S(P.x, P.y - 100), [qx, qy] = W2S(gx, gy), a = Math.atan2(qy - py, qx - px), d = Math.hypot(qx - px, qy - py);
         if (d > 90) { c.save(); c.translate(px + Math.cos(a) * 120 * zoom, py + Math.sin(a) * 120 * zoom); c.rotate(a); c.fillStyle = 'rgba(120,230,160,.9)'; c.beginPath(); c.moveTo(22, 0); c.lineTo(-10, -13); c.lineTo(-4, 0); c.lineTo(-10, 13); c.fill(); c.restore();
           c.font = '12px TechMono, monospace'; c.textAlign = 'center'; c.fillStyle = '#8ff0b0'; c.fillText(lab, px + Math.cos(a) * 120 * zoom, py + Math.sin(a) * 120 * zoom - 22); } } }
-    { const [px, py] = W2S(P.x, P.y), bx0 = px - 50 * zoom, bx1 = px + 50 * zoom, by0 = py - 200 * zoom; if (ents.some(e => e.occ && e.y > P.y && e.occ[0] < bx1 && e.occ[0] + e.occ[2] > bx0 && e.occ[1] < py && e.occ[1] + e.occ[3] > by0)) {
-      const cy_ = py - 95 * zoom, rr = 92 * zoom; c.save(); c.beginPath(); c.arc(px, cy_, rr, 0, 7); c.clip(); c.globalAlpha = .82; drawChar(P, look, me.nick, me.faction, true); c.restore();
-      c.strokeStyle = 'rgba(240,236,226,.55)'; c.lineWidth = 2; c.setLineDash([6, 5]); c.beginPath(); c.arc(px, cy_, rr, 0, 7); c.stroke(); c.setLineDash([]); } }
+    /* (sin círculo de rayos X: lo que está en la capa de frente tapa al personaje) */
     if (STORY && window.CZ_STORY) CZ_STORY.draw(c, W2S, VW, VH, zoom, WS);
     function shadow(x, y, w) { c.fillStyle = 'rgba(0,0,0,.5)'; c.beginPath(); c.ellipse(x, y, w * zoom, w * .3 * zoom, 0, 0, 7); c.fill(); }
     function drawSprite(im, sx, sy, h, face, rot, sq, flash, alpha) { if (!ok(im)) return; const H = h * zoom * (sq || 1), W = im.naturalWidth / im.naturalHeight * h * zoom;
