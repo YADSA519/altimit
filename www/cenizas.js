@@ -393,7 +393,7 @@
   async function boot() { await loadRules();
     const { data: s } = await sb.auth.getSession(); if (!s.session) return location.replace('/index.html');
     const uid = s.session.user.id;
-    const { data: prof } = await sb.from('profiles').select('id,nick,status,faction').eq('id', uid).maybeSingle();
+    const { data: prof } = await sb.from('profiles').select('id,nick,status,role,faction').eq('id', uid).maybeSingle();
     if (!prof || prof.status !== 'approved' || !prof.faction) return location.replace('/index.html');
     me = prof; document.documentElement.dataset.fac = me.faction;
     try { if (PL.ScreenOrientation) await PL.ScreenOrientation.lock({ orientation: 'landscape' }); } catch (e) {}
@@ -526,6 +526,8 @@
     /* misión del empleado: mientras el paso está en la oficina del presente, la reja de la oficina lleva ahí */
     if (STORY && window.CZ_STORY && CZ_STORY.redir) { const t = CZ_STORY.redir(e.to); if (t && MAPS[t]) { const at = arrivalOf(t, 'salida'); exitLock = true; return warpTo(t, at[0], at[1]); } }
     const dest = MAPS[e.to];
+    /* puerta oxidada del Nogal: por ahora solo pasa Pablo (o el admin, para probar) */
+    if (e.lock === 'pablo' && !((look && look.npc && /^pablo/.test(look.npc)) || (me && me.role === 'admin'))) { exitLock = true; buzz(40); toast('La cerradura está oxidada. Parece que hace mucho que no se abre.'); const cx = (e.r[0] + e.r[2]) / 2 * WS, cy = (e.r[1] + e.r[3]) / 2 * WS, dx = P.x - cx, dy = P.y - cy, l = Math.hypot(dx, dy) || 1; for (let i = 0; i < 12; i++) { const nx = P.x + dx / l * 12, ny = P.y + dy / l * 12; if (walkable(nx, ny)) { P.x = nx; P.y = ny; } } return; }
     if (!dest) { exitLock = true; buzz(40); toast('Camino peligroso. No se puede avanzar.'); const cx = (e.r[0] + e.r[2]) / 2 * WS, cy = (e.r[1] + e.r[3]) / 2 * WS, dx = P.x - cx, dy = P.y - cy, l = Math.hypot(dx, dy) || 1; for (let i = 0; i < 12; i++) { const nx = P.x + dx / l * 12, ny = P.y + dy / l * 12; if (walkable(nx, ny)) { P.x = nx; P.y = ny; } } return; }
     if (STORY && window.CZ_STORY && !CZ_STORY.canWarp(e)) { exitLock = true; return; }
     if (EXP && dest.base && dest.base !== me.faction) { exitLock = true; buzz(40); return toast(dest.base === 'ork' ? 'BASE ORK · no podés pasar.' : 'BASE REBELDE · no podés pasar.'); }
