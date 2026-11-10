@@ -142,6 +142,7 @@ body.cine #st-dlg{display:block}
       c.beginPath(); c.moveTo(26, 0); c.lineTo(-12, -16); c.lineTo(-4, 0); c.lineTo(-12, 16); c.closePath(); c.stroke(); c.fill(); c.restore();
       const lx = px + Math.cos(ang) * (r + 44), ly = py + Math.sin(ang) * (r + 44) + 4; c.font = '12px TechMono, monospace'; c.textAlign = 'center'; c.lineWidth = 3; c.strokeStyle = 'rgba(0,0,0,.8)'; c.fillStyle = '#f0d696';
       const txt = (tg.lab || 'OBJETIVO') + ' · ' + Math.max(1, Math.round(dist / Math.max(.3, zoom) / 40)) + ' m'; c.strokeText(txt, lx, ly); c.fillText(txt, lx, ly); },
+    wants(k) { return !!(step && step.talk === k && (step.go || step.map) === A.mapKey); },
     redir, say, card,
     jump(m, s_) { S.m = m; S.s = s_; S.c = 0; mis = list[m]; step = mis.steps[s_]; spawned = {}; place = {}; prep(); objective(); return step; },
     get step() { return step; }, get list() { return list; }
