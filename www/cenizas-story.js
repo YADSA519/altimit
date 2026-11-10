@@ -91,7 +91,9 @@ body.cine #st-dlg{display:block}
   function randomAround(min, max) { const P = A.P; for (let k = 0; k < 80; k++) { const a = Math.random() * 6.28, r = min + Math.random() * (max - min), x = P.x + Math.cos(a) * r, y = P.y + Math.sin(a) * r * .7; if (A.walkable(x, y)) return [x, y]; } return null; }
   /* ---------- camino al objetivo: BFS por las salidas ---------- */
   function route(from, to) { if (from === to) return null; const prev = { [from]: null }, q = [from]; while (q.length) { const k = q.shift(); for (const e of (A.MAPS[k].exits || [])) { if (!e.to || !A.MAPS[e.to] || e.to in prev) continue; prev[e.to] = [k, e]; if (e.to === to) { let cur = to, first = null; while (prev[cur]) { first = prev[cur][1]; cur = prev[cur][0]; } return first; } q.push(e.to); } } return null; }
-  function target() { if (!step) return null; const tm = step.go || step.map; if (!tm) return null;
+  const REDIR = { oficina_presente: 'oficina_ruina' }; /* mapas sin salida propia: se llega por la puerta de otro */
+  function redir(to) { if (!step) return null; const tm = step.go || step.map; return (tm && REDIR[tm] === to) ? tm : null; }
+  function target() { if (!step) return null; let tm = step.go || step.map; if (!tm) return null; if (REDIR[tm] && A.mapKey === REDIR[tm]) { const e = (A.MAPS[A.mapKey].exits || [])[0]; return e ? { x: (e.r[0] + e.r[2]) / 2, y: (e.r[1] + e.r[3]) / 2, lab: 'SALÍ Y VOLVÉ A ENTRAR' } : null; } if (REDIR[tm] && A.mapKey !== tm) tm = REDIR[tm];
     if (A.mapKey !== tm) { const e = route(A.mapKey, tm); return e ? { x: (e.r[0] + e.r[2]) / 2, y: (e.r[1] + e.r[3]) / 2, lab: e.label || 'SALIDA' } : null; }
     if (step.talk || step.use) { const k = S.m + '-' + S.s + '-' + A.mapKey; const n = (step.talk && worldNpc()) || null; if (n) return { x: n.x, y: n.y, lab: nameOf(step.talk) }; const p = place[k]; return p ? { x: p[0], y: p[1], lab: step.use ? 'ACTIVAR' : 'HABLAR' } : null; }
     const P = A.P, WS_ = A.WS, near = (arr) => { let b = null, bd = 1e18; arr.forEach(o => { const d = (o.x - P.x) ** 2 + (o.y - P.y) ** 2; if (d < bd) { bd = d; b = o; } }); return b; };
@@ -140,7 +142,7 @@ body.cine #st-dlg{display:block}
       c.beginPath(); c.moveTo(26, 0); c.lineTo(-12, -16); c.lineTo(-4, 0); c.lineTo(-12, 16); c.closePath(); c.stroke(); c.fill(); c.restore();
       const lx = px + Math.cos(ang) * (r + 44), ly = py + Math.sin(ang) * (r + 44) + 4; c.font = '12px TechMono, monospace'; c.textAlign = 'center'; c.lineWidth = 3; c.strokeStyle = 'rgba(0,0,0,.8)'; c.fillStyle = '#f0d696';
       const txt = (tg.lab || 'OBJETIVO') + ' · ' + Math.max(1, Math.round(dist / Math.max(.3, zoom) / 40)) + ' m'; c.strokeText(txt, lx, ly); c.fillText(txt, lx, ly); },
-    say, card,
+    redir, say, card,
     jump(m, s_) { S.m = m; S.s = s_; S.c = 0; mis = list[m]; step = mis.steps[s_]; spawned = {}; place = {}; prep(); objective(); return step; },
     get step() { return step; }, get list() { return list; }
   };

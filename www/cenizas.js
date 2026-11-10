@@ -522,7 +522,10 @@
     joinRoom(1); traps = (MAP.traps || TRAPS[k] || []).map(p => ({ x: p[0] * WS, y: p[1] * WS, cd: 0 })); tileCd = 2;
     if (STORY && window.CZ_STORY) CZ_STORY.enter(k);
   }
-  function warp(e) { if (warping) return; const dest = MAPS[e.to];
+  function warp(e) { if (warping) return;
+    /* misión del empleado: mientras el paso está en la oficina del presente, la reja de la oficina lleva ahí */
+    if (STORY && window.CZ_STORY && CZ_STORY.redir) { const t = CZ_STORY.redir(e.to); if (t && MAPS[t]) { const at = arrivalOf(t, 'salida'); exitLock = true; return warpTo(t, at[0], at[1]); } }
+    const dest = MAPS[e.to];
     if (!dest) { exitLock = true; buzz(40); toast('Camino peligroso. No se puede avanzar.'); const cx = (e.r[0] + e.r[2]) / 2 * WS, cy = (e.r[1] + e.r[3]) / 2 * WS, dx = P.x - cx, dy = P.y - cy, l = Math.hypot(dx, dy) || 1; for (let i = 0; i < 12; i++) { const nx = P.x + dx / l * 12, ny = P.y + dy / l * 12; if (walkable(nx, ny)) { P.x = nx; P.y = ny; } } return; }
     if (STORY && window.CZ_STORY && !CZ_STORY.canWarp(e)) { exitLock = true; return; }
     if (EXP && dest.base && dest.base !== me.faction) { exitLock = true; buzz(40); return toast(dest.base === 'ork' ? 'BASE ORK · no podés pasar.' : 'BASE REBELDE · no podés pasar.'); }
