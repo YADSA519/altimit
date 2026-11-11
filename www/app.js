@@ -314,9 +314,14 @@
   /* ================= NEWS ================= */
   let news = [], newsTabCur = 'all';
   const CAT = { general: 'NOTICIA', informe: 'INFORME', evento: 'EVENTO' };
+  /* avisos fijos del juego (no están en la base) */
+  const PINNED = [
+    { id: -1, category: 'informe', title: 'THE O|F · versión de prueba', body: 'Estás jugando una versión de prueba, todavía sin el final. El viernes 14 de noviembre se estrena el juego con una versión OFF LINE, para jugar cuando no tengas internet (si no tenés conexión no vas a poder jugar el mundo abierto ni cruzarte con otros players). El domingo 16 de noviembre se estrena la versión final del juego.', source: 'Red THE O|F', created_at: '2026-11-11T02:00:00Z' },
+    { id: -2, category: 'evento', title: 'Estreno de THE O|F · versión OFF LINE', body: 'Para jugar sin internet.', source: 'Red THE O|F', event_at: '2026-11-14T12:00:00-03:00', created_at: '2026-11-11T02:00:00Z' },
+    { id: -3, category: 'evento', title: 'Estreno de THE O|F · versión final', body: 'Llega el juego completo.', source: 'Red THE O|F', event_at: '2026-11-16T12:00:00-03:00', created_at: '2026-11-11T02:00:00Z' }];
   async function loadNews() {
     const { data, error } = await sb.from('news').select('id,author,category,title,body,source,event_at,faction,created_at').order('created_at', { ascending: false }).limit(80);
-    if (error) return; news = data || []; countNews(); if (cur === 'news') renderNews(); renderEvents();
+    if (error) return; news = PINNED.concat(data || []); countNews(); if (cur === 'news') renderNews(); renderEvents();
   }
   function countNews() { const seen = store.get('newsSeen', 0); const n = news.filter(x => x.id > seen).length; setBadge('news', cur === 'news' ? 0 : n); $('#news-meta').textContent = n ? n + ' nuevas' : ''; }
   function markNewsSeen() { renderNews(); if (news.length) store.set('newsSeen', Math.max(...news.map(n => n.id))); setBadge('news', 0); }
@@ -339,7 +344,7 @@
       if (n.event_at) top.appendChild(el('span', null, '· ' + stamp(n.event_at)));
       a.append(top, el('h3', null, n.title), el('p', null, n.body));
       const src = el('div', 'src'); src.append(el('span', null, '— ' + (n.source || 'Red THE O|F')), el('span', null, stamp(n.created_at))); a.appendChild(src);
-      if (me.role === 'admin') { const del = el('button', 'btn small red', 'BORRAR'); del.style.marginTop = '8px';
+      if (me.role === 'admin' && n.id > 0) { const del = el('button', 'btn small red', 'BORRAR'); del.style.marginTop = '8px';
         del.onclick = async () => { if (del.dataset.sure !== '1') { del.dataset.sure = '1'; del.textContent = '¿SEGURO?'; return; } const { error } = await sb.from('news').delete().eq('id', n.id); if (error) return toast('No se pudo borrar.'); news = news.filter(x => x !== n); renderNews(); }; a.appendChild(del); }
       box.appendChild(a); });
   }
@@ -577,7 +582,7 @@
   async function loadGameChar() { let { data, error } = await sb.from('game_chars').select('look,zone,xp,kills,inv').eq('user_id', me.id).maybeSingle();
     if (error && /inv/.test(error.message || '')) ({ data, error } = await sb.from('game_chars').select('look,zone,xp,kills').eq('user_id', me.id).maybeSingle());
     if (error) { gchar = null; $('#d-avnote').hidden = false; $('#d-avnote').textContent = 'El avatar se activa cuando el admin corre el SQL de Cenizas.'; $('#av-open').hidden = true; return; }
-    gchar = data; const ZN = { nogal: "El Nogal", calle: "La Calle De Pablo", callejon: "El Callejón", plazaArbol: "Plaza Del Árbol Muerto", interHaedo: "Intersección De Haedo", estHaedo: "Estación Haedo", mcd: "Esquina Del Mcdonald'S", patio: "Patio Ferroviario · Caballito", estOnce: "Estación Once", rivadavia: "Av. Rivadavia · Once", congreso: "Plaza Del Congreso", express: "Esquina Express", estatua: "La Estatua", portena: "Intersección Porteña", urbanoBA: "Cuadra Porteña", esperanza: "Esquina Del Fuego", abandono: "Esquina Del Portón", lezama: "Parque Lezama · Campamento Ork", plazaMayo: "Plaza De Mayo", refugioSub: "Refugio Subterráneo", nueveJulio: "Av. 9 De Julio · Obelisco", teatroAv: "Teatro Sobre La Avenida", colon: "Refugio Del Teatro Colón", libertador: "Cruce Libertador · Base Ork", muelle: "Campamento Del Muelle", puente: "Puente Sobre El Canal", bunker: "Búnker De Puerto Madero", lab: "Laboratorio · Puerto Madero" };
+    gchar = data; const ZN = {"nogal": "El Nogal", "calle": "La Calle De Pablo", "callejon": "El Callejón", "plazaArbol": "Plaza Del Árbol Muerto", "interHaedo": "Intersección De Haedo", "estHaedo": "Estación Haedo", "mcd": "Esquina Del McDonald's", "patio": "Patio Ferroviario · Caballito", "estOnce": "Estación Once", "terminal_once": "Terminal De Once", "rivadavia": "Av. Rivadavia · Once", "congreso": "Plaza Del Congreso", "express": "Esquina Express", "estatua": "La Estatua", "portena": "Intersección Porteña", "urbanoBA": "Cuadra Porteña", "esperanza": "Esquina Del Fuego", "lezama": "Parque Lezama · Base ORK", "plazaMayo": "Plaza De Mayo", "refugioSub": "Refugio Subterráneo", "nueveJulio": "Av. 9 De Julio · Obelisco", "banco": "Banco En Ruinas · Microcentro", "teatroAv": "Teatro Sobre La Avenida", "colon": "Refugio Del Teatro Colón", "libertador": "Cruce Libertador · Base ORK", "muelle": "Campamento Del Muelle", "puente": "Puente Sobre El Canal", "bunker": "Búnker De Puerto Madero", "lab": "Laboratorio · Puerto Madero", "oficina": "Esquina De La Oficina", "oficina_presente": "Oficina De YAD · Presente", "oficina_ruina": "Oficina De YAD · En Ruinas", "casa_pablo": "Casa De Pablo", "bar_humo": "Bar De Humo", "centro_ork": "Centro Operativo ORK", "complejo8c": "Complejo Industrial 8C", "lab_cuarentena": "Laboratorio De Cuarentena", "arena_final": "Base Industrial · Instalación Temporal", "teatro_int": "Teatro · Interior", "subte_arena": "Subte Línea A · Estación", "bar_rojo": "Bar De Luz Roja", "barrio_chino": "Barrio Chino · Belgrano", "calle_extra": "Calle Del Monumento", "sotano_rift": "Sótano Del Nogal · El Rift"};
     $('#d-game').textContent = data ? 'NV ' + (Math.floor(Math.sqrt((data.xp || 0) / 50)) + 1) + ' · ' + (data.kills || 0) + ' caídos · ' + (ZN[data.zone] || '—') : 'todavía no entraste';
     await loadSkins(); drawAv(); }
   $('#d-pic').onclick = () => { avRot = (avRot + 1) % 4; drawAv(); };

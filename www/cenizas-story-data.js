@@ -106,10 +106,10 @@ window.CZ_STORY_DATA = {
       reward: { xp: 3200, coins: 100, items: { kit: 2 } } },
     { id: 'r13', t: 'MÓDULO FERROVIARIO 3', intro: [['arshi', 'El acceso logístico pasa por el módulo 3. Cortá la energía y abrí las compuertas.']],
       steps: [
-        { go: 'modulo3', txt: 'Llegá al Módulo Ferroviario 3 (por el Complejo 8C o el Patio)' },
-        { use: 'gen3', ob: 'generador', nm: 'TABLERO DE ENERGÍA', map: 'modulo3', at: [-420, -180], txt: 'Cortá la energía del sector', lines: [['VOS', 'Se apagó todo. Ahora se mueven a ciegas.']] },
-        { kill: 'HUM', n: 5, map: 'modulo3', spawn: true, txt: 'Limpiá el andén' },
-        { use: 'comp3', ob: 'consola', nm: 'CONTROL DE COMPUERTAS', map: 'modulo3', at: [380, -160], txt: 'Abrí las compuertas', lines: [['RADIO', 'Compuertas arriba. Sacamos a los cautivos.']] },
+        { go: 'complejo8c', txt: 'Llegá al Complejo Industrial 8C (por el Patio Ferroviario)' },
+        { use: 'gen3', ob: 'generador', nm: 'TABLERO DE ENERGÍA', map: 'complejo8c', at: [-420, -180], txt: 'Cortá la energía del sector', lines: [['VOS', 'Se apagó todo. Ahora se mueven a ciegas.']] },
+        { kill: 'HUM', n: 5, map: 'complejo8c', spawn: true, txt: 'Limpiá el andén' },
+        { use: 'comp3', ob: 'consola', nm: 'CONTROL DE COMPUERTAS', map: 'complejo8c', at: [380, -160], txt: 'Abrí las compuertas', lines: [['RADIO', 'Compuertas arriba. Sacamos a los cautivos.']] },
         { talk: 'arshi', map: 'patio', txt: 'Avisale a Arshi', lines: [['arshi', 'Eso nos da la entrada. Lucas no se lo espera.']] }],
       reward: { xp: 3800, coins: 110, items: { escopeta: 1 } } },
     { id: 'r14', t: 'LA NOCHE DE LA OFENSIVA', intro: [['jota', 'Esta noche entramos. Vos sostenés el flanco y la vía de salida.']],
@@ -123,7 +123,7 @@ window.CZ_STORY_DATA = {
     { id: 'r15', t: 'EL VIAJERO CERO', intro: [['azu', 'Hay registros de otro viajero. Pol. Las partículas en él son distintas.']],
       steps: [
         { get: 'cartucho', n: 1, map: 'lab_cuarentena', txt: 'Recuperá los registros de Pol' },
-        { go: 'arena_final', txt: 'Protegé el corredor de extracción en la Instalación Temporal (desde el Búnker)' },
+        { go: 'arena_final', txt: 'Protegé el corredor de extracción en la Base Industrial (por el Cruce Libertador o el Búnker)' },
         { survive: 60, map: 'arena_final', kinds: 'HUM', txt: 'Mantené el corredor abierto' },
         { talk: 'pol_alter', map: 'arena_final', at: [0, -200], txt: 'Encontrá a Pol', lines: [['pol_alter', '¿Vos sos de los de Jota? Pablo viene. No me dejen acá.'], ['VOS', 'Nadie se queda.']] }],
       reward: { xp: 5500, coins: 160, items: { armadura: 1 } } },
@@ -195,10 +195,10 @@ window.CZ_STORY_DATA = {
       reward: { xp: 2500, coins: 85, items: { armadura: 1 } } },
     { id: 'v09', t: 'MÓDULO FERROVIARIO 3', intro: [['oficial_ork', 'Los rebeldes van por el núcleo de datos. Defendé el módulo.']],
       steps: [
-        { go: 'modulo3', txt: 'Llegá al Módulo Ferroviario 3' },
-        { use: 'en', ob: 'generador', nm: 'ENERGÍA', map: 'modulo3', at: [-420, -180], txt: 'Restablecé la energía' },
-        { use: 'cp', ob: 'consola', nm: 'COMPUERTAS', map: 'modulo3', at: [380, -160], txt: 'Cerrá las compuertas', lines: [['RADIO', 'Reportes: los rebeldes están liberando sujetos en otro sector.'], ['VOS', '¿Sujetos? ¿Personas?']] },
-        { survive: 60, map: 'modulo3', kinds: 'HUM', txt: 'Protegé el servidor de seguimiento' }],
+        { go: 'complejo8c', txt: 'Llegá al Complejo Industrial 8C' },
+        { use: 'en', ob: 'generador', nm: 'ENERGÍA', map: 'complejo8c', at: [-420, -180], txt: 'Restablecé la energía' },
+        { use: 'cp', ob: 'consola', nm: 'COMPUERTAS', map: 'complejo8c', at: [380, -160], txt: 'Cerrá las compuertas', lines: [['RADIO', 'Reportes: los rebeldes están liberando sujetos en otro sector.'], ['VOS', '¿Sujetos? ¿Personas?']] },
+        { survive: 60, map: 'complejo8c', kinds: 'HUM', txt: 'Protegé el servidor de seguimiento' }],
       reward: { xp: 3200, coins: 100, items: { escopeta: 1 } } },
     { id: 'v10', t: 'PROTOCOLO PABLO', intro: [['mercedes', 'No es un objetivo común. Lo vimos cruzar y regresar. Más de una vez.'], ['oficial_ork', '¿Orden de eliminación?'], ['mercedes', 'Negativo. Lo quiero vivo. Necesitamos saber qué lo mantiene estable.']],
       steps: [
@@ -208,7 +208,7 @@ window.CZ_STORY_DATA = {
       reward: { xp: 4200, coins: 130, items: { kit: 3 } } },
     { id: 'v11', t: 'EL ÚLTIMO CRUCE', intro: [['oficial_ork', 'Cuando lo tengan enfrente, no disparen por miedo. Cierren el perímetro, mantengan el campo y esperen la señal.'], ['VOS', '¿Y si vuelve a desaparecer?'], ['oficial_ork', 'Entonces esta vez no le vamos a dejar una salida.']],
       steps: [
-        { go: 'arena_final', txt: 'Andá a la Instalación Temporal (desde el Búnker)' },
+        { go: 'arena_final', txt: 'Andá a la Base Industrial (por el Cruce Libertador o el Búnker)' },
         { use: 'c1', ob: 'consola', nm: 'CIERRE', map: 'arena_final', at: [-450, -200], txt: 'Activá el primer cierre' },
         { use: 'c2', ob: 'consola', nm: 'CIERRE', map: 'arena_final', at: [450, -200], txt: 'Activá el segundo cierre' },
         { survive: 50, map: 'arena_final', kinds: 'HUM', txt: 'Mantené el campo de contención' },

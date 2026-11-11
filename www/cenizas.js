@@ -11,7 +11,7 @@
   const ZONES = window.CZ_PVP || [];
   const MAPS = EXP ? ZONES.reduce((o, k) => { const m = Object.assign({}, window.CZ_MAPS[k]); m.exits = m.exits.filter(e => ZONES.includes(e.to));  o[k] = m; return o; }, {}) : Object.keys(window.CZ_MAPS).filter(k => !ZONES.includes(k)).reduce((o, k) => { o[k] = window.CZ_MAPS[k]; return o; }, {});
   const NPC = window.CZ_NPC || null;
-  const ICON_PNG = { katana: 'katana', bate: 'bate', cuchillo: 'cuchillo', barra: 'barra', pistola: 'pistola', escopeta: 'escopeta', mascara: 'mascara', kitsune: 'capa', chaleco: 'chaleco', armadura: 'chaleco', campera: 'chaleco', palo: 'palo',
+  const ICON_PNG = { katana: 'katana', bate: 'bate', cuchillo: 'cuchillo', barra: 'barra', pistola: 'pistola', escopeta: 'escopeta', mascara: 'mascara', kitsune: 'capa', chaleco: 'chaleco', chaleco_t: 'chaleco', armadura: 'chaleco', campera: 'chaleco', palo: 'palo',
     b_contencion: 'brazalete', b_resonancia: 'brazalete', brz_ork: 'brazalete', brz_reb: 'brazalete', vendas: 'vendas', botiquin: 'vendas', suero: 'maletin', kit: 'maletin', cigarrillo: 'cigarrillo', manzana: 'manzana', credencial: 'credencial', pista_ork: 'credencial', pista_reb: 'pagina', pista: 'pagina', pagina: 'pagina', lanza: 'lanza', baston: 'lanza' };
   Object.assign(ICON_PNG, { lanzallamas: 'escopeta', metralleta: 'pistola', trampa: 'peligro', antiveneno: 'canister', venda_q: 'vendas', fragmento: 'energia', brz_jefe: 'brazalete', tarjeta: 'tarjeta', expediente: 'expediente', fusible: 'fusible', radio: 'radio', cartucho: 'cartucho', canister: 'canister', contenedor: 'contenedor', energia: 'energia' });
   const ICONS = {}; Object.entries(ICON_PNG).forEach(([k, f]) => { const i = new Image(); i.src = '/a/it/' + f + '.png'; ICONS[k] = i; });
@@ -199,6 +199,7 @@
     vendas: { n: 'Venda', t: 'Consumible · tienda de Plaza de Mayo', d: 'Cura 30 de vida. Después de usar una, tenés que esperar 3 segundos para la siguiente.', use: 'venda', v: 30 },
     campera: { n: 'Campera reforzada', t: 'Ropa · escudo 35', d: 'Absorbe 35 de daño antes que tu vida. Cuando se gasta, se rompe y aparece otra en algún mapa.', eq: 'ropa', shield: 35 },
     chaleco: { n: 'Chaleco antibalas', t: 'Ropa · escudo 70', d: 'Absorbe 70 de daño antes que tu vida. Cuando se gasta, se rompe y aparece otro en algún mapa.', eq: 'ropa', shield: 70 },
+    chaleco_t: { n: 'Chaleco táctico', t: 'Ropa · escudo 220 · solo en casilleros', d: 'Kevlar de verdad. Absorbe 220 de daño antes que tu vida. Sólo sale de los casilleros.', eq: 'ropa', shield: 220 },
     armadura: { n: 'Armadura improvisada', t: 'Ropa · escudo 120 · rara', d: 'Chapas y correas. Absorbe 120 de daño. Cuando se gasta, se rompe y aparece otra en algún mapa.', eq: 'ropa', shield: 120 },
     pagina: { n: 'Página del cuaderno', t: 'Narrativo · raro', d: 'Hojas sueltas del Cuaderno de desaparecidos. Al leerla aprendés algo (+XP) y la guardás en tu diario. También se vende.', use: 'leer' },
     fragmento: { n: 'Fragmento home', t: 'Especial · raro', d: 'Un fragmento temporal. Al romperlo saltás a la base de tu bando. Se gasta.', use: 'volver' },
@@ -234,13 +235,13 @@
   Object.entries(MAPS).forEach(([k, m]) => { if (m.safeAll || m.base) { m.mobs = {}; return; } const top = (m.lv || [1, 3])[1];
     m.mobs = EXP ? MOBS_T.pvp : top <= 12 ? MOBS_T.bajo : top <= 28 ? MOBS_T.medio : top <= 40 ? MOBS_T.alto : MOBS_T.tope; });
   /* soldados ORK en bases y asentamientos ORK; rebeldes armados en asentamientos rebeldes. Sólo atacan al otro bando. */
-  const HUMAN_AT = { libertador: 'ork', centro_ork: 'ork', lezama: 'ork', mcd: 'ork', muelle: 'rebel', refugioSub: 'rebel', colon: 'rebel', campo_ruinas: 'rebel' };
+  const HUMAN_AT = { libertador: 'ork', centro_ork: 'ork', lezama: 'ork', mcd: 'ork', muelle: 'rebel', refugioSub: 'rebel', colon: 'rebel' };
   if (!EXP) Object.entries(HUMAN_AT).forEach(([k, f]) => { const m = MAPS[k]; if (!m) return; m.mobs = Object.assign({}, m.mobs || {}, f === 'ork' ? { soldado: 2, patrulla: 1 } : { saqueador: 2, tirador: 1 }); });
   const LOOT_T = {
-    bajo: [['pilas', 3], ['campera', 1.2], ['vendas', 2], ['linterna', 1], ['barra', 1], ['cuchillo', .7], ['bate', .5], ['pista', .5]],
-    medio: [['pilas', 2], ['campera', 1], ['chaleco', .7], ['vendas', 2], ['lanza', .5], ['pistola', .4], ['katana', .3], ['mascara', .8], ['pista', .6]],
-    alto: [['chaleco', 1], ['armadura', .5], ['vendas', 2], ['pistola', .6], ['katana', .5], ['escopeta', .25], ['b_contencion', .4], ['b_resonancia', .4], ['pista', .7]],
-    pvp: [['vendas', 2], ['campera', 1], ['cuchillo', .8], ['bate', .6], ['pistola', .3], ['pista', 1.4]],
+    bajo: [['pilas', 3], ['campera', 1.2], ['vendas', 2], ['linterna', 1], ['barra', .4], ['cuchillo', .3], ['bate', .2], ['pista', .5]],
+    medio: [['pilas', 2], ['campera', 1], ['chaleco', .7], ['vendas', 2], ['lanza', .2], ['pistola', .15], ['katana', .1], ['mascara', .8], ['pista', .6]],
+    alto: [['chaleco', 1], ['armadura', .5], ['vendas', 2], ['pistola', .25], ['katana', .2], ['escopeta', .08], ['b_contencion', .4], ['b_resonancia', .4], ['pista', .7]],
+    pvp: [['vendas', 2], ['campera', 1], ['cuchillo', .4], ['bate', .3], ['pistola', .12], ['pista', 1.4]],
     refugio: [['vendas', 1.5], ['pilas', 1]] };
   Object.values(LOOT_T).forEach(l => l.push(['cigarrillo', .6], ['manzana', .6]));
   const LOOT = {}; Object.entries(MAPS).forEach(([k, m]) => { const top = (m.lv || [1, 3])[1]; LOOT[k] = EXP ? LOOT_T.pvp : m.safeAll ? LOOT_T.refugio : top <= 14 ? LOOT_T.bajo : top <= 30 ? LOOT_T.medio : LOOT_T.alto; });
@@ -376,10 +377,10 @@
   let me = null, look = null, P = null;
   const others = new Map(), mobs = [], parts = [], ash = [], floats = [], pickups = [];
   let guide = null; const ptraps = [];
-  /* casilleros: 2 por mapa (no en zonas seguras), en lugares fijos; se fuerzan con ganzúas, 1 vez por día */
+  /* casilleros: pocos (1 en la mitad de los mapas, no en zonas seguras), en lugares fijos; premio grande; se fuerzan con ganzúas, 1 vez por día */
   let CAS = [];
-  function placeCas() { CAS = []; if (!grid || MAP.safeAll || MAP.base) return; const r = seeded(hashStr(mapKey) * 31 + 7); let tries = 0;
-    while (CAS.length < 2 && tries++ < 4000) { const c = (r() * grid.length) | 0; if (!grid[c]) continue; const x = (c % GW + .5) * CW, y = (((c / GW) | 0) + .5) * CW; if (inSafe(x, y) || CAS.some(o => Math.hypot(o.x * WS - x, o.y * WS - y) < 900)) continue;
+  function placeCas() { CAS = []; if (!grid || MAP.safeAll || MAP.base || EXP || hashStr(mapKey) % 2) return; const r = seeded(hashStr(mapKey) * 31 + 7); let tries = 0;
+    while (CAS.length < 1 && tries++ < 4000) { const c = (r() * grid.length) | 0; if (!grid[c]) continue; const x = (c % GW + .5) * CW, y = (((c / GW) | 0) + .5) * CW; if (inSafe(x, y) || CAS.some(o => Math.hypot(o.x * WS - x, o.y * WS - y) < 900)) continue;
       const nb = [1, -1, GW, -GW].filter(d => grid[c + d]).length; if (nb < 4) continue; CAS.push({ obj: true, cas: true, k: 'cas_' + mapKey + CAS.length, id: mapKey + ':' + CAS.length, nm: 'CASILLERO', x: x / WS, y: y / WS }); } }
   function nearCasillero() { const o = CAS.find(o => Math.hypot(o.x * WS - P.x, (o.y * WS - P.y) * 1.2) < 170); if (!o) return null; return { id: o.id, open: !!(INV.cas && INV.cas[o.id] === dayN()) }; }
   let INV = null, noInvCol = false, noBestCol = false, shake = 0; const shots = [];
@@ -467,6 +468,7 @@
       setTimeout(show, 1500); const pick = f => { ov.remove(); res(f); }; ov.querySelector('#ps-r').onclick = () => pick('rebel'); ov.querySelector('#ps-o').onclick = () => pick('ork'); }); }
   /* =================== JUEGO =================== */
   function startGame(gc) { gc = gc || {};
+    if (EXP && (gc.xp || 0) < xpFor(10)) gc = Object.assign({}, gc, { xp: xpFor(10) }); /* en PvP arrancás en nivel 10 */
     const lv = lvlOf(gc.xp || 0);
     P = { x: 0, y: 0, dir: 'd', face: 1, mv: false, walkT: 0, stepT: 0, atk: 0, cd: 0, hp: maxHp(lv), xp: gc.xp || 0, kills: gc.kills || 0, hurtT: 0, inv: 0, say: '', sayT: 0, dead: false, stam: 3, tired: false };
     let inv = gc.inv && gc.inv.items ? gc.inv : null; if (!inv && !EXP) { try { inv = JSON.parse(store.get('cz-inv-' + me.id) || 'null'); } catch (e) {} }
@@ -512,7 +514,7 @@
     const okPos = x && y && walkable(x, y);
     P.x = okPos ? x : MAP.spawn[0] * WS; P.y = okPos ? y : MAP.spawn[1] * WS; P.inv = 4; exitLock = true; P.exitT = 1.5;
     mobs.length = 0; parts.length = 0; floats.length = 0; pickups.length = 0;
-    const nPick = MAP.safeAll ? 1 : 3; for (let i = 0; i < nPick; i++) spawnPickup();
+    const nPick = MAP.safeAll ? 1 : 2; for (let i = 0; i < nPick; i++) spawnPickup();
     sueroTick(true);
     Object.keys(INV.lost).forEach(w => { if (INV.lost[w] === k) { spawnPickup(w); delete INV.lost[w]; } }); shots.length = 0;
     hud(); healBtn(); abButtons();
@@ -648,7 +650,7 @@
     if (a === 'use' && it.use === 'trampa') { if (EXP && MAP.safeAll || inSafe(P.x, P.y)) return toast('Acá no se pueden poner trampas.'); INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; const tp = { m: mapKey, id: me.id.slice(0, 4) + Date.now().toString(36), x: Math.round(P.x), y: Math.round(P.y), fac: me.faction, by: me.id, t: Date.now() }; ptraps.push(tp); net('trap', tp); SND.pick(); toast('Trampa puesta. El otro bando sólo ve una marquita.'); closeInv(); persist(); return; }
     if (a === 'use' && it.use === 'antiveneno') { if (!(P.poison > 0)) return toast('No estás envenenado. Guardalo.'); INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; P.poison = 0; SND.pick(); toast('El veneno se cortó.'); hud(); renderInv(); quickBtns(); persist(); return; }
     if (a === 'use' && it.use === 'vendaq') { if (!(P.burn > 0) && P.hp >= maxHp(lv)) return toast('No estás quemado. Guardala.'); INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; P.burn = 0; P.hp = Math.min(maxHp(lv), P.hp + 15); SND.pick(); toast('Venda para quemaduras: se apagó el ardor.'); hud(); renderInv(); quickBtns(); persist(); return; }
-    if (a === 'use' && it.use === 'forzar') { const cz = nearCasillero(); if (!cz) return toast('Usalas al lado de un CASILLERO (hay en casi todos los mapas).'); if (cz.open) return toast('Ese casillero ya lo abriste hoy.'); INV.cas = INV.cas || {}; INV.cas[cz.id] = dayN(); INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; addItem('vendas', 2); const x_ = pickW([['pilas', 3], ['campera', 1.5], ['cigarrillo', 2], ['filtro', 1.5], ['pistola', .6], ['chaleco', .6]]); addItem(x_); SND.pick(); toast('Forzaste un casillero: 2 vendas y ' + ITEMS[x_].n + '.'); renderInv(); quickBtns(); persist(); return; }
+    if (a === 'use' && it.use === 'forzar') { const cz = nearCasillero(); if (!cz) return toast('Usalas al lado de un CASILLERO (hay en algunos mapas, bien escondidos).'); if (cz.open) return toast('Ese casillero ya lo abriste hoy.'); INV.cas = INV.cas || {}; INV.cas[cz.id] = dayN(); INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; addItem('vendas', 3); const x_ = pickW([['chaleco_t', 1.4], ['armadura', 1.2], ['katana', 1], ['escopeta', 1], ['metralleta', .8], ['lanzallamas', .4]]); addItem(x_); SND.pick(); toast('¡Casillero forzado! 3 vendas y ' + ITEMS[x_].n + '.'); renderInv(); quickBtns(); persist(); return; }
     if (a === 'use' && it.use === 'radar') { if ((INV.radarT || 0) > Date.now()) return toast('El receptor se está recargando.'); INV.radarT = Date.now() + 60000; const m_ = []; if (suero.map) { m_.push('Maletín de curación: ' + MAPS[suero.map].name + ' (seguí la flecha)'); guide = { map: suero.map, k: 'suero', until: Date.now() + 180000 }; } closeInv(); if (hordeOn(mapKey)) m_.push('HORDA en este mapa'); const hb = HOURLY_AT[mapKey]; if (hb && Date.now() - (hourlyDead[hb] || 0) > 3600000) m_.push(MOB[hb].name + ' anda por acá');
       if (STORY) { const y_ = yukiPlan(); if (minOfDay() >= y_.start && minOfDay() < y_.start + 120) m_.push('Yuki: ' + MAPS[y_.map].name); } if (EXP && yukiPvp()) m_.push('Yuki está en las ruinas'); toast('RECEPTOR · ' + (m_.join(' · ') || 'Nada raro en el aire.')); return; }
     if (a === 'use' && it.use === 'luz') { if (!INV.eq.luz && INV.bat <= 0) { if (!hasItem('pilas')) return toast('La linterna no tiene pilas.'); INV.items.pilas--; if (!INV.items.pilas) delete INV.items.pilas; INV.bat = 100; } INV.eq.luz = INV.eq.luz ? null : 'linterna'; toast(INV.eq.luz ? 'Linterna prendida.' : 'Linterna apagada.'); hud(); quickBtns(); if (!$('#ov-inv').hidden) renderInv(); return; }
@@ -716,9 +718,9 @@
     else if (r < .16) spawnPickup('vendas', at);
     else if (r < .19) spawnPickup(pickW([['pilas', 3], ['campera', 1], ['chaleco', .4]]), at);
     const r2 = Math.random();
-    if (r2 < .018) { const pool = [['cuchillo', 3], ['bate', 3], ['barra', 2]]; if (mL >= 10) pool.push(['lanza', 2], ['pistola', 1.5]); if (mL >= 18) pool.push(['katana', 1.5]); if (mL >= 28) pool.push(['escopeta', 1]); spawnPickup(pickW(pool), [p.x + 30, p.y]); }
-    else if (r2 < .032) spawnPickup('pista', [p.x - 30, p.y]);
-    else if (r2 < .055) spawnPickup(pickW([['venda_q', T.burn || mL >= 15 ? 1.2 : .3], ['antiveneno', T.poison || mL >= 15 ? 1.2 : .3], ['trampa', .5], ['fragmento', mL >= 10 ? .25 : 0], ['metralleta', mL >= 25 ? .15 : 0], ['cigarrillo', 2], ['manzana', 1.5], ['receptor', mL >= 18 ? .5 : 0], ['fragmento', mL >= 40 ? .3 : 0], ['credencial', p.kind === 'corredor' ? 1.5 : 0], ['linterna', .3]]), [p.x, p.y + 30]);
+    if (r2 < .007) { const pool = [['cuchillo', 3], ['bate', 3], ['barra', 2]]; if (mL >= 10) pool.push(['lanza', 2], ['pistola', 1.5]); if (mL >= 18) pool.push(['katana', 1.5]); if (mL >= 28) pool.push(['escopeta', 1]); spawnPickup(pickW(pool), [p.x + 30, p.y]); }
+    else if (r2 < .021) spawnPickup('pista', [p.x - 30, p.y]);
+    else if (r2 < .044) spawnPickup(pickW([['venda_q', T.burn || mL >= 15 ? 1.2 : .3], ['antiveneno', T.poison || mL >= 15 ? 1.2 : .3], ['trampa', .5], ['fragmento', mL >= 10 ? .25 : 0], ['metralleta', mL >= 25 ? .05 : 0], ['cigarrillo', 2], ['manzana', 1.5], ['receptor', mL >= 18 ? .5 : 0], ['fragmento', mL >= 40 ? .3 : 0], ['credencial', p.kind === 'corredor' ? 1.5 : 0], ['linterna', .3]]), [p.x, p.y + 30]);
     /* ganzúas: antes solo caían de Oscuros nivel 30+; ahora en todos los niveles (los jefes siempre dejan una) */
     if (T.boss || Math.random() < (mL >= 15 ? .07 : .05)) spawnPickup('ganzuas', [p.x - 30, p.y + 20]);
     if (p.kind === 'jefe') grantSkins(['renzo', 'sam']);
@@ -1048,7 +1050,7 @@
         toast('Encontraste: ' + ITEMS[q.k].n + (ITEMS[q.k].eq ? ' · equipalo desde la MOCHILA' : ''));
         if (q.k === 'pagina') { const n = INV.items.pagina; floats.push({ x: P.x, y: P.y - 210, t: 1.6, txt: 'página ' + n, c: '#e8e4da' }); }
         if (q.k === 'suero') net('suero', { slot: suero.slot, by: me.nick }); abButtons();
-        if (!q.pid) { const mk = mapKey; setTimeout(() => { if (mapKey === mk && pickups.length < (MAP.safeAll ? 1 : 3)) spawnPickup(); }, rnd(120000, 240000)); } persist(); } }
+        if (!q.pid) { const mk = mapKey; setTimeout(() => { if (mapKey === mk && pickups.length < (MAP.safeAll ? 1 : 2)) spawnPickup(); }, rnd(120000, 240000)); } persist(); } }
     if (yuki) { yuki.t += dt; yukiTouch(); }
     // salidas
     const ix0 = P.x / WS, iy0 = P.y / WS; let inExit = null;
