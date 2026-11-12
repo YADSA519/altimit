@@ -1,4 +1,4 @@
-/* THE O|F 2.1 · MODO HISTORIA: misiones, diálogos con retrato, barras de cine, carteles de misión y guía al objetivo. */
+/* THE O|F · MODO HISTORIA: misiones, diálogos con retrato, barras de cine, carteles de misión y guía al objetivo. */
 (function () {
   'use strict';
   const D = window.CZ_STORY_DATA; if (!D) return;
