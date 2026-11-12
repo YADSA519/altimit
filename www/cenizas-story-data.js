@@ -123,7 +123,7 @@ window.CZ_STORY_DATA = {
     { id: 'r15', t: 'EL VIAJERO CERO', intro: [['azu', 'Hay registros de otro viajero. Pol. Las partículas en él son distintas.']],
       steps: [
         { get: 'cartucho', n: 1, map: 'lab_cuarentena', txt: 'Recuperá los registros de Pol' },
-        { go: 'arena_final', txt: 'Protegé el corredor de extracción en la Base Industrial (por el Cruce Libertador o el Búnker)' },
+        { go: 'arena_final', txt: 'Protegé el corredor de extracción en la Base Industrial (por el Cruce Libertador)' },
         { survive: 60, map: 'arena_final', kinds: 'HUM', txt: 'Mantené el corredor abierto' },
         { talk: 'pol_alter', map: 'arena_final', at: [0, -200], txt: 'Encontrá a Pol', lines: [['pol_alter', '¿Vos sos de los de Jota? Pablo viene. No me dejen acá.'], ['VOS', 'Nadie se queda.']] }],
       reward: { xp: 5500, coins: 160, items: { armadura: 1 } } },
@@ -208,7 +208,7 @@ window.CZ_STORY_DATA = {
       reward: { xp: 4200, coins: 130, items: { kit: 3 } } },
     { id: 'v11', t: 'EL ÚLTIMO CRUCE', intro: [['oficial_ork', 'Cuando lo tengan enfrente, no disparen por miedo. Cierren el perímetro, mantengan el campo y esperen la señal.'], ['VOS', '¿Y si vuelve a desaparecer?'], ['oficial_ork', 'Entonces esta vez no le vamos a dejar una salida.']],
       steps: [
-        { go: 'arena_final', txt: 'Andá a la Base Industrial (por el Cruce Libertador o el Búnker)' },
+        { go: 'arena_final', txt: 'Andá a la Base Industrial (por el Cruce Libertador)' },
         { use: 'c1', ob: 'consola', nm: 'CIERRE', map: 'arena_final', at: [-450, -200], txt: 'Activá el primer cierre' },
         { use: 'c2', ob: 'consola', nm: 'CIERRE', map: 'arena_final', at: [450, -200], txt: 'Activá el segundo cierre' },
         { survive: 50, map: 'arena_final', kinds: 'HUM', txt: 'Mantené el campo de contención' },
