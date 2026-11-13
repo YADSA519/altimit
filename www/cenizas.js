@@ -13,7 +13,8 @@
   const NPC = window.CZ_NPC || null;
   const ICON_PNG = { katana: 'katana', bate: 'bate', cuchillo: 'cuchillo', barra: 'barra', pistola: 'pistola', escopeta: 'escopeta', mascara: 'mascara', kitsune: 'capa', chaleco: 'chaleco', chaleco_t: 'chaleco', armadura: 'chaleco', campera: 'chaleco', palo: 'palo',
     b_contencion: 'brazalete', b_resonancia: 'brazalete', brz_ork: 'brazalete', brz_reb: 'brazalete', vendas: 'vendas', botiquin: 'vendas', suero: 'maletin', kit: 'maletin', cigarrillo: 'cigarrillo', manzana: 'manzana', credencial: 'credencial', pista_ork: 'credencial', pista_reb: 'pagina', pista: 'pagina', pagina: 'pagina', lanza: 'lanza', baston: 'lanza' };
-  Object.assign(ICON_PNG, { lanzallamas: 'escopeta', metralleta: 'pistola', trampa: 'peligro', antiveneno: 'canister', venda_q: 'vendas', fragmento: 'energia', brz_jefe: 'brazalete', tarjeta: 'tarjeta', expediente: 'expediente', fusible: 'fusible', radio: 'radio', cartucho: 'cartucho', canister: 'canister', contenedor: 'contenedor', energia: 'energia' });
+  Object.assign(ICON_PNG, { ganzuas: 'ganzuas', barra: 'barra2', cuchillo: 'cuchillo2', mascara: 'mascara_gas', filtro: 'respirador' });
+  Object.assign(ICON_PNG, { lanzallamas: 'escopeta', metralleta: 'pistola', trampa: 'dinamita', antiveneno: 'canister', venda_q: 'vendas', fragmento: 'energia', brz_jefe: 'brazalete', tarjeta: 'tarjeta2', expediente: 'expediente', fusible: 'fusible', radio: 'radio', cartucho: 'cartucho', canister: 'canister', contenedor: 'contenedor', energia: 'energia' });
   const ICONS = {}; Object.entries(ICON_PNG).forEach(([k, f]) => { const i = new Image(); i.src = '/a/it/' + f + '.png'; ICONS[k] = i; });
   const iconOf = k => { const i = ICONS[k]; return i && i.complete && i.naturalWidth ? i : window.CZ_PIX.icon(k); };
   let toastT; function toast(m) { const t = $('#toast'); t.textContent = m; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 2600); }
@@ -160,8 +161,42 @@
   Object.assign(MOB.babosa, { shot: 'acido' }); Object.assign(MOB.patrulla, { shot: 'bala', pspeed: 620 }); Object.assign(MOB.tirador, { shot: 'bala', pspeed: 620 });
   Object.assign(MOB.jefe, { shot: 'vacio' }); Object.assign(MOB.lilia, { shot: 'vacio' }); Object.assign(MOB.maxi, { shot: 'orbe' }); Object.assign(MOB.pantallas, { shot: 'orbe' });
   Object.assign(MOB.electrico, { shot: 'rayo', pspeed: 900 }); Object.assign(MOB.pablo, { shot: 'orbe' }); Object.assign(MOB.garras, { shot: 'vacio' });
+  /* ===== modelos nuevos de Thiriang ===== */
+  Object.assign(MOB.jefe, { sheet: 'mercedes_jefe' }); Object.assign(MOB.ignacio, { sheet: 'ignacio2' }); Object.assign(MOB.maxi, { sheet: 'maxi2' }); Object.assign(MOB.lilia, { sheet: 'lilia2' }); Object.assign(MOB.sofia, { sheet: 'sofia_mala2' });
+  MOB.oscura.sheet = 'oscuro_mujer2'; MOB.quieta.sheet = 'agrietado';
+  MOB.lucas = nm_('jefe', { name: 'LUCAS', sheet: 'lucas_jefe', aura: '120,255,170', hp: 900, dmg: 14, xp: 3200, coins: 32, shot: 'acido' });
+  MOB.noster = nm_('jefe', { name: 'NOSTER', sheet: 'noster_oscuro', aura: '255,90,40', hp: 1000, dmg: 16, xp: 3600, coins: 34, shot: 'fire' });
+  MOB.ani = nm_('jefe', { name: 'ANI · FASE OSCURA', sheet: 'ani_oscura', aura: '255,120,30', hp: 950, dmg: 15, xp: 3400, coins: 34, shot: 'vacio', sp: 300 });
+  MOB.nacho = nm_('jefe', { name: 'NACHO OSCURO', sheet: 'nacho_oscuro', aura: '255,150,40', hp: 1100, dmg: 17, xp: 3800, coins: 36, shot: 'fire' });
+  /* la Dama y el Galán de los bares: primero hablan y piden plata, después se transforman */
+  MOB.chica = nm_('jefe', { name: 'LA DAMA', sheet: 'chica1', aura: '255,60,120', passive: 'chica', hp: 999, xp: 0, coins: 0 });
+  MOB.chica_b = nm_('jefe', { name: 'LA DAMA', sheet: 'chica2', aura: '255,60,120', passive: 'chica', hp: 999, xp: 0, coins: 0 });
+  MOB.chica_c = nm_('jefe', { name: 'LA DAMA · BESTIA', sheet: 'chica3', aura: '255,30,90', hp: 1200, dmg: 17, xp: 4200, coins: 160, shot: 'vacio', sp: 290 });
+  MOB.chico = nm_('jefe', { name: 'EL GALÁN', sheet: 'chico1', aura: '255,90,60', passive: 'chico', hp: 999, xp: 0, coins: 0 });
+  MOB.chico_b = nm_('jefe', { name: 'EL GALÁN', sheet: 'chico2', aura: '255,90,60', passive: 'chico', hp: 999, xp: 0, coins: 0 });
+  MOB.chico_c = nm_('jefe', { name: 'EL GALÁN · BESTIA', sheet: 'chico3', aura: '255,40,40', hp: 1250, dmg: 18, xp: 4200, coins: 160, shot: 'fire', sp: 280 });
+  /* Oscuros nuevos */
+  MOB.griton = nm_('errante', { name: 'Gritón', sheet: 'griton', ai: 'scream', hp: 9, sp: 80, dmg: 8, reach: 330, sight: 480, wind: .8, cd: 5.5, xp: 38, coins: 3 });
+  MOB.empujador = nm_('errante', { name: 'Empujador', sheet: 'empujador', hp: 14, sp: 95, dmg: 18, knock: 430, xp: 40, coins: 3, heavy: true });
+  MOB.mocoso = nm_('incinerario', { name: 'Desintegrado', sheet: 'desintegrado', shot: 'moco', burn: false, hp: 11, reach: 380, keep: 240, pspeed: 330, xp: 45, coins: 3 });
+  MOB.lava = nm_('incinerario', { name: 'Desintegrado de Lava', sheet: 'desintegrado_lava', shot: 'fire', hp: 13, xp: 50 });
+  MOB.lava_oscura = nm_('denso', { name: 'Criatura de Lava', sheet: 'lava_oscura', hp: 22, xp: 75, burn: true });
+  MOB.ojo = nm_('incinerario', { name: 'El Ojo', sheet: 'ojo', shot: 'orbe', burn: false, hp: 14, sp: 60, wsp: 20, pspeed: 420, xp: 55, coins: 3 });
+  /* de bando: palomas y perros policía (atacan a ORK) · drones y perros robot (atacan a los rebeldes) */
+  MOB.paloma = nm_('cuervo', { name: 'Paloma', sheet: 'paloma', hp: 2, dmg: 6, xp: 8, coins: 1, fac: 'rebel' });
+  MOB.paloma_zombi = nm_('cuervo', { name: 'Paloma Zombi', sheet: 'paloma_zombi', hp: 4, dmg: 9, xp: 14, coins: 1, fac: 'rebel' });
+  MOB.paloma_cohete = nm_('kamikaze', { name: 'Paloma Cohete', sheet: 'paloma_cohete', hp: 3, sp: 240, dmg: 22, aoe: 120, xp: 20, coins: 2, fac: 'rebel' });
+  MOB.perro_policia = nm_('perro', { name: 'Perro Policía', sheet: 'perro_policia', hp: 9, dmg: 14, xp: 30, coins: 2, fac: 'rebel' });
+  MOB.drone = nm_('incinerario', { name: 'Drone ORK', sheet: 'drone', shot: 'rayo', burn: false, hp: 8, sp: 110, pspeed: 700, xp: 40, coins: 3, fac: 'ork' });
+  MOB.perro_robot = nm_('perro', { name: 'Perro Robot IA', sheet: 'perro_robot', hp: 14, dmg: 16, sp: 250, xp: 42, coins: 3, fac: 'ork' });
+  /* jefes de mapa: cada día salen 3 al azar, cada uno en un mapa; si lo matan no vuelve hasta el día siguiente */
+  const BOSS_POOL = { garras: ['nueveJulio', 'banco', 'estatua'], electrico: ['patio', 'complejo8c', 'estHaedo'], pantallas: ['teatroAv', 'colon'], serpiente: ['muelle', 'puente'],
+    ignacio: ['estatua', 'express', 'congreso'], maxi: ['portena', 'esperanza'], lilia: ['lab', 'lab_cuarentena'], jefe: ['lab_cuarentena', 'arena_final'], sofia: ['banco', 'nueveJulio', 'oficina'],
+    lucas: ['lab', 'terminal_once'], noster: ['urbanoBA', 'oficina', 'callejon'], ani: ['calle_extra', 'rivadavia', 'interHaedo'], nacho: ['barrio_chino', 'plazaArbol', 'mcd'], chica: ['bar_humo'], chico: ['bar_rojo'] };
+  Object.keys(BOSS_POOL).forEach(k => { MOB[k].respawn = 99999999; MOB[k].world = true; });
+  ['chica_b', 'chica_c', 'chico_b', 'chico_c'].forEach(k => { MOB[k].respawn = 99999999; MOB[k].world = true; });
   /* balance: los Oscuros pegan menos (que no te maten de dos golpes) */
-  Object.values(MOB).forEach(T => { T.dmg = Math.round(T.dmg * .8); if (T.fdmg) T.fdmg = Math.round(T.fdmg * .8); if (T.big) T.big = Math.round(T.big * .8); if (!T.boss) T.sight = Math.round(T.sight * .85); });
+  Object.values(MOB).forEach(T => { const f = T.boss ? .45 : .8; T.dmg = Math.round(T.dmg * f); if (T.fdmg) T.fdmg = Math.round(T.fdmg * f); if (T.big) T.big = Math.round(T.big * f); if (!T.boss) T.sight = Math.round(T.sight * .85); });
   Object.values(MOB).forEach(T => { T.h = T.ph * PXS; });
   /* dibujo de un Oscuro: los jefes con forma humana usan el pixel de la historia */
   /* brillo de los Oscuros horneado una vez por dibujo (el filtro en vivo calentaba el celu) */
@@ -173,7 +208,7 @@
     if (HD) { const nm = T.sheet || (T.npc ? (HD.NPC_SHEET[T.npc] || T.npc) : HD.MOB_SHEET[T.art]); const s = nm && HD.sheet(nm, dir, frame, atk); if (s) return s; }
     if (T.npc && NPC && NPC.C[T.npc]) return NPC.draw(T.npc, dir, frame); return PIX[T.art](frame, hurt); }
   /* lo que aparece cuando se desbloquea cada jefe (por mapa) */
-  const EXTRA = { incinerario: { patio: 1, estOnce: 1, lezama: 1, muelle: 1 }, mole: { congreso: 1, puente: 1 }, jefe: { lab_cuarentena: 1 }, sofia: { banco: 1 } };
+  const EXTRA = { incinerario: { patio: 1, estOnce: 1, muelle: 1 }, mole: { congreso: 1, puente: 1 } };
   const TIER = [['incinerario', 'EL PRIMER JEFE: LOS INCINERARIOS'], ['mole', 'EL SEGUNDO JEFE: LA MOLE'], ['jefe', 'EL TERCER JEFE: MERCEDES'], ['sofia', 'EL CUARTO JEFE: SOFÍA']];
 
   /* items del Documento Maestro */
@@ -231,9 +266,9 @@
   };
   const MOBS_T = {
     bajo: { errante: 2, oscura: 2, perro: 1, rastrero: 1, cuervo: 1, quieta: 1 },
-    medio: { errante: 2, oscura: 1, corredor: 1, perro: 1, sombra: 1, cuervo: 1, insecto: 1, reptante: 1, kamikaze: 1, quieta: 1 },
-    alto: { errante: 1, oscura: 1, corredor: 1, sombra: 1, denso: 1, lodo: 1, insecto: 1, reptante: 1, babosa: 1, incinerario: 1, kamikaze: 1, quieta: 1 },
-    tope: { errante: 1, oscura: 1, corredor: 1, sombra: 1, denso: 1, lodo: 1, insecto: 1, reptante: 1, babosa: 1, incinerario: 1, kamikaze: 1, quieta: 1 },
+    medio: { errante: 2, oscura: 1, corredor: 1, perro: 1, sombra: 1, cuervo: 1, insecto: 1, reptante: 1, kamikaze: 1, quieta: 1, griton: 1, empujador: 1 },
+    alto: { errante: 1, oscura: 1, corredor: 1, sombra: 1, denso: 1, lodo: 1, insecto: 1, reptante: 1, babosa: 1, incinerario: 1, kamikaze: 1, quieta: 1, griton: 1, empujador: 1, mocoso: 1, lava: 1 },
+    tope: { errante: 1, oscura: 1, corredor: 1, sombra: 1, denso: 1, lodo: 1, insecto: 1, reptante: 1, babosa: 1, incinerario: 1, kamikaze: 1, quieta: 1, griton: 1, empujador: 1, mocoso: 1, lava: 1, lava_oscura: 1 },
     pvp: { errante: 4, oscura: 3, perro: 2, cuervo: 2, rastrero: 2 } };
   /* MODO HISTORIA · niveles por avance: los mapas de arranque (cerca del Nogal y de Libertador) van de 1 a 5;
      cuanto más lejos, más alto. Puerto Madero suma extra. Las bases enemigas tienen guardias de nivel alto. */
@@ -249,6 +284,10 @@
   /* soldados ORK en bases y asentamientos ORK; rebeldes armados en asentamientos rebeldes. Sólo atacan al otro bando. */
   const HUMAN_AT = { libertador: 'ork', centro_ork: 'ork', lezama: 'ork', mcd: 'ork', muelle: 'rebel', refugioSub: 'rebel', colon: 'rebel' };
   if (!EXP) Object.entries(HUMAN_AT).forEach(([k, f]) => { const m = MAPS[k]; if (!m) return; m.mobs = Object.assign({}, m.mobs || {}, f === 'ork' ? { soldado: 1, patrulla: 1 } : { saqueador: 1, tirador: 1 }); });
+  const SPECIAL_AT = { plazaMayo: { paloma: 2, paloma_zombi: 1, paloma_cohete: 1, perro_policia: 2 }, lezama: { ojo: 2, drone: 1, perro_robot: 1 }, libertador: { drone: 2, perro_robot: 1 }, centro_ork: { drone: 1, perro_robot: 2 },
+    arena_final: { drone: 1, perro_robot: 1 }, mcd: { drone: 1 }, barrio_chino: { perro_robot: 1 } };
+  if (MAPS.plazaMayo && !EXP) MAPS.plazaMayo.safeFac = 'rebel'; /* Plaza de Mayo: segura para rebeldes; para ORK hay palomas y perros policía */
+  if (!EXP) Object.entries(SPECIAL_AT).forEach(([k, add]) => { const m = MAPS[k]; if (m) m.mobs = Object.assign({}, m.mobs || {}, add); });
   const LOOT_T = {
     bajo: [['pilas', 3], ['campera', 1.2], ['vendas', 2], ['linterna', 1], ['barra', .4], ['cuchillo', .3], ['bate', .2], ['pista', .5]],
     medio: [['pilas', 2], ['campera', 1], ['chaleco', .7], ['vendas', 2], ['lanza', .2], ['pistola', .15], ['katana', .1], ['mascara', .8], ['pista', .6]],
@@ -287,7 +326,7 @@
     grid = new Uint8Array(GW * GH); const s = cellOf(MAP.spawn[0] * WS, MAP.spawn[1] * WS); const q = [s]; grid[s] = 1;
     while (q.length) { const c = q.pop(), x = c % GW, y = (c / GW) | 0; for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= GW || ny >= GH) continue; const n = ny * GW + nx; if (g[n] && !grid[n]) { grid[n] = 1; q.push(n); } } }
     // por donde pueden andar los Oscuros: sin zonas seguras
-    mgrid = new Uint8Array(grid); if (MAP.safeAll) mgrid.fill(0);
+    mgrid = new Uint8Array(grid); if (MAP.safeAll && !MAP.safeFac) mgrid.fill(0);
     if (MKc) for (let c = 0; c < mgrid.length; c++) if (MKc[c] === 4) mgrid[c] = 0; // verde = refugio, los Oscuros no entran
     (MAP.safe || []).forEach(([sx, sy, r]) => { for (let c = 0; c < mgrid.length; c++) { const x = (c % GW) * C + C / 2, y = ((c / GW) | 0) * C + C / 2; if (Math.hypot(x - sx, y - sy) < r) mgrid[c] = 0; } });
     flow = new Int16Array(GW * GH);
@@ -295,7 +334,7 @@
   const cellOf = (x, y) => Math.max(0, Math.min(GH - 1, Math.floor(y / CW))) * GW + Math.max(0, Math.min(GW - 1, Math.floor(x / CW)));
   const walkable = (x, y) => x > 0 && y > 0 && x < WORLD_W && y < WORLD_H && grid[cellOf(x, y)] === 1;
   const mobWalk = (x, y) => x > 0 && y > 0 && x < WORLD_W && y < WORLD_H && mgrid[cellOf(x, y)] === 1;
-  const inSafe = (x, y) => MAP.safeAll || (MASK[mapKey] && MASK[mapKey][cellOf(x, y)] === 4) || (MAP.safe || []).some(([sx, sy, r]) => Math.hypot(x - sx * WS, y - sy * WS) < r * WS);
+  const inSafe = (x, y) => (MAP.safeAll && (!MAP.safeFac || (me && me.faction === MAP.safeFac))) || (MASK[mapKey] && MASK[mapKey][cellOf(x, y)] === 4) || (MAP.safe || []).some(([sx, sy, r]) => Math.hypot(x - sx * WS, y - sy * WS) < r * WS);
   /* ---------- MÁSCARAS DE CAMINATA (PNG de 6 colores, mismo encuadre que el dibujo) ----------
      blanco = se camina · negro = obstáculo · rojo = salida (toca el borde) · amarillo = escalera
      verde = refugio (los Oscuros no entran) · azul = punto de aparición.
@@ -408,7 +447,7 @@
     const uid = s.session.user.id;
     const { data: prof } = await sb.from('profiles').select('id,nick,status,role,faction').eq('id', uid).maybeSingle();
     if (!prof || prof.status !== 'approved' || !prof.faction) return location.replace('/index.html');
-    me = prof; document.documentElement.dataset.fac = me.faction;
+    me = prof; document.documentElement.dataset.fac = me.faction; if (!window.CZ_OFFLINE) store.set('of-prof', JSON.stringify(prof)); else setTimeout(() => toast('MODO OFFLINE · jugás solo y tu progreso queda guardado en este teléfono.'), 3500);
     try { if (PL.ScreenOrientation) await PL.ScreenOrientation.lock({ orientation: 'landscape' }); } catch (e) {}
     const { data: gc, error } = await sb.from('game_chars').select('*').eq('user_id', uid).maybeSingle();
     if (error) { $('#load-t').textContent = /relation|does not exist/i.test(error.message) ? 'Falta preparar la base del juego (03_cenizas.sql). Avisale al admin.' : 'No se pudo leer tu personaje: ' + error.message; return; }
@@ -532,7 +571,7 @@
     hud(); healBtn(); abButtons();
     const z = $('#zone'); $('#zone-n').textContent = MAP.name; $('#zone-s').textContent = MAP.safeAll ? 'zona segura · acá no entran los Oscuros' : (Object.keys(wantMobs()).length ? 'Oscuros: ' + Object.keys(wantMobs()).map(m => MOB[m].name).join(' · ') : '');
     z.classList.add('on'); setTimeout(() => z.classList.remove('on'), 2600); if (!first) SND.zone();
-    mshots.length = 0; clouds.length = 0; roomReady = false; isHost = true; hostId = null; Object.keys(lastDeath).forEach(k => delete lastDeath[k]);
+    mshots.length = 0; clouds.length = 0; goos.length = 0; roomReady = false; isHost = true; hostId = null; Object.keys(lastDeath).forEach(k => delete lastDeath[k]);
     joinRoom(1); traps = (MAP.traps || TRAPS[k] || []).map(p => ({ x: p[0] * WS, y: p[1] * WS, cd: 0 })); tileCd = 2;
     if (STORY && window.CZ_STORY) CZ_STORY.enter(k);
   }
@@ -552,7 +591,7 @@
     $('#h-lv').textContent = 'NV ' + lv + ' · ' + (INV ? weaponLabel() : 'PALO') + ' · ' + Math.ceil(P.hp) + '/' + maxHp(lv) + (INV && INV.eq.luz ? ' · LUZ ' + Math.ceil(INV.bat) + '%' : '') + (INV && INV.eq.ropa ? ' · ESCUDO ' + (INV.dur[INV.eq.ropa] != null ? INV.dur[INV.eq.ropa] : ITEMS[INV.eq.ropa].shield) : '') + ' · ' + (INV ? INV.coins : 0) + ' monedas' + (INV && INV.ab.length ? ' · ' + INV.ab.map(a => AB[a].n).join(' · ') : '') + (suero.map ? ' · MALETÍN: ' + MAPS[suero.map].name : ''); }
   async function persist() { if (!P || !me || !look) return; if (EXP) return persistExp(); store.set('cz-inv-' + me.id, JSON.stringify(INV));
     const row = { user_id: me.id, look, zone: mapKey, x: Math.round(P.x), y: Math.round(P.y), hp: Math.max(1, Math.round(P.hp)), xp: P.xp, kills: P.kills, updated_at: new Date().toISOString() };
-    P.best = Math.max(P.best || 0, P.xp); if (!noInvCol) row.inv = INV; if (!noBestCol) row.best_xp = P.best;
+    P.best = Math.max(P.best || 0, P.xp); if (!noInvCol) row.inv = INV; if (!noBestCol) row.best_xp = P.best; if (!window.CZ_OFFLINE) { try { localStorage.setItem('of-char-online', JSON.stringify(Object.assign({}, row, { inv: INV }))); } catch (e) {} }
     try { for (let k = 0; k < 3; k++) { const { error } = await sb.from('game_chars').upsert(row); if (!error) break; const m = error.message || '';
         if (/best_xp/.test(m)) { noBestCol = true; delete row.best_xp; } else if (/inv/.test(m)) { noInvCol = true; delete row.inv; } else break; } } catch (e) {} }
 
@@ -592,11 +631,12 @@
   function spawnPickup(k, at) { const p = at || randomWalkCell(300); if (!p) return; pickups.push({ k: k || pickW(LOOT[mapKey] || LOOT.parque), x: p[0], y: p[1], t: Math.random() * 6 }); }
   function addItem(k, n) { INV.items[k] = (INV.items[k] || 0) + (n || 1); }
   function hasItem(k) { return (INV.items[k] || 0) > 0; }
-  const dmgMult = () => { let m = 1 / (1 + .09 * (lvlOf(P.xp) - 1)); if (P.jefe > 0) m *= .5; if (INV.eq.brazo === 'b_contencion') m *= .7; if (INV.eq.cara === 'mascara' && /refugioSub|bunker|lab|patio/.test(mapKey)) m *= .8; return m; };
+  const dmgMult = () => { let m = 1; if (P.jefe > 0) m *= .5; if (INV.eq.brazo === 'b_contencion') m *= .7; if (INV.eq.cara === 'mascara' && /refugioSub|bunker|lab|patio/.test(mapKey)) m *= .8; return m; };
   function classMult(mk) { if (!mk || me.faction !== 'ork') return 1; let m = .85; const c = (look && look.cls) || 0;
     if ((c === 0 && mk === 'perro') || (c === 1 && mk === 'corredor') || (c === 2 && mk === 'errante')) m *= .6; return m; }
   function hitPlayer(d, knockFrom, knock, byId, mk) { if (P.dead || P.inv > 0 || P.furia > 0 || (!byId && inSafe(P.x, P.y))) return false;
     if (!byId && mk && d < 999 && MOB[mk]) { if (MOB[mk].burn && !(P.burn > 0)) { P.burn = 5; toast('¡Te prendiste fuego! 5 segundos de quemadura (la venda para quemaduras lo corta).'); } if (MOB[mk].poison && !(P.poison > 0)) { P.poison = 25; toast('Te envenenaron. Usá antiveneno.'); } }
+    if (P.goo > 0) d *= 2;
     d = Math.max(1, Math.round(d * dmgMult() * classMult(mk || (knockFrom && knockFrom.kind) || (byId ? null : 'oscuro'))));
     const rk = INV.eq.ropa; if (rk && ITEMS[rk]) { if (INV.dur[rk] == null) INV.dur[rk] = ITEMS[rk].shield; const take = Math.min(INV.dur[rk], d); INV.dur[rk] -= take; d -= take;
       floats.push({ x: P.x + 26, y: P.y - 210, t: .8, txt: 'escudo -' + take, c: '#a9b4c0' }); if (INV.dur[rk] <= 0) breakItem(rk); }
@@ -667,7 +707,7 @@
     if (a === 'use' && it.use === 'antiveneno') { if (!(P.poison > 0)) return toast('No estás envenenado. Guardalo.'); INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; P.poison = 0; SND.pick(); toast('El veneno se cortó.'); hud(); renderInv(); quickBtns(); persist(); return; }
     if (a === 'use' && it.use === 'vendaq') { if (!(P.burn > 0) && P.hp >= maxHp(lv)) return toast('No estás quemado. Guardala.'); INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; P.burn = 0; P.hp = Math.min(maxHp(lv), P.hp + 15); SND.pick(); toast('Venda para quemaduras: se apagó el ardor.'); hud(); renderInv(); quickBtns(); persist(); return; }
     if (a === 'use' && it.use === 'forzar') { const cz = nearCasillero(); if (!cz) return toast('Usalas al lado de un CASILLERO (hay en algunos mapas, bien escondidos).'); if (cz.open) return toast('Ese casillero ya lo abriste hoy.'); INV.cas = INV.cas || {}; INV.cas[cz.id] = dayN(); INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; addItem('vendas', 3); const x_ = pickW([['chaleco_t', 1.4], ['armadura', 1.2], ['katana', 1], ['escopeta', 1], ['metralleta', .8], ['lanzallamas', .4]]); addItem(x_); SND.pick(); toast('¡Casillero forzado! 3 vendas y ' + ITEMS[x_].n + '.'); renderInv(); quickBtns(); persist(); return; }
-    if (a === 'use' && it.use === 'radar') { if ((INV.radarT || 0) > Date.now()) return toast('El receptor se está recargando.'); INV.radarT = Date.now() + 60000; const m_ = []; if (suero.map) { m_.push('Maletín de curación: ' + MAPS[suero.map].name + ' (seguí la flecha)'); guide = { map: suero.map, k: 'suero', until: Date.now() + 180000 }; } closeInv(); if (hordeOn(mapKey)) m_.push('HORDA en este mapa'); const hb = HOURLY_AT[mapKey]; if (hb && Date.now() - (hourlyDead[hb] || 0) > 3600000) m_.push(MOB[hb].name + ' anda por acá');
+    if (a === 'use' && it.use === 'radar') { if ((INV.radarT || 0) > Date.now()) return toast('El receptor se está recargando.'); INV.radarT = Date.now() + 60000; const m_ = []; if (suero.map) { m_.push('Maletín de curación: ' + MAPS[suero.map].name + ' (seguí la flecha)'); guide = { map: suero.map, k: 'suero', until: Date.now() + 180000 }; } closeInv(); if (hordeOn(mapKey)) m_.push('HORDA en este mapa'); Object.entries(bossesToday()).forEach(([mk, bk]) => { if (bossAlive(bk)) m_.push('JEFE ' + MOB[bk].name + ' · ' + MAPS[mk].name); });
       if (STORY) { const y_ = yukiPlan(); if (minOfDay() >= y_.start && minOfDay() < y_.start + 120) m_.push('Yuki: ' + MAPS[y_.map].name); } if (EXP && yukiPvp()) m_.push('Yuki está en las ruinas'); toast('RECEPTOR · ' + (m_.join(' · ') || 'Nada raro en el aire.')); return; }
     if (a === 'use' && it.use === 'luz') { if (!INV.eq.luz && INV.bat <= 0) { if (!hasItem('pilas')) return toast('La linterna no tiene pilas.'); INV.items.pilas--; if (!INV.items.pilas) delete INV.items.pilas; INV.bat = 100; } INV.eq.luz = INV.eq.luz ? null : 'linterna'; toast(INV.eq.luz ? 'Linterna prendida.' : 'Linterna apagada.'); hud(); quickBtns(); if (!$('#ov-inv').hidden) renderInv(); return; }
     if (a === 'use' && it.use === 'pilas') { if (!hasItem('linterna')) return toast('Primero necesitás una linterna.'); INV.bat = 100; INV.items[k]--; toast('Linterna cargada.'); }
@@ -682,7 +722,19 @@
   /* ---------- Oscuros compartidos: el anfitrión de la sala los mueve, todos ven los mismos ---------- */
   let isHost = true, hostId = null, roomReady = false, mobSeq = 0, snapT = 0, maintT = 0, unlocks = {}; const lastDeath = {};
   const MKEYS = Object.keys(MOB), STC = ['idle', 'chase', 'aim', 'run', 'rest', 'fadeout', 'fadein', 'strike', 'tele', 'volley'];
-  const mshots = [], clouds = [];
+  const mshots = [], clouds = [], goos = [];
+  /* la Dama / el Galán: fase 1 y 2 piden 100 monedas; a la segunda se transforman */
+  const DAMA_TXT = { chica: [['Hola, lindo... ¿me invitás algo? Son 100 monedas.', 'Gracias, corazón... ahora estoy más cómoda.'], ['Me quedé con ganas... dame 100 más.', '¿Más plata? Vení que te muestro lo que soy de verdad...']],
+    chico: [['Hola, linda... ¿me invitás algo? Son 100 monedas.', 'Gracias... ahora estoy más cómodo.'], ['Me quedé con ganas... dame 100 más.', '¿Más plata? Vení que te muestro lo que soy de verdad...']] };
+  function damaTalk(n) { const o = mobs.find(m => m.id === n.dama); if (!o) return; const g = o.T.passive, ph = /_b$/.test(o.kind) ? 1 : 0, [ask, after] = DAMA_TXT[g][ph], sk = o.T.sheet;
+    const go = () => { if (isHost) damaNext(o.id, me.id); else net('dama', { id: o.id, by: me.id }); };
+    const talk = (lines, cb) => (STORY && window.CZ_STORY && CZ_STORY.say) ? CZ_STORY.say(lines, cb) : (toast(o.T.name + ': "' + lines[lines.length - 1][1] + '"'), cb && cb());
+    if (ph === 0) { if (INV.coins < 100) return talk([[sk, ask], ['VOS', 'No tengo tanta plata.'], [sk, 'Entonces volvé cuando tengas, bombón.']]); return talk([[sk, ask], ['VOS', 'Tomá.'], [sk, after]], () => { INV.coins -= 100; hud(); persist(); go(); }); }
+    const pay = INV.coins >= 100; talk([[sk, ask], ['VOS', pay ? 'Bueno... tomá.' : 'No me queda nada.'], [sk, after]], () => { if (pay) { INV.coins -= 100; hud(); persist(); } go(); }); }
+  function damaNext(id, by) { const o = mobs.find(m => m.id === id); if (!o || !o.T.passive) return; const nk = /_b$/.test(o.kind) ? o.kind.replace(/_b$/, '_c') : o.kind + '_b'; const x = o.x, y = o.y;
+    const i = mobs.indexOf(o); if (i >= 0) mobs.splice(i, 1); const id0 = me.id.slice(0, 4) + '-' + (mobSeq++) + '-' + ((Math.random() * 1e4) | 0); const n = newMob(nk, id0 + '~' + (mobLevel(id0, nk) || 0), x, y); mobs.push(n);
+    if (/_c$/.test(nk)) { n.chasing = true; shake = .6; SND.mob('roar', 1); for (let k = 0; k < 40; k++) parts.push({ x, y: y - 90, vx: rnd(-220, 220), vy: rnd(-200, 40), life: .8, s: 5, c: 200, fire: 1 }); net('boss', { k: nk }); } }
+  function stun(t) { if (!(P.slow > 0)) toast('¡Aturdido! Te movés más lento.'); P.slow = Math.max(P.slow || 0, t); P.stunT = t; }
   const AB = { invis: { n: 'INVISIBLE', d: 'Botón HUIR: 3 segundos invisible para escapar.' }, rapido: { n: 'GOLPE RÁPIDO', d: 'Pegás 30% más rápido.' }, cuchillos: { n: 'CUCHILLOS', d: 'Cada golpe también tira un cuchillo hacia adelante.' } };
   const hashStr = s_ => { let h = 2166136261; for (let i = 0; i < s_.length; i++) { h ^= s_.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
   /* nivel que la historia espera que tengas al arrancar la misión i (termina en 90) */
@@ -691,7 +743,7 @@
   function mobLevel(id, kind) { const T = MOB[kind]; if (!T) return 0; const tag = /~(\d+)$/.exec(String(id)); if (tag) return +tag[1];
     if (T.boss) { if (!STORY) return 0; const top = ((MAP && MAP.lv) || [1, 3])[1]; return Math.min(100, Math.max(12, top + 4, storyLv() + 5)); } if (T.lv1) return 1;
     const [a, b] = (MAP && MAP.lv) || [1, 3], h = hashStr(String(id)); return Math.min(100, Math.max(1, a + h % (b - a + 1), STORY ? storyLv() - 4 + h % 4 : 0)); }
-  const lvHp = L => 1 + (L - 1) * .28, lvDmg = L => 1 + (L - 1) * .06, lvXp = L => .3 + L * .05;
+  const lvHp = L => 1 + (L - 1) * .28, lvDmg = L => 1 + (L - 1) * .075, lvXp = L => .3 + L * .05;
   function auraOf(L) { return L >= 75 ? '255,40,40' : L >= 50 ? '255,140,0' : L >= 25 ? '240,215,80' : null; }
   function newMob(kind, id, x, y) { const T = MOB[kind], L = mobLevel(id, kind), mhp = L ? Math.round(T.hp * (T.boss ? 1 + (L - 1) * .12 : lvHp(L))) : T.hp; return { id, kind, T, lv: L, lvK: L ? lvDmg(L) : 1, mhp, au: L ? auraOf(L) : null, x, y, tx: x, ty: y, hp: mhp, face: 1, vx: 0, vy: 0, t: Math.random() * 9, hurt: 0, wind: 0, cd: 0, wx: x, wy: y, wt: 0, alpha: 0, chasing: false, stuck: 0, lx: x, ly: y, lunge: 0,
     st: 'idle', stT: 0, side: Math.random() < .5 ? -1 : 1, vis: T.ai === 'blink' ? .2 : 1, dx: 0, dy: 0, hitDone: false, combo: 0, hitters: new Set(), ab: rnd(5, 8), shotT: 0, volleys: 0 }; }
@@ -701,26 +753,32 @@
   function hordeOn(k) { const m = MAPS[k]; if (!m || m.safeAll || m.base) return false; const d = dayN(), now = minOfDay();
     return ['a', 'b', 'c', 'd'].some(x => { const a = hashStr(k + d + x) % 1440; return now >= a && now < a + 6; }); }
   const hourlyDead = {};
-  function loadHourly(k) { const b = HOURLY_AT[k]; if (!b) return; try { sb.from('game_state').select('v').eq('k', 'jefe_' + b).maybeSingle().then(r => { const v = r && r.data && r.data.v; if (v && v.t) hourlyDead[b] = Math.max(hourlyDead[b] || 0, v.t); }, () => {}); } catch (e) {} }
+  /* los 3 jefes del día y dónde están (todos ven lo mismo porque sale de la fecha) */
+  function bossesToday() { const d = dayN(); if (bossesToday.d === d) return bossesToday.v; const mix = x => { let h = hashStr(x); h = Math.imul(h ^ (h >>> 16), 2246822507); h ^= h >>> 13; h = Math.imul(h, 3266489909); h ^= h >>> 16; return h >>> 0; }; const ks = Object.keys(BOSS_POOL).sort((a, b) => mix(a + ':' + d) - mix(b + ':' + d)); const v = {}, used = new Set();
+    for (const k of ks) { if (Object.keys(v).length >= 3) break; const l = BOSS_POOL[k].filter(m => MAPS[m] && !used.has(m)); if (!l.length) continue; const m = l[mix(k + '@' + d) % l.length]; v[m] = k; used.add(m); }
+    bossesToday.d = d; bossesToday.v = v; return v; }
+  const dayStart = () => (dayN() * 864e5) + 3 * 3600e3;
+  const bossAlive = k => (hourlyDead[k] || 0) < dayStart();
+  function loadHourly(k) { const b = bossesToday()[k]; if (!b) return; try { sb.from('game_state').select('v').eq('k', 'jefe_' + b).maybeSingle().then(r => { const v = r && r.data && r.data.v; if (v && v.t) hourlyDead[b] = Math.max(hourlyDead[b] || 0, v.t); }, () => {}); } catch (e) {} }
   /* Yuki en PvP: 20 minutos de cada hora, a una hora distinta cada día */
   const yukiPvp = () => { const m = (minOfDay() + hashStr('yuki' + dayN()) % 60) % 60; return m < 20; };
   const bossOn = k => { const b = BOSS_AT[k]; if (!b || EXP) return false; const m = (minOfDay() + hashStr(b) % 120) % 120; return m < 20; };
-  function wantMobs() { const w = Object.assign({}, MAP.mobs || {}); if (hordeOn(mapKey)) Object.keys(w).forEach(k => w[k] *= 2); if (!EXP && !MAP.base && (MAP.dark || 0) >= .45 && !INV.eq.luz) w.ojos = 2; if (bossOn(mapKey)) w[BOSS_AT[mapKey]] = 1; if (EXP) { if (mapKey === 'pvp_centro' && yukiPvp()) w.yuki = 1; return w; } Object.keys(EXTRA).forEach(k => { if (EXTRA[k][mapKey]) w[k] = (w[k] || 0) + EXTRA[k][mapKey]; }); const hb = HOURLY_AT[mapKey]; if (hb && Date.now() - (hourlyDead[hb] || 0) > 3600000) w[hb] = 1;
+  function wantMobs() { const w = Object.assign({}, MAP.mobs || {}); if (hordeOn(mapKey)) Object.keys(w).forEach(k => w[k] *= 2); if (!EXP && !MAP.base && (MAP.dark || 0) >= .45 && !INV.eq.luz) w.ojos = 2; if (EXP) { if (mapKey === 'pvp_centro' && yukiPvp()) w.yuki = 1; return w; } Object.keys(EXTRA).forEach(k => { if (EXTRA[k][mapKey]) w[k] = (w[k] || 0) + EXTRA[k][mapKey]; }); const hb = bossesToday()[mapKey]; if (hb && bossAlive(hb)) { const ph = mobs.find(o => o.kind === hb + '_b' || o.kind === hb + '_c'); if (ph) w[ph.kind] = 1; else w[hb] = 1; }
     /* nunca dos jefes juntos: queda el que ya está en el mapa, si no el primero */
     const bk = Object.keys(w).filter(k => MOB[k] && MOB[k].boss && w[k] > 0); if (bk.length > 1) { const here = bk.find(k => mobs.some(o => o.kind === k)) || bk[0]; bk.forEach(k => { if (k !== here) delete w[k]; }); }
     return w; }
-  function maintainMobs() { if (!isHost || !roomReady || MAP.safeAll) return; const w = wantMobs(), now = Date.now();
+  function maintainMobs() { if (!isHost || !roomReady || (MAP.safeAll && !MAP.safeFac)) return; const w = wantMobs(), now = Date.now();
     Object.entries(w).forEach(([k, n]) => { let have = mobs.filter(o => o.kind === k).length; const wait = MOB[k].respawn || 12000;
       if (!lastDeath[k]) { while (have < n) { if (!spawnMob(k, 560)) break; have++; } lastDeath[k] = 1; }
       else if (have < n && now - lastDeath[k] > wait) spawnMob(k, 560); }); }
-  function mobHit(o, dmg, kx, ky, byId) { if (!o || o.hp <= 0) return; if (o.T.ai === 'angel' && o.st !== 'strike') return; o.hp -= dmg; o.hurt = .2; o.hitters.add(byId); o.chasing = true;
+  function mobHit(o, dmg, kx, ky, byId) { if (!o || o.hp <= 0 || o.T.passive) return; if (o.T.ai === 'angel' && o.st !== 'strike') return; o.hp -= dmg; o.hurt = .2; o.hitters.add(byId); o.chasing = true;
     if (!o.T.heavy) { o.wind = Math.max(0, o.wind - .12); const nx = o.x + kx, ny = o.y + ky; if (mobWalk(nx, ny)) { o.x = nx; o.y = ny; } }
     if (o.st === 'run') { o.st = 'rest'; o.stT = 1.1; } if (o.hp <= 0) killMob(o); }
-  function hitMob(o, dmg, kx, ky) { if (o.T.ai === 'angel' && o.st !== 'strike') { floats.push({ x: o.x, y: o.y - o.T.h - 30, t: .7, txt: 'NO SE DEJA', c: '#b8b2a8' }); return; } if (o.T.fac && o.T.fac === me.faction) { floats.push({ x: o.x, y: o.y - o.T.h - 30, t: .6, txt: 'ALIADO', c: '#8fd0ff' }); return; } if (INV.eq.luz && !o.T.human && Math.hypot(o.x - P.x, o.y - P.y) < 520) dmg = Math.round(dmg * 1.25); o.hurt = .2; floats.push({ x: o.x + rnd(-10, 10), y: o.y - o.T.h * .8, t: .8, txt: '-' + dmg, c: '#ffffff' });
+  function hitMob(o, dmg, kx, ky) { if (o.T.passive) { floats.push({ x: o.x, y: o.y - o.T.h - 30, t: .7, txt: 'HABLALE', c: '#ffb0c8' }); return; } if (o.T.ai === 'angel' && o.st !== 'strike') { floats.push({ x: o.x, y: o.y - o.T.h - 30, t: .7, txt: 'NO SE DEJA', c: '#b8b2a8' }); return; } if (o.T.fac && o.T.fac === me.faction) { floats.push({ x: o.x, y: o.y - o.T.h - 30, t: .6, txt: 'ALIADO', c: '#8fd0ff' }); return; } if (INV.eq.luz && !o.T.human && Math.hypot(o.x - P.x, o.y - P.y) < 520) dmg = Math.round(dmg * 1.25); o.hurt = .2; floats.push({ x: o.x + rnd(-10, 10), y: o.y - o.T.h * .8, t: .8, txt: '-' + dmg, c: '#ffffff' });
     for (let i = 0; i < 10; i++) parts.push({ x: o.x, y: o.y - o.T.h * .6, vx: rnd(-140, 140), vy: rnd(-110, -30), life: .6, s: rnd(2, 4), c: 25 });
     if (isHost) mobHit(o, dmg, kx, ky, me.id); else net('mhit', { id: o.id, d: dmg, kx: Math.round(kx), ky: Math.round(ky), by: me.id }); }
   function killMob(o) { const i = mobs.indexOf(o); if (i >= 0) mobs.splice(i, 1); lastDeath[o.kind] = Date.now();
-    if (o.T.hourly) { hourlyDead[o.kind] = Date.now(); try { sb.from('game_state').upsert({ k: 'jefe_' + o.kind, v: { t: Date.now() }, updated_at: new Date().toISOString() }).then(() => {}, () => {}); } catch (e) {} }
+    if (o.T.world || o.T.hourly) { const bk = o.kind.replace(/_[bc]$/, ''); hourlyDead[bk] = Date.now(); try { sb.from('game_state').upsert({ k: 'jefe_' + bk, v: { t: Date.now() }, updated_at: new Date().toISOString() }).then(() => {}, () => {}); } catch (e) {} }
     const pl = { id: o.id, kind: o.kind, x: Math.round(o.x), y: Math.round(o.y), f: o.face, by: [...o.hitters] };
     net('mdie', pl); onMobDie(pl); }
   function onMobDie(p) { const T = MOB[p.kind]; if (!T) return; const i = mobs.findIndex(o => o.id === p.id); if (i >= 0) mobs.splice(i, 1); SND.dissolve();
@@ -749,6 +807,7 @@
     if (T.boss || Math.random() < (mL >= 15 ? .07 : .05)) spawnPickup('ganzuas', [p.x - 30, p.y + 20]);
     if (p.kind === 'jefe') grantSkins(['renzo', 'sam']);
     if (p.kind === 'yuki') { addItem('brz_jefe'); quickBtns(); toast('¡Alcanzaste a Yuki! Te dejó su brazalete: activalo desde ESPECIAL.'); persist(); }
+    if (p.kind === 'sofia' && STORY && window.CZ_STORY && CZ_STORY.say && Math.hypot(P.x - p.x, P.y - p.y) < 1400) setTimeout(() => CZ_STORY.say([['sofia_mala2', 'Solo quería...'], ['sofia_mala2', '...vivir feliz...']]), 900);
     if (p.kind === 'sofia') { const can = Object.keys(AB).filter(a => !INV.ab.includes(a)); if (can.length) { const a = can[(Math.random() * can.length) | 0]; INV.ab.push(a); setTimeout(() => toast('HABILIDAD NUEVA: ' + AB[a].n + ' · ' + AB[a].d + ' Si morís, la perdés.'), 900); abButtons(); } }
     if (lvlOf(P.xp) > lvBefore) { P.hp += maxHp(lvlOf(P.xp)) - maxHp(lvBefore); SND.level(); buzz([40, 40, 90]); setTimeout(() => toast('SUBISTE A NIVEL ' + lvlOf(P.xp) + ' · pegás ' + playerDmg()), 500); checkUnlocks(); }
     hud(); }
@@ -805,7 +864,9 @@
     for (let i = mshots.length - 1; i >= 0; i--) { const b = mshots[i]; b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt; let gone = b.life <= 0 || !walkable(b.x, b.y);
       if (b.k === 'fire' && Math.random() < .7) parts.push({ x: b.x + rnd(-6, 6), y: b.y - 70 + rnd(-6, 6), vx: rnd(-20, 20), vy: rnd(-40, -10), life: .4, s: rnd(3, 6), c: 200, fire: 1 });
       if (!gone && !P.dead && Math.abs(b.x - P.x) < 40 && Math.abs(b.y - P.y) < 34) { gone = true; hitPlayer(b.d, { x: b.x - b.vx * .1, y: b.y - b.vy * .1 }, b.k === 'fire' || b.k === 'vacio' ? 40 : 0, null, b.mk || 'oscuro'); if (b.k === 'fire') for (let j = 0; j < 14; j++) parts.push({ x: P.x, y: P.y - 80, vx: rnd(-90, 90), vy: rnd(-90, 0), life: .5, s: 4, c: 200, fire: 1 }); }
-      if (gone) mshots.splice(i, 1); }
+      if (gone) { if (b.k === 'moco') goos.push({ x: b.x, y: b.y, r: 95, ttl: 6 }); mshots.splice(i, 1); } }
+    for (let i = goos.length - 1; i >= 0; i--) { const g_ = goos[i]; g_.ttl -= dt; if (g_.ttl <= 0) { goos.splice(i, 1); continue; } if (!P.dead && Math.hypot(P.x - g_.x, (P.y - g_.y) * 1.5) < g_.r) { if (!(P.goo > 0)) toast('¡Pisaste moco! Vas lento y te pegan el doble.'); P.goo = .3; P.slow = Math.max(P.slow || 0, .3); } }
+    if (P.goo > 0) P.goo -= dt;
     for (let i = clouds.length - 1; i >= 0; i--) { const c0 = clouds[i]; c0.ttl -= dt; if (c0.ttl <= 0) { clouds.splice(i, 1); continue; }
       if (!P.dead && Math.hypot(P.x - c0.x, (P.y - c0.y) * 1.4) < c0.r) { c0.tick -= dt; if (c0.tick <= 0) { c0.tick = .5; hitPlayer(6, null, 0, null, 'sofia'); } } } }
   /* ataque de un Oscuro sobre un jugador: si soy yo me pega acá; si es otro, le aviso */
@@ -820,14 +881,14 @@
   function leaveRoom() { if (!ch) return; const c = ch; ch = null; try { c.untrack(); } catch (e) {} try { sb.removeChannel(c); } catch (e) {} tracked = false; peers = 0; netMode = 'SOLO'; }
   function joinRoom(n) {
     leaveRoom(); others.clear(); room = n; const myMap = mapKey; netMode = 'SOLO'; gotFull = true; lastEnemy.clear();
-    $('#h-sala').textContent = 'sala ' + n + ' · conectando…';
+    $('#h-sala').textContent = window.CZ_OFFLINE ? 'offline · solo' : 'sala ' + n + ' · conectando…';
     const c = sb.channel((EXP ? 'gpvp:' : 'game:') + myMap + '-' + n, { config: { presence: { key: me.id }, broadcast: { self: false, ack: false } } }); ch = c;
     const onPresence = () => { if (ch !== c) return; const st = c.presenceState(); const ids = Object.keys(st); const before = peers;
       for (const id of [...others.keys()]) if (!ids.includes(id)) others.delete(id);
       ids.forEach(id => { if (id === me.id) return; const m = st[id][0] || {}; const o = others.get(id) || { x: m.x || P.x, y: m.y || P.y, tx: m.x || P.x, ty: m.y || P.y, face: 1, walkT: 0, say: '', sayT: 0 };
         Object.assign(o, { look: m.look, nick: m.nick, fac: m.fac, lvl: m.lvl }); others.set(id, o); });
       electHost(st); if (peers > before) { lastPlayerSent = null; if (netMode === 'MULTI_HOST') needFull = true; }
-      $('#h-sala').textContent = (EXP ? 'EXP · ' : '') + 'sala ' + n + ' · ' + (peers + 1) + '/10 acá' + (netMode === 'SOLO' ? ' · solo' : ''); };
+      $('#h-sala').textContent = window.CZ_OFFLINE ? 'offline · solo' : (EXP ? 'EXP · ' : '') + 'sala ' + n + ' · ' + (peers + 1) + '/10 acá' + (netMode === 'SOLO' ? ' · solo' : ''); };
     ['sync', 'join', 'leave'].forEach(ev => c.on('presence', { event: ev }, onPresence));
     const H = {
       trap: p => { if (p && p.id && !ptraps.some(t => t.id === p.id)) ptraps.push(Object.assign({}, p, { t: Date.now() })); },
@@ -845,6 +906,9 @@
       mstrike: p => { if (p.to === me.id) hitPlayer(p.d, { x: p.x, y: p.y }, p.k, null, p.mk || 'oscuro'); },
       mfire: p => { mshots.push({ x: p.x, y: p.y, vx: p.vx, vy: p.vy, k: p.k, d: p.d, life: 2.2, mk: p.mk }); SND.fireball(p.k); },
       mcloud: p => clouds.push({ x: p.x, y: p.y, r: 150, ttl: 4.5, tick: 0 }),
+      mslow: p => { if (p.to === me.id) stun(p.t || 3); },
+      mring: p => { const o = mobs.find(m => m.id === p.id); if (o) o.ring = .6; },
+      dama: p => { if (isHost) damaNext(p.id, p.by); },
       boss: p => { if (MOB[p.k]) toast('⚠ ' + MOB[p.k].name + ' está en ' + MAP.name.toLowerCase()); },
       shot: p => { shots.push({ x: p.x, y: p.y, vx: p.vx * 1100, vy: p.vy * 1100 * .8, life: .6, fake: true }); SND.shot(.35); },
       suero: p => { if (p.slot === suero.slot) { suero.taken = p.slot; suero.map = null; clearSuero(); toast(p.by + ' agarró el maletín de curación.'); hud(); } },
@@ -868,7 +932,8 @@
   /* ---------- personajes de la historia (solo MUNDO, quietos) ---------- */
   const NPCS = {}; Object.entries(MAPS).forEach(([k, m]) => { if (m.npcs) NPCS[k] = m.npcs.map(n => Object.assign({}, n, n.act === 'heal' ? { heal: n.fac, act: null } : {}, n.k === 'mercedes' ? { brz: 'ork' } : {}, n.act === 'brazalete' ? { brz: n.fac, act: null } : {})); });
   if (EXP) { NPCS.pvp_azul = [{ k: 'ex10', nm: 'INTENDENTE', line: 'Kit de combate. Elegí bien.', x: 640, y: 330, act: 'kit', fac: 'rebel' }]; NPCS.pvp_rojo = [{ k: 'instructor_ork', nm: 'INSTRUCTOR', line: 'Equipate, recluta.', x: 760, y: 330, act: 'kit', fac: 'ork' }]; }
-  const npcsHere = () => CAS.concat(NPCS[mapKey] || []).filter(n => !n.cada || ((minOfDay() + hashStr(n.k) % 60) % 60) < 20 || (STORY && window.CZ_STORY && CZ_STORY.wants && CZ_STORY.wants(n.k))).concat(STORY && window.CZ_STORY ? CZ_STORY.npcs(mapKey) : []);
+  const damaNpcs = () => mobs.filter(o => o.T.passive && o.hp > 0).map(o => ({ k: o.T.sheet, nm: o.T.name, line: '…', x: o.x / WS, y: o.y / WS, dama: o.id }));
+  const npcsHere = () => CAS.concat(NPCS[mapKey] || [], damaNpcs()).filter(n => !n.cada || ((minOfDay() + hashStr(n.k) % 60) % 60) < 20 || (STORY && window.CZ_STORY && CZ_STORY.wants && CZ_STORY.wants(n.k))).concat(STORY && window.CZ_STORY ? CZ_STORY.npcs(mapKey) : []);
   function nearNpc() { let best = null, bd = 150; npcsHere().forEach(n => { const d = Math.hypot(n.x * WS - P.x, (n.y * WS - P.y) * 1.2); if (d < bd) { bd = d; best = n; } }); return best; }
   const healCd = {};
   /* el bando contrario no te atiende: te maldicen, te insultan o te lastiman */
@@ -890,6 +955,7 @@
     if (g.ab) { const can = Object.keys(AB).filter(a => !INV.ab.includes(a)); if (can.length) { INV.ab.push(can[(Math.random() * can.length) | 0]); abButtons(); } }
     INV.quests[q.id] = 1; SND.level(); buzz([30, 40, 60]); toast('MISIÓN CUMPLIDA · ' + n.nm + ': "' + q.done + '"'); hud(); persist(); }
   function talkNpc(n) { n.sayT = 4; SND.pick();
+    if (n.dama) return damaTalk(n);
     if (n.cas) { const op = INV.cas && INV.cas[n.id] === dayN(); if (op) return toast('Casillero abierto. Ya no queda nada (vuelve a llenarse mañana).'); if (!hasItem('ganzuas')) return toast('Casillero cerrado. Necesitás ganzúas para forzarlo.'); return useItem('ganzuas', 'use'); }
     if (n.story && window.CZ_STORY) return CZ_STORY.talk(n);
     if (n.act === 'kit') return n.fac !== me.faction ? hostil(n) : openKit(n);
@@ -1056,11 +1122,11 @@
     P.atk = Math.max(0, P.atk - dt); P.cd = Math.max(0, P.cd - dt); P.hurtT = Math.max(0, P.hurtT - dt); P.inv = Math.max(0, P.inv - dt); if (P.sayT > 0) P.sayT -= dt;
     if (P.furia > 0) { P.furia -= dt; if ((t % .2) < dt) parts.push({ x: P.x + rnd(-20, 20), y: P.y - rnd(40, 160), vx: 0, vy: -60, life: .5, s: 4, c: 200, fire: 1 }); if (P.furia <= 0) { P.furia = 0; P.hp = Math.min(P.hp, 10); SND.hurt(); toast('La furia se terminó. Quedaste agotado: 10 de vida.'); hud(); } }
     if (P.jefe > 0) { P.jefe -= dt; if ((t % .25) < dt) parts.push({ x: P.x + rnd(-24, 24), y: P.y - rnd(30, 180), vx: 0, vy: -50, life: .6, s: 4, c: 200, fire: 1 }); if (P.jefe <= 0) { P.jefe = 0; P.hp = Math.min(P.hp, maxHp(lvlOf(P.xp))); toast('El poder de jefe se apagó.'); hud(); } }
-    if (P.slow > 0) P.slow -= dt; if (P.fast > 0) P.fast -= dt; if (P.smoke > 0) P.smoke -= dt;
+    if (P.slow > 0) P.slow -= dt; if (P.stunT > 0) P.stunT -= dt; if (P.fast > 0) P.fast -= dt; if (P.smoke > 0) P.smoke -= dt;
     if (P.burn > 0 && !P.dead) { P.burn -= dt; P.dotT = (P.dotT || 0) + dt; if (Math.random() < dt * 8) parts.push({ x: P.x + rnd(-18, 18), y: P.y - rnd(20, 150), vx: rnd(-10, 10), vy: -60, life: .5, s: 4, c: 200, fire: 1 }); }
     if (P.poison > 0 && !P.dead) { P.poison -= dt; P.dotT = (P.dotT || 0) + dt; if (Math.random() < dt * 4) parts.push({ x: P.x + rnd(-14, 14), y: P.y - rnd(40, 150), vx: 0, vy: -30, life: .7, s: 3, c: 120 }); }
     if ((P.burn > 0 || P.poison > 0) && P.dotT >= 1 && !P.dead) { P.dotT = 0; const dd = (P.burn > 0 ? 3 : 0) + (P.poison > 0 ? 2 : 0); P.hp -= dd; floats.push({ x: P.x, y: P.y - 200, t: .7, txt: (P.burn > 0 ? 'QUEMADO ' : '') + (P.poison > 0 ? 'VENENO ' : '') + '-' + dd, c: P.burn > 0 ? '#ff9a50' : '#9fe070' }); hud(); if (P.hp <= 0) { P.hp = 1; hitPlayer(999, null, 0, null, P.burn > 0 ? 'incinerario' : 'insecto'); } }
-    { const fx = $('#fx-st'); if (fx) { const tx = (P.burn > 0 ? '🔥 QUEMADO · venda para quemaduras  ' : '') + (P.poison > 0 ? '☠ ENVENENADO · antiveneno' : '') + (P.smoke > 0 ? ' · sin aire' : '') + (P.fast > 0 ? ' · veloz' : ''); if (fx.textContent !== tx) fx.textContent = tx; fx.hidden = !tx; } }
+    { const fx = $('#fx-st'); if (fx) { const tx = (P.burn > 0 ? '🔥 QUEMADO · venda para quemaduras  ' : '') + (P.poison > 0 ? '☠ ENVENENADO · antiveneno' : '') + (P.smoke > 0 ? ' · sin aire' : '') + (P.fast > 0 ? ' · veloz' : '') + (P.goo > 0 ? ' · 🟢 EN EL MOCO: te pegan el doble' : P.stunT > 0 ? ' · 💫 ATURDIDO' : ''); if (fx.textContent !== tx) fx.textContent = tx; fx.hidden = !tx; } }
     pvpTick(dt); if (STORY && window.CZ_STORY) CZ_STORY.tick(dt);
     const fireD = MAP.fire ? Math.hypot(P.x - MAP.fire[0] * WS, P.y - MAP.fire[1] * WS) : 9999;
     SND.fire(Math.max(0, 1 - fireD / 700));
@@ -1107,6 +1173,7 @@
       // objetivo: el jugador vivo más cercano que lo pueda ver
       let tg = null, best = 1e9; live.forEach(p => { if (T.fac && p.fac === T.fac) return; const d = Math.hypot(p.x - o.x, p.y - o.y); if (d < T.sight * p.sm * (o.chasing ? 1.4 : 1) && d < best) { best = d; tg = p; } });
       if (T.eyes && (INV.eq.luz || (tg && tg.me && INV.eq.luz))) { o.vis = Math.max(0, o.vis - dt * 2.5); if (o.vis <= 0) { const ii = mobs.indexOf(o); if (ii >= 0) mobs.splice(ii, 1); lastDeath[o.kind] = Date.now(); return; } tg = null; }
+      if (T.passive) tg = null;
       if (o.give > 0) { o.give -= dt; tg = null; }
       if (tg && !T.boss && !o.chasing && mobs.filter(m => m.chasing && !m.T.boss).length >= 4) tg = null;
       if (o.chasing && tg && !T.boss) { o.chT = (o.chT || 0) + dt; if (o.chT > 16 && Math.hypot(tg.x - o.x, tg.y - o.y) > 280) { o.give = 7; o.chT = 0; tg = null; } } else if (!tg) o.chT = 0;
@@ -1120,7 +1187,7 @@
         else if (T.ai === 'ranged') { if (tg) fireMob(o, tg, T.shot || 'fire'); }
         else if (T.ai === 'mole') { o.combo++; const big = o.combo % 3 === 0; if (big) { shake = Math.max(shake, Math.hypot(P.x - o.x, P.y - o.y) < 700 ? .5 : 0); for (let i = 0; i < 30; i++) parts.push({ x: o.x + o.face * 50, y: o.y - 20, vx: o.face * rnd(60, 220), vy: rnd(-120, -20), life: .6, s: 5, c: 70 }); }
           live.forEach(p => { if (Math.hypot(p.x - o.x, p.y - o.y) < T.reach + 30) strikeOn(p, big ? T.big : T.dmg, o, big ? T.bigKnock : 30); }); }
-        else if (tg && dist < T.reach + 28) strikeOn(tg, T.dmg, o, T.boss ? 30 : 0); };
+        else if (tg && dist < T.reach + 28) strikeOn(tg, T.dmg, o, T.knock || (T.boss ? 30 : 0)); };
       if (o.wind > 0) { o.wind -= dt; if (o.wind <= 0) { strike(); if (T.ai === 'blink') { o.st = 'fadeout'; o.stT = .45; o.far = Math.random() < .35; } } }
       else if (T.ai === 'angel' && tg) {
         const od = tg.me ? P.dir : ((others.get(tg.id) || {}).d || 'd'), fx_ = od === 'l' ? -1 : od === 'r' ? 1 : 0, fy_ = od === 'u' ? -1 : od === 'd' ? 1 : 0;
@@ -1129,6 +1196,11 @@
         else if (seen) { o.st = 'idle'; o.moving = false; }
         else if (dist < T.reach && o.cd <= 0) { strikeOn(tg, T.dmg, o, 70); o.lunge = 1; o.st = 'strike'; o.stT = 4; SND.mob('shriek', .3); }
         else { sp = T.sp; [mx, my] = steer(o, dx, dy, dist); o.face = dx < 0 ? -1 : 1; } }
+      else if (T.ai === 'scream' && tg) { o.face = dx < 0 ? -1 : 1;
+        if (o.st === 'aim') { if (o.stT <= 0) { o.st = 'idle'; o.cd = T.cd; SND.mob('shriek', .9); if (Math.hypot(P.x - o.x, P.y - o.y) < 900) shake = .35; o.ring = .6;
+            live.forEach(p => { if (Math.hypot(p.x - o.x, p.y - o.y) < T.reach) { strikeOn(p, T.dmg, o, 0); if (p.me) stun(3); else net('mslow', { to: p.id, t: 3 }); } }); net('mring', { id: o.id }); } }
+        else if (dist < T.reach * .85 && o.cd <= 0) { o.st = 'aim'; o.stT = T.wind; }
+        else if (dist > T.reach * .6) { sp = T.sp; [mx, my] = steer(o, dx, dy, dist); } }
       else if (T.ai === 'boom' && tg) { o.face = dx < 0 ? -1 : 1;
         if (o.st === 'aim') { if (o.stT <= 0) { if (Math.hypot(P.x - o.x, P.y - o.y) < 700) shake = .5; for (let i = 0; i < 46; i++) { const a = i / 46 * 6.283; parts.push({ x: o.x + Math.cos(a) * 20, y: o.y - 40, vx: Math.cos(a) * 260, vy: Math.sin(a) * 140 - 40, life: .7, s: 5, c: 200, fire: 1 }); }
             live.forEach(p => { if (Math.hypot(p.x - o.x, p.y - o.y) < T.aoe) strikeOn(p, T.dmg, o, 150); }); SND.fireball('fire'); o.hp = 0; killMob(o); return; } }
@@ -1306,11 +1378,13 @@
       const w = Math.max(...lines.map(l => c.measureText(l).width)) + 16, h = lines.length * 16 + 10; c.fillStyle = 'rgba(240,238,232,.94)'; c.fillRect(x - w / 2, y - h, w, h); c.beginPath(); c.moveTo(x - 5, y); c.lineTo(x + 5, y); c.lineTo(x, y + 6); c.fill();
       c.fillStyle = '#111'; lines.forEach((l, i) => c.fillText(l, x, y - h + 18 + i * 16)); }
     // nubes tóxicas
+    goos.forEach(g_ => { const [x, y] = W2S(g_.x, g_.y), a = Math.min(1, g_.ttl) * .75; c.fillStyle = 'rgba(110,140,40,' + a + ')'; c.beginPath(); c.ellipse(x, y, g_.r * zoom, g_.r * .55 * zoom, 0, 0, 7); c.fill(); c.fillStyle = 'rgba(190,220,90,' + a * .6 + ')'; c.beginPath(); c.ellipse(x - 12 * zoom, y - 6 * zoom, g_.r * .4 * zoom, g_.r * .18 * zoom, 0, 0, 7); c.fill(); });
+    mobs.forEach(o => { if (!(o.ring > 0)) return; o.ring -= 1 / 60; const [x, y] = W2S(o.x, o.y - o.T.h * .7), r_ = (1 - o.ring / .6) * 330 * zoom; c.strokeStyle = 'rgba(230,220,255,' + (o.ring / .6) + ')'; c.lineWidth = 6 * zoom; c.beginPath(); c.ellipse(x, y, r_, r_ * .6, 0, 0, 7); c.stroke(); });
     clouds.forEach(c0 => { const [x, y] = W2S(c0.x, c0.y); const a = Math.min(1, c0.ttl) * .5; const gr = c.createRadialGradient(x, y, 0, x, y, c0.r * zoom); gr.addColorStop(0, 'rgba(120,150,90,' + a + ')'); gr.addColorStop(.7, 'rgba(80,100,60,' + a * .6 + ')'); gr.addColorStop(1, 'rgba(60,70,50,0)');
       c.fillStyle = gr; c.beginPath(); c.ellipse(x, y, c0.r * zoom, c0.r * .7 * zoom, 0, 0, 7); c.fill(); });
     // fuego y cuchillos de los Oscuros
     mshots.forEach(b => { const [x, y] = W2S(b.x, b.y - 70);
-      const ORB = { fire: ['255,240,180', '255,140,40', '200,40,10', 26], orbe: ['220,240,255', '90,160,255', '20,60,200', 24], acido: ['230,255,200', '120,220,70', '30,120,20', 22], vacio: ['250,220,255', '180,80,255', '70,10,140', 28] };
+      const ORB = { moco: ['230,255,190', '150,190,60', '70,90,20', 20], fire: ['255,240,180', '255,140,40', '200,40,10', 26], orbe: ['220,240,255', '90,160,255', '20,60,200', 24], acido: ['230,255,200', '120,220,70', '30,120,20', 22], vacio: ['250,220,255', '180,80,255', '70,10,140', 28] };
       if (ORB[b.k]) { const [c1, c2, c3, R_] = ORB[b.k]; c.globalCompositeOperation = 'lighter'; const gr = c.createRadialGradient(x, y, 0, x, y, R_ * zoom); gr.addColorStop(0, 'rgba(' + c1 + ',1)'); gr.addColorStop(.4, 'rgba(' + c2 + ',.9)'); gr.addColorStop(1, 'rgba(' + c3 + ',0)'); c.fillStyle = gr; c.fillRect(x - R_ * zoom, y - R_ * zoom, R_ * 2 * zoom, R_ * 2 * zoom); c.globalCompositeOperation = 'source-over'; }
       else if (b.k === 'rayo') { const l = Math.hypot(b.vx, b.vy) || 1, ux = b.vx / l, uy = b.vy / l; c.globalCompositeOperation = 'lighter'; c.strokeStyle = 'rgba(120,190,255,.55)'; c.lineWidth = 10 * zoom; c.beginPath(); c.moveTo(x - ux * 90 * zoom, y - uy * 90 * zoom); c.lineTo(x, y); c.stroke(); c.strokeStyle = '#eaf6ff'; c.lineWidth = 3 * zoom; c.beginPath(); c.moveTo(x - ux * 90 * zoom, y - uy * 90 * zoom); for (let q = 1; q <= 4; q++) c.lineTo(x - ux * (90 - q * 22) * zoom + rnd(-5, 5) * zoom, y - uy * (90 - q * 22) * zoom + rnd(-5, 5) * zoom); c.stroke(); c.globalCompositeOperation = 'source-over'; }
       else if (b.k === 'bala') { const l = Math.hypot(b.vx, b.vy) || 1, ux = b.vx / l, uy = b.vy / l; c.strokeStyle = 'rgba(255,225,140,.95)'; c.lineWidth = 2.5 * zoom; c.beginPath(); c.moveTo(x - ux * 26 * zoom, y - uy * 26 * zoom); c.lineTo(x, y); c.stroke(); }

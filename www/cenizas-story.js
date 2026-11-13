@@ -77,7 +77,7 @@ body.cine #st-dlg{display:block}
   function finish() { const r = mis.reward || {}; if (r.xp) A.giveXp(r.xp); if (r.coins) A.giveCoins(r.coins); Object.entries(r.items || {}).forEach(([k, n]) => A.addItem(k, n)); A.quickBtns(); A.INV.racha = 0;
     const done = mis; S.done = (S.done || []).concat(done.id); step = null; mis = null; objective(); save();
     card('MISIÓN CUMPLIDA', done.t, '+' + (r.xp || 0) + ' XP · +' + (r.coins || 0) + ' $' + Object.entries(r.items || {}).map(([k, n]) => ' · ' + (A.ITEMS[k] ? A.ITEMS[k].n : k) + ' ×' + n).join(''), () => {
-      if (done.fin) return card('THE O|F', 'FIN', done.fin, () => {});
+      if (done.fin) { if (window.CZ_FINAL) { A.setPaused(true); return CZ_FINAL.play(A.me.faction, () => { A.setPaused(false); card('THE O|F', 'FIN', done.fin + ' · El mundo sigue abierto: recorrelo libre.', () => {}); }); } return card('THE O|F', 'FIN', done.fin, () => {}); }
       setTimeout(() => setMission(S.m + 1, true), 1200); }); }
   /* ---------- lugares ---------- */
   function posOf(st, mapK) { const m = A.MAPS[mapK || st.map]; if (!m) return [0, 0]; const at = st.at || [0, 0]; let x = m.spawn[0] + at[0], y = m.spawn[1] + at[1];

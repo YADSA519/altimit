@@ -57,10 +57,16 @@
   }
   function setAuthTab(t) { $('#tab-login').setAttribute('aria-selected', String(t !== 'reg')); $('#tab-reg').setAttribute('aria-selected', String(t === 'reg'));
     $('#f-login').hidden = t !== 'login'; $('#f-reg').hidden = t !== 'reg'; $('#f-rec').hidden = t !== 'rec'; }
+  /* jugar sin conexión: usa el último personaje que jugaste online (o elegís bando la primera vez) */
+  $('#li-off').onclick = () => { let pr = null; try { pr = JSON.parse(localStorage.getItem('of-prof') || 'null'); } catch (e) {}
+    if (pr && pr.faction) return (location.href = '/intro.html?off=1');
+    const b = $('#li-off'); if (b.dataset.k === '1') return; b.dataset.k = '1'; b.insertAdjacentHTML('afterend', '<div id="off-fac" style="display:flex;gap:8px;margin-top:8px"><button class="btn" data-f="rebel">REBELDE</button><button class="btn" data-f="ork">ORK</button></div>');
+    $('#off-fac').querySelectorAll('button').forEach(x => x.onclick = () => { try { localStorage.setItem('of-prof', JSON.stringify({ id: 'offline', nick: 'SOBREVIVIENTE', role: 'user', faction: x.dataset.f })); } catch (e) {} location.href = '/intro.html?off=1'; }); };
   $('#tab-login').onclick = () => setAuthTab('login'); $('#tab-reg').onclick = () => setAuthTab('reg');
   function markAlive() { try { sessionStorage.setItem('theof.alive', '1'); } catch (e) {} }
 
   async function start() {
+    if (!navigator.onLine) { showAuth(); say('#li-msg', 'Sin conexión. Podés jugar el MODO HISTORIA OFFLINE.'); return; }
     let alive = false; try { alive = sessionStorage.getItem('theof.alive') === '1'; } catch (e) {}
     const { data } = await sb.auth.getSession();
     if (data.session && store.get('keep', true) === false && !alive) { await sb.auth.signOut(); return showAuth(); }
@@ -620,6 +626,7 @@
     if (error) return say('#pw-msg', /reauth|nonce/i.test(error.message) ? 'Por seguridad, salí, volvé a entrar y probá de nuevo.' : 'No se pudo: ' + error.message, true);
     $('#pw-cancel').click(); toast('Contraseña cambiada.'); });
   $('#enter-game').onclick = () => { $('#enter-game').disabled = true; location.href = '/intro.html'; };
+  $('#enter-off').onclick = () => { $('#enter-off').disabled = true; location.href = '/intro.html?off=1'; };
   $('#enter-exp').onclick = () => { $('#enter-exp').disabled = true; location.href = '/cenizas.html?modo=pvp'; };
   /* cambiar el nombre (las skins quedan con la cuenta, no con el nombre) */
   $('#nk-open').onclick = () => { $('#f-nk').hidden = false; $('#nk-open').hidden = true; $('#nk-1').value = me.nick; $('#nk-1').focus(); };

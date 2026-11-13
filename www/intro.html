@@ -31,7 +31,7 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;touch-action:mani
 <div id="black"></div>
 <script>
 (function(){
-  const NEXT = '/cenizas.html?modo=historia';
+  const NEXT = '/cenizas.html?modo=historia' + (/[?&]off=1/.test(location.search) ? '&off=1' : '');
   /* 1-9: Pablo · 10-18: termina en THE O|F. d = segundos en pantalla; z/px/py/ox/oy = movimiento de cámara */
   const F = [
     {d:6.5, z:1.10, ox:'30%', oy:'40%'},
