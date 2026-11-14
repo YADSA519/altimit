@@ -26,6 +26,9 @@ jobs:
       - name: Instalar dependencias
         run: npm install --no-audit --no-fund
 
+      - name: Marcar el número de compilación
+        run: echo '{"n":${{ github.run_number }}}' > www/build.json
+
       - name: Copiar la app al proyecto Android
         run: npx cap sync android
 

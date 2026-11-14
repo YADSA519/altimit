@@ -163,7 +163,7 @@
   Object.assign(MOB.electrico, { shot: 'rayo', pspeed: 900 }); Object.assign(MOB.pablo, { shot: 'orbe' }); Object.assign(MOB.garras, { shot: 'vacio' });
   /* ===== modelos nuevos de Thiriang ===== */
   Object.assign(MOB.jefe, { sheet: 'mercedes_jefe' }); Object.assign(MOB.ignacio, { sheet: 'ignacio2' }); Object.assign(MOB.maxi, { sheet: 'maxi2' }); Object.assign(MOB.lilia, { sheet: 'lilia2' }); Object.assign(MOB.sofia, { sheet: 'sofia_mala2' });
-  MOB.oscura.sheet = 'oscuro_mujer2'; MOB.quieta.sheet = 'agrietado';
+  MOB.oscura.sheet = 'oscuro_mujer3'; MOB.quieta.sheet = 'quieta'; Object.assign(MOB.maxi, { shot: 'bala', pspeed: 620 });
   MOB.lucas = nm_('jefe', { name: 'LUCAS', sheet: 'lucas_jefe', aura: '120,255,170', hp: 900, dmg: 14, xp: 3200, coins: 32, shot: 'acido' });
   MOB.noster = nm_('jefe', { name: 'NOSTER', sheet: 'noster_oscuro', aura: '255,90,40', hp: 1000, dmg: 16, xp: 3600, coins: 34, shot: 'fire' });
   MOB.ani = nm_('jefe', { name: 'ANI · FASE OSCURA', sheet: 'ani_oscura', aura: '255,120,30', hp: 950, dmg: 15, xp: 3400, coins: 34, shot: 'vacio', sp: 300 });
@@ -178,7 +178,9 @@
   /* Oscuros nuevos */
   MOB.griton = nm_('errante', { name: 'Gritón', sheet: 'griton', ai: 'scream', hp: 9, sp: 80, dmg: 8, reach: 330, sight: 480, wind: .8, cd: 5.5, xp: 38, coins: 3 });
   MOB.empujador = nm_('errante', { name: 'Empujador', sheet: 'empujador', hp: 14, sp: 95, dmg: 18, knock: 430, xp: 40, coins: 3, heavy: true });
-  MOB.mocoso = nm_('incinerario', { name: 'Desintegrado', sheet: 'desintegrado', shot: 'moco', burn: false, hp: 11, reach: 380, keep: 240, pspeed: 330, xp: 45, coins: 3 });
+  MOB.mocoso = nm_('incinerario', { name: 'Desintegrada', sheet: 'desintegrado', shot: 'moco', burn: false, hp: 11, reach: 380, keep: 240, pspeed: 330, xp: 45, coins: 3 });
+  MOB.mocoso_h = nm_('incinerario', { name: 'Desintegrado', sheet: 'desintegrado_h', shot: 'moco', burn: false, hp: 12, reach: 380, keep: 240, pspeed: 330, xp: 46, coins: 3 });
+  MOB.piedra = nm_('incinerario', { name: 'Oscura de Piedra', sheet: 'piedra', shot: 'piedra', burn: false, hp: 10, reach: 420, keep: 280, pspeed: 480, xp: 42, coins: 3 });
   MOB.lava = nm_('incinerario', { name: 'Desintegrado de Lava', sheet: 'desintegrado_lava', shot: 'fire', hp: 13, xp: 50 });
   MOB.lava_oscura = nm_('denso', { name: 'Criatura de Lava', sheet: 'lava_oscura', hp: 22, xp: 75, burn: true });
   MOB.ojo = nm_('incinerario', { name: 'El Ojo', sheet: 'ojo', shot: 'orbe', burn: false, hp: 14, sp: 60, wsp: 20, pspeed: 420, xp: 55, coins: 3 });
@@ -266,9 +268,9 @@
   };
   const MOBS_T = {
     bajo: { errante: 2, oscura: 2, perro: 1, rastrero: 1, cuervo: 1, quieta: 1 },
-    medio: { errante: 2, oscura: 1, corredor: 1, perro: 1, sombra: 1, cuervo: 1, insecto: 1, reptante: 1, kamikaze: 1, quieta: 1, griton: 1, empujador: 1 },
-    alto: { errante: 1, oscura: 1, corredor: 1, sombra: 1, denso: 1, lodo: 1, insecto: 1, reptante: 1, babosa: 1, incinerario: 1, kamikaze: 1, quieta: 1, griton: 1, empujador: 1, mocoso: 1, lava: 1 },
-    tope: { errante: 1, oscura: 1, corredor: 1, sombra: 1, denso: 1, lodo: 1, insecto: 1, reptante: 1, babosa: 1, incinerario: 1, kamikaze: 1, quieta: 1, griton: 1, empujador: 1, mocoso: 1, lava: 1, lava_oscura: 1 },
+    medio: { errante: 2, oscura: 1, corredor: 1, perro: 1, sombra: 1, cuervo: 1, insecto: 1, reptante: 1, kamikaze: 1, quieta: 1, griton: 1, empujador: 1, piedra: 1 },
+    alto: { errante: 1, oscura: 1, corredor: 1, sombra: 1, denso: 1, lodo: 1, insecto: 1, reptante: 1, babosa: 1, incinerario: 1, kamikaze: 1, quieta: 1, griton: 1, empujador: 1, mocoso: 1, mocoso_h: 1, piedra: 1, lava: 1 },
+    tope: { errante: 1, oscura: 1, corredor: 1, sombra: 1, denso: 1, lodo: 1, insecto: 1, reptante: 1, babosa: 1, incinerario: 1, kamikaze: 1, quieta: 1, griton: 1, empujador: 1, mocoso: 1, mocoso_h: 1, piedra: 1, lava: 1, lava_oscura: 1 },
     pvp: { errante: 4, oscura: 3, perro: 2, cuervo: 2, rastrero: 2 } };
   /* MODO HISTORIA · niveles por avance: los mapas de arranque (cerca del Nogal y de Libertador) van de 1 a 5;
      cuanto más lejos, más alto. Puerto Madero suma extra. Las bases enemigas tienen guardias de nivel alto. */
@@ -1384,7 +1386,7 @@
       c.fillStyle = gr; c.beginPath(); c.ellipse(x, y, c0.r * zoom, c0.r * .7 * zoom, 0, 0, 7); c.fill(); });
     // fuego y cuchillos de los Oscuros
     mshots.forEach(b => { const [x, y] = W2S(b.x, b.y - 70);
-      const ORB = { moco: ['230,255,190', '150,190,60', '70,90,20', 20], fire: ['255,240,180', '255,140,40', '200,40,10', 26], orbe: ['220,240,255', '90,160,255', '20,60,200', 24], acido: ['230,255,200', '120,220,70', '30,120,20', 22], vacio: ['250,220,255', '180,80,255', '70,10,140', 28] };
+      const ORB = { piedra: ['230,225,215', '140,130,120', '60,55,50', 16], moco: ['230,255,190', '150,190,60', '70,90,20', 20], fire: ['255,240,180', '255,140,40', '200,40,10', 26], orbe: ['220,240,255', '90,160,255', '20,60,200', 24], acido: ['230,255,200', '120,220,70', '30,120,20', 22], vacio: ['250,220,255', '180,80,255', '70,10,140', 28] };
       if (ORB[b.k]) { const [c1, c2, c3, R_] = ORB[b.k]; c.globalCompositeOperation = 'lighter'; const gr = c.createRadialGradient(x, y, 0, x, y, R_ * zoom); gr.addColorStop(0, 'rgba(' + c1 + ',1)'); gr.addColorStop(.4, 'rgba(' + c2 + ',.9)'); gr.addColorStop(1, 'rgba(' + c3 + ',0)'); c.fillStyle = gr; c.fillRect(x - R_ * zoom, y - R_ * zoom, R_ * 2 * zoom, R_ * 2 * zoom); c.globalCompositeOperation = 'source-over'; }
       else if (b.k === 'rayo') { const l = Math.hypot(b.vx, b.vy) || 1, ux = b.vx / l, uy = b.vy / l; c.globalCompositeOperation = 'lighter'; c.strokeStyle = 'rgba(120,190,255,.55)'; c.lineWidth = 10 * zoom; c.beginPath(); c.moveTo(x - ux * 90 * zoom, y - uy * 90 * zoom); c.lineTo(x, y); c.stroke(); c.strokeStyle = '#eaf6ff'; c.lineWidth = 3 * zoom; c.beginPath(); c.moveTo(x - ux * 90 * zoom, y - uy * 90 * zoom); for (let q = 1; q <= 4; q++) c.lineTo(x - ux * (90 - q * 22) * zoom + rnd(-5, 5) * zoom, y - uy * (90 - q * 22) * zoom + rnd(-5, 5) * zoom); c.stroke(); c.globalCompositeOperation = 'source-over'; }
       else if (b.k === 'bala') { const l = Math.hypot(b.vx, b.vy) || 1, ux = b.vx / l, uy = b.vy / l; c.strokeStyle = 'rgba(255,225,140,.95)'; c.lineWidth = 2.5 * zoom; c.beginPath(); c.moveTo(x - ux * 26 * zoom, y - uy * 26 * zoom); c.lineTo(x, y); c.stroke(); }

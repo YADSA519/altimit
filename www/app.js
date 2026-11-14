@@ -65,6 +65,14 @@
   $('#tab-login').onclick = () => setAuthTab('login'); $('#tab-reg').onclick = () => setAuthTab('reg');
   function markAlive() { try { sessionStorage.setItem('theof.alive', '1'); } catch (e) {} }
 
+  /* aviso de versión nueva: compara el número de esta APK con el último de GitHub */
+  async function checkUpdate() { try { if (!window.Capacitor) return; const mine = (await (await fetch('/build.json', { cache: 'no-store' })).json()).n; if (!mine) return;
+      const r = await (await fetch('https://api.github.com/repos/YADSA519/altimit/releases/latest', { cache: 'no-store' })).json(); const n = +String(r.tag_name || '').replace(/\D/g, ''); if (!(n > mine)) return;
+      const a = (r.assets || []).find(x => /\.apk$/.test(x.name)); if (!a) return; if (document.getElementById('upd')) return;
+      const d = document.createElement('div'); d.id = 'upd'; d.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);top:max(10px,env(safe-area-inset-top));z-index:9999;background:#15130f;border:1px solid #e8c070;border-radius:8px;padding:10px 14px;color:#f1efe9;font:13px TechMono,monospace;display:flex;gap:10px;align-items:center;box-shadow:0 4px 20px #000;max-width:92vw';
+      d.innerHTML = '<span>Hay una versión nueva de THE O|F.</span><a href="' + a.browser_download_url + '" style="color:#000;background:#e8c070;border-radius:6px;padding:6px 10px;text-decoration:none;font-weight:bold">ACTUALIZAR</a><span id="upd-x" style="cursor:pointer;opacity:.6">✕</span>';
+      document.body.appendChild(d); document.getElementById('upd-x').onclick = () => d.remove(); } catch (e) {} }
+  setTimeout(checkUpdate, 2500);
   async function start() {
     if (!navigator.onLine) { showAuth(); say('#li-msg', 'Sin conexión. Podés jugar el MODO HISTORIA OFFLINE.'); return; }
     let alive = false; try { alive = sessionStorage.getItem('theof.alive') === '1'; } catch (e) {}

@@ -1,5 +1,5 @@
 /* CENIZAS · personajes en planillas PNG (1024×768: 4 poses × 3 direcciones, celdas de 256, pies en y=240).
-   Columnas: 0 parado · 1 paso A · 2 paso B · 3 golpe.  Filas: 0 frente · 1 espalda · 2 costado izquierdo (derecha = espejo).
+   Columnas: 0 parado · 1 paso A · 2 paso B · 3 golpe.  Filas: 0 frente · 1 espalda · 2 costado izquierdo · 3 costado derecho (si la hoja mide 1024×1024; si no, la derecha es el espejo).
    Si una planilla todavía no cargó, el juego usa el dibujo pixel de siempre. */
 (function () {
   'use strict';
@@ -8,14 +8,15 @@
   /* personajes de la historia (NPC y skins) → su planilla */
   const NPC_SHEET = { sofia_mala2: 'sofia_mala2', esteban: 'teby', pablo2: 'pablo_2', pablo3: 'pablo_3', polAlter: 'pol_alter', pablo: 'pablo_1', renzo: 'renzo', mary: 'mary_futuro', rosa: 'rosa', mercedes: 'mercedes', mercedesMala: 'mercedes', sam: 'sam', pol: 'pol_futuro', sofia: 'sofia_mala' };
   /* Oscuros → su planilla (los que no están acá siguen con el dibujo pixel) */
-  const MOB_SHEET = { errante: 'oscuro_hombre2', perro: 'sabueso', rastrero: 'gato', corredor: 'corredor_final', sombra: 'espectro', mole: 'mole', denso: 'le_cape', incinerario: 'corredor_incinerario' };
+  const MOB_SHEET = { errante: 'oscuro_hombre3', perro: 'sabueso', rastrero: 'gato', corredor: 'corredor_final', sombra: 'espectro', mole: 'mole', denso: 'le_cape', incinerario: 'corredor_incinerario' };
   const load = src => { if (!imgs[src]) { const i = new Image(); i.src = src; imgs[src] = i; } const i = imgs[src]; return i.complete && i.naturalWidth ? i : null; };
   function cut(src, dir, col, id) {
     const k = (id || src) + '|' + dir + col; if (cuts.has(k)) return cuts.get(k);
     const im = typeof src === 'string' ? load(src) : src; if (!im) return null;
     const cv = document.createElement('canvas'); cv.width = cv.height = CELL; const g = cv.getContext('2d');
-    if (dir === 'r') { g.translate(CELL, 0); g.scale(-1, 1); }
-    g.drawImage(im, col * CELL, ROW[dir] * CELL, CELL, CELL, 0, 0, CELL, CELL); cv.hd = true; cuts.set(k, cv); return cv;
+    const own = dir === 'r' && (im.naturalHeight || im.height) >= CELL * 4; /* hojas de 4 filas: la derecha viene dibujada */
+    if (dir === 'r' && !own) { g.translate(CELL, 0); g.scale(-1, 1); }
+    g.drawImage(im, col * CELL, (own ? 3 : ROW[dir]) * CELL, CELL, CELL, 0, 0, CELL, CELL); cv.hd = true; cuts.set(k, cv); return cv;
   }
   /* un sobreviviente que ya no existe (se sacaron los modelos mal cortados) → vuelve al dibujo pixel */
   const sheet = (name, dir, frame, atk) => (/^sel\d/.test(name) && !SEL.includes(name)) ? null : cut('/a/pj/' + name + '.png', dir || 'd', atk ? 3 : (frame || 0));
