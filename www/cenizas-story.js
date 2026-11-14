@@ -170,8 +170,10 @@ body.cine #st-dlg{display:block}
     enter(k) { if (!A || !step) return; spawned = {}; if (step.go && step.go === k) { setTimeout(advance, 600); return; } setTimeout(() => { prep(); objective(); }, 300); },
     tick(dt) { if (!A) return; const P = A.P;
       if (A.mapKey === 'sotano_rift') { const [rx, ry] = RIFT_C(), d = Math.hypot(P.x / A.WS - rx, (P.y / A.WS - ry) * 1.3);
-        if (step && step.rift) { if (d < 150) { advance(); } return; }
-        if (!step && S && S.m >= list.length && window.CZ_FINAL) { if (d < 140 && !H._rift) { H._rift = true; A.setPaused(true); CZ_FINAL.play(A.me.faction, () => { A.setPaused(false); A.toast('El rift sigue ahí. Cuando quieras, volvé a entrar.'); }); } else if (d > 320) H._rift = false; } }
+        if (step && step.rift) { if (d < 150) { S.finSeen = 1; advance(); } return; }
+        if (step && d < 150 && !H._riftMsg) { H._riftMsg = true; if (!S.finSeen) A.toast('El rift todavía no responde. Antes: ' + step.txt); }
+        if (d > 320) H._riftMsg = false;
+        if (S && (S.finSeen || S.m >= list.length) && window.CZ_FINAL && !(step && step.rift)) { if (d < 140 && !H._rift) { H._rift = true; S.finSeen = 1; save(); A.setPaused(true); CZ_FINAL.play(A.me.faction, () => { A.setPaused(false); A.toast('El rift sigue ahí. Cuando quieras, volvé a entrar.'); }); } else if (d > 320) H._rift = false; } }
       if (!step) return;
       if (step.go && step.go === A.mapKey) { advance(); return; }
       if (step.get && (A.INV.items[step.get] || 0) >= step.n) { advance(); return; }
