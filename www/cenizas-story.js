@@ -11,8 +11,8 @@
   /* ---------- interfaz ---------- */
   function ui() { if ($('#st-ui')) return;
     const css = document.createElement('style'); css.textContent = `
-#st-obj{position:fixed;left:max(12px,env(safe-area-inset-left,0px));top:max(64px,calc(env(safe-area-inset-top,0px) + 56px));max-width:min(46vw,360px);pointer-events:none;z-index:5;font-size:11.5px;letter-spacing:.05em;color:#e8c070;text-shadow:0 1px 3px #000;background:linear-gradient(90deg,rgba(0,0,0,.55),rgba(0,0,0,0));padding:5px 10px 5px 8px;border-left:2px solid #e8c070}
-#st-obj b{display:block;font-family:Bebas,sans-serif;font-weight:400;font-size:15px;letter-spacing:.16em;color:#f1efe9}
+#st-obj{position:fixed;left:max(12px,env(safe-area-inset-left,0px));top:max(52px,calc(env(safe-area-inset-top,0px) + 46px));max-width:min(38vw,300px);pointer-events:none;z-index:5;font-size:9.5px;letter-spacing:.05em;color:#e8c070;text-shadow:0 1px 3px #000;background:linear-gradient(90deg,rgba(0,0,0,.55),rgba(0,0,0,0));padding:5px 10px 5px 8px;border-left:2px solid #e8c070}
+#st-obj b{display:block;font-family:Bebas,sans-serif;font-weight:400;font-size:12px;letter-spacing:.16em;color:#f1efe9}
 .st-bar{position:fixed;left:0;right:0;height:0;background:#000;z-index:26;transition:height .45s ease}
 #st-top{top:0}#st-bot{bottom:0}body.cine .st-bar{height:11vh}
 #st-dlg{position:fixed;left:50%;bottom:calc(11vh + 6px);transform:translateX(-50%);width:min(92vw,calc(34vh * 3),860px);aspect-ratio:1086/362;z-index:27;background:url(/a/ob/dialogo.png) center/100% 100% no-repeat;display:none}

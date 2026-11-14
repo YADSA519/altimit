@@ -29,15 +29,15 @@ body{position:fixed;inset:0}
 :root[data-fac="ork"] .btn.solid{background:#c9302a;color:#fff;border-color:#c9302a}
 /* HUD */
 .hud{position:fixed;left:max(12px,env(safe-area-inset-left,0px));top:max(10px,env(safe-area-inset-top,0px));display:flex;gap:12px;align-items:center;pointer-events:none}
-.hud .nk{font-family:"Bebas",sans-serif;font-size:22px;letter-spacing:.12em;color:var(--hi);text-shadow:0 1px 2px #000}
-.bar{width:150px;height:10px;border:1px solid rgba(255,255,255,.5);background:rgba(0,0,0,.5)}
+.hud .nk{font-family:"Bebas",sans-serif;font-size:16px;max-width:22vw;line-height:1.05;letter-spacing:.12em;color:var(--hi);text-shadow:0 1px 2px #000}
+.bar{width:130px;height:8px;border:1px solid rgba(255,255,255,.5);background:rgba(0,0,0,.5)}
 .bar i{display:block;height:100%;background:#d8d6d0;transition:width .2s}
 .bar.xp{height:5px;margin-top:3px}
 .bar.xp i{background:var(--acc)}
-.hud small{display:block;font-size:11px;color:var(--ash);text-shadow:0 1px 2px #000;margin-top:3px;letter-spacing:.06em}
+.hud small{display:block;max-width:40vw;font-size:9.5px;color:var(--ash);text-shadow:0 1px 2px #000;margin-top:3px;letter-spacing:.06em}
 .topr{position:fixed;flex-wrap:wrap;justify-content:flex-end;right:max(12px,env(safe-area-inset-right,0px));top:max(10px,env(safe-area-inset-top,0px));display:flex;gap:10px;align-items:center}
-.topr .sala{font-size:11.5px;color:var(--ash);text-shadow:0 1px 2px #000;text-align:right;letter-spacing:.06em}
-.menub{font-family:"Bebas",sans-serif;font-size:18px;letter-spacing:.14em;padding:6px 12px 4px;border:1px solid rgba(255,255,255,.6);background:rgba(0,0,0,.45);color:var(--hi)}
+.topr .sala{font-size:9.5px;color:var(--ash);text-shadow:0 1px 2px #000;text-align:right;letter-spacing:.06em}
+.menub{font-family:"Bebas",sans-serif;font-size:14px;letter-spacing:.12em;padding:4px 9px 3px;border:1px solid rgba(255,255,255,.6);background:rgba(0,0,0,.45);color:var(--hi)}
 /* controles */
 .pads{position:fixed;right:max(18px,env(safe-area-inset-right,0px));bottom:calc(max(14px,env(safe-area-inset-bottom,0px)) + 22px);display:grid;grid-template-columns:auto auto;grid-template-rows:auto auto;gap:10px;align-items:end}
 .pb{width:74px;height:74px;border-radius:50%;border:2px solid rgba(255,255,255,.55);background:rgba(0,0,0,.35);font-family:"Bebas",sans-serif;font-size:30px;color:var(--hi);display:grid;place-items:center;line-height:1}

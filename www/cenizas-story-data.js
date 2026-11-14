@@ -6,7 +6,7 @@
 window.CZ_STORY_DATA = {
   /* retratos dibujados (a/av). El resto usa el busto de su planilla. */
   portraits: { instructor_ork: 'instructor_ork', oficial_ork: 'oficial_ork', civil_nene: 'civil_nene', civil_hombre: 'civil_hombre', viajero: 'civil_hombre', rebelde_mujer: 'rebelde_mujer', civil_mujer: 'rebelde_mujer' },
-  names: { sofia_mala2: 'SOFÍA', chica1: 'LA DAMA', chica2: 'LA DAMA', chico1: 'EL GALÁN', chico2: 'EL GALÁN', anita: 'ANITA', natsume: 'NATSUME', rocio: 'ROCÍO', mary: 'MARY', jaqui: 'JAQUI', laura: 'LAURA', cin: 'CINTHIA', mariano: 'MARIANO', romina: 'ROMINA', sofia_buena: 'SOFÍA', rosa: 'ROSA', vanesa: 'VANESA', mariela: 'MARIELA', ruben: 'RUBÉN', el_sabio: 'EL SABIO', ding: 'DING', bong: 'BONG', jota: 'JOTA', azu: 'AZU', arshi: 'ARSHI', pol_alter: 'POL', mercedes: 'MERCEDES', instructor_ork: 'INSTRUCTOR', oficial_ork: 'OFICIAL', tecnico_ork: 'TÉCNICO', doctor_ork: 'DOCTORA', viajero: 'VIAJERO', civil_mujer: 'SOBREVIVIENTE', civil_hombre: 'EMPLEADO', civil_nene: 'NENE', lucas: 'LUCAS', pablo_1: 'PABLO', renzo: 'RENZO', RADIO: 'RADIO' },
+  names: { pol: 'POL', sofia_mala2: 'SOFÍA', chica1: 'LA DAMA', chica2: 'LA DAMA', chico1: 'EL GALÁN', chico2: 'EL GALÁN', anita: 'ANITA', natsume: 'NATSUME', rocio: 'ROCÍO', mary: 'MARY', jaqui: 'JAQUI', laura: 'LAURA', cin: 'CINTHIA', mariano: 'MARIANO', romina: 'ROMINA', sofia_buena: 'SOFÍA', rosa: 'ROSA', vanesa: 'VANESA', mariela: 'MARIELA', ruben: 'RUBÉN', el_sabio: 'EL SABIO', ding: 'DING', bong: 'BONG', jota: 'JOTA', azu: 'AZU', arshi: 'ARSHI', pol_alter: 'POL', mercedes: 'MERCEDES', instructor_ork: 'INSTRUCTOR', oficial_ork: 'OFICIAL', tecnico_ork: 'TÉCNICO', doctor_ork: 'DOCTORA', viajero: 'VIAJERO', civil_mujer: 'SOBREVIVIENTE', civil_hombre: 'EMPLEADO', civil_nene: 'NENE', lucas: 'LUCAS', pablo_1: 'PABLO', renzo: 'RENZO', RADIO: 'RADIO' },
   rebel: [
     { id: 'r01', t: 'LOS PRIMEROS RASTROS', intro: [['RADIO', '…aquí Nogal… el corredor industrial cayó… dos pibes pasaron hacia las vías…'], ['mary', 'Llegaste justo. Hay gente atrapada en la calle de Pablo y los Oscuros se están juntando.'], ['VOS', '¿Cuántos son?'], ['mary', 'Los suficientes. Movete sin hacer ruido y pegá sólo si no queda otra.']],
       steps: [
@@ -125,7 +125,7 @@ window.CZ_STORY_DATA = {
         { get: 'cartucho', n: 1, map: 'lab_cuarentena', txt: 'Recuperá los registros de Pol' },
         { pz: 'seq', map: 'arena_final', txt: 'En la Base Industrial (por el Cruce Libertador): abrí el corredor de extracción en orden', lines: [['VOS', 'El corredor está abierto. Ahora hay que sostenerlo.']] },
         { survive: 60, map: 'arena_final', kinds: 'HUM', txt: 'Mantené el corredor abierto' },
-        { talk: 'pol_alter', map: 'arena_final', at: [0, -200], txt: 'Encontrá a Pol', lines: [['pol_alter', '¿Vos sos de los de Jota? Pablo viene. No me dejen acá.'], ['VOS', 'Nadie se queda.']] }],
+        { talk: 'pol', map: 'arena_final', at: [0, -200], txt: 'Encontrá a Pol', lines: [['pol', '¿Vos sos de los de Jota? Pablo viene. No me dejen acá.'], ['VOS', 'Nadie se queda.']] }],
       reward: { xp: 48000, coins: 160, items: { armadura: 1 } } },
     { id: 'r16', t: 'LO QUE VUELVE CON NOSOTROS', intro: [['RADIO', '…Pablo y Pol cruzaron. Acá seguimos nosotros…']],
       steps: [
