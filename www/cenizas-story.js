@@ -87,7 +87,8 @@ body.cine #st-dlg{display:block}
     $('#st-s').textContent = '▸ ' + step.txt + extra; }
   function setMission(i, fresh) { S.m = i; mis = list[i]; S.s = fresh ? 0 : S.s; S.c = fresh ? 0 : S.c; if (!mis) { step = null; objective(); return; } step = mis.steps[S.s]; save();
     if (fresh) card('MISIÓN ' + String(i + 1).padStart(2, '0'), mis.t, '', () => say(mis.intro, () => { prep(); objective(); })); else { prep(); objective(); } }
-  function advance() { S.s++; S.c = 0; S.loose = false; spawned = {}; if (S.s >= mis.steps.length) return finish(); step = mis.steps[S.s]; save(); prep(); objective(); A.toast('▸ ' + step.txt); }
+  const RIFT_C = () => [892, 436];
+  function advance() { if (step && step.give && !step.pz) { Object.entries(step.give).forEach(([k, n]) => { if (!A.hasItem(k)) A.addItem(k, n); }); A.toast('Recibiste: ' + Object.keys(step.give).map(k => A.ITEMS[k] ? A.ITEMS[k].n : k).join(', ')); A.quickBtns(); } S.s++; S.c = 0; S.loose = false; spawned = {}; if (S.s >= mis.steps.length) return finish(); step = mis.steps[S.s]; save(); prep(); objective(); A.toast('▸ ' + step.txt); }
   function finish() { const r = mis.reward || {}; if (r.xp) A.giveXp(r.xp); if (r.coins) A.giveCoins(r.coins); Object.entries(r.items || {}).forEach(([k, n]) => A.addItem(k, n)); A.quickBtns(); A.INV.racha = 0;
     const done = mis; S.done = (S.done || []).concat(done.id); step = null; mis = null; objective(); save();
     card('MISIÓN CUMPLIDA', done.t, '+' + (r.xp || 0) + ' XP · +' + (r.coins || 0) + ' $' + Object.entries(r.items || {}).map(([k, n]) => ' · ' + (A.ITEMS[k] ? A.ITEMS[k].n : k) + ' ×' + n).join(''), () => {
@@ -110,6 +111,7 @@ body.cine #st-dlg{display:block}
   function target() { if (!step) return null; let tm = step.go || step.map; if (!tm) return null; if (REDIR[tm] && A.mapKey === REDIR[tm]) { const e = (A.MAPS[A.mapKey].exits || [])[0]; return e ? { x: (e.r[0] + e.r[2]) / 2, y: (e.r[1] + e.r[3]) / 2, lab: 'SALÍ Y VOLVÉ A ENTRAR' } : null; } if (REDIR[tm] && A.mapKey !== tm) tm = REDIR[tm];
     if (A.mapKey !== tm) { const e = route(A.mapKey, tm); return e ? { x: (e.r[0] + e.r[2]) / 2, y: (e.r[1] + e.r[3]) / 2, lab: e.label || 'SALIDA' } : null; }
     if (step.talk || step.use) { const k = S.m + '-' + S.s + '-' + A.mapKey; const n = (step.talk && worldNpc()) || null; if (n) return { x: n.x, y: n.y, lab: nameOf(step.talk) }; const p = place[k]; return p ? { x: p[0], y: p[1], lab: step.use ? 'ACTIVAR' : 'HABLAR' } : null; }
+    if (step.rift) { const [rx, ry] = RIFT_C(); return { x: rx, y: ry, lab: 'RIFT' }; }
     if (step.pz) { const ob = pzObjs(A.mapKey), p = S.pz || {}; let o = null; if (step.pz === 'seq') o = ob.find(x => x.i === 3 && !x.done) || ob.find(x => x.i < 3 && !x.done); else if (step.pz === 'code') o = ob.find(x => x.i < 3 && !x.done) || ob.find(x => x.i === 3); else o = ob.find(x => !x.done); return o ? { x: o.x, y: o.y, lab: o.nm } : null; }
     const P = A.P, WS_ = A.WS, near = (arr) => { let b = null, bd = 1e18; arr.forEach(o => { const d = (o.x - P.x) ** 2 + (o.y - P.y) ** 2; if (d < bd) { bd = d; b = o; } }); return b; };
     if (step.kill) { const ks = kindsOf(step.kill); const m = near(A.mobs.filter(o => o.hp > 0 && (o.story || ks.includes(o.kind)))); if (m) return { x: m.x / WS_, y: m.y / WS_, lab: 'ENEMIGO' }; }
@@ -166,7 +168,11 @@ body.cine #st-dlg{display:block}
       if (S.m >= list.length) { mis = null; step = null; objective(); return; }
       const fresh = !A.INV.story || A.INV.story.fac !== A.me.faction; setTimeout(() => setMission(S.m, fresh && S.s === 0), 2600); },
     enter(k) { if (!A || !step) return; spawned = {}; if (step.go && step.go === k) { setTimeout(advance, 600); return; } setTimeout(() => { prep(); objective(); }, 300); },
-    tick(dt) { if (!step || !A) return; const P = A.P;
+    tick(dt) { if (!A) return; const P = A.P;
+      if (A.mapKey === 'sotano_rift') { const [rx, ry] = RIFT_C(), d = Math.hypot(P.x / A.WS - rx, (P.y / A.WS - ry) * 1.3);
+        if (step && step.rift) { if (d < 150) { advance(); } return; }
+        if (!step && S && S.m >= list.length && window.CZ_FINAL) { if (d < 140 && !H._rift) { H._rift = true; A.setPaused(true); CZ_FINAL.play(A.me.faction, () => { A.setPaused(false); A.toast('El rift sigue ahí. Cuando quieras, volvé a entrar.'); }); } else if (d > 320) H._rift = false; } }
+      if (!step) return;
       if (step.go && step.go === A.mapKey) { advance(); return; }
       if (step.get && (A.INV.items[step.get] || 0) >= step.n) { advance(); return; }
       if (step.survive && step.map === A.mapKey && !P.dead) { S.c += dt; if (((S.c * 10) | 0) % 10 === 0) objective(); H._w = (H._w || 0) - dt; const alive = A.mobs.filter(o => o.story).length;

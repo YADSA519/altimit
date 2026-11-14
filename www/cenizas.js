@@ -13,7 +13,7 @@
   const NPC = window.CZ_NPC || null;
   const ICON_PNG = { katana: 'katana', bate: 'bate', cuchillo: 'cuchillo', barra: 'barra', pistola: 'pistola', escopeta: 'escopeta', mascara: 'mascara', kitsune: 'capa', chaleco: 'chaleco', chaleco_t: 'chaleco', armadura: 'chaleco', campera: 'chaleco', palo: 'palo',
     b_contencion: 'brazalete', b_resonancia: 'brazalete', brz_ork: 'brazalete', brz_reb: 'brazalete', vendas: 'vendas', botiquin: 'vendas', suero: 'maletin', kit: 'maletin', cigarrillo: 'cigarrillo', manzana: 'manzana', credencial: 'credencial', pista_ork: 'credencial', pista_reb: 'pagina', pista: 'pagina', pagina: 'pagina', lanza: 'lanza', baston: 'lanza' };
-  Object.assign(ICON_PNG, { ganzuas: 'ganzuas', barra: 'barra2', cuchillo: 'cuchillo2', mascara: 'mascara_gas', filtro: 'respirador' });
+  Object.assign(ICON_PNG, { llave_rift: 'llaves', ganzuas: 'ganzuas', barra: 'barra2', cuchillo: 'cuchillo2', mascara: 'mascara_gas', filtro: 'respirador' });
   Object.assign(ICON_PNG, { lanzallamas: 'escopeta', metralleta: 'pistola', trampa: 'dinamita', antiveneno: 'canister', venda_q: 'vendas', fragmento: 'energia', brz_jefe: 'brazalete', tarjeta: 'tarjeta2', expediente: 'expediente', fusible: 'fusible', radio: 'radio', cartucho: 'cartucho', canister: 'canister', contenedor: 'contenedor', energia: 'energia' });
   const ICONS = {}; Object.entries(ICON_PNG).forEach(([k, f]) => { const i = new Image(); i.src = '/a/it/' + f + '.png'; ICONS[k] = i; });
   const iconOf = k => { const i = ICONS[k]; return i && i.complete && i.naturalWidth ? i : window.CZ_PIX.icon(k); };
@@ -240,6 +240,7 @@
     b_resonancia: { n: 'Brazalete de resonancia', t: 'Brazalete · raro', d: 'A favor: ves a las Sombras aunque se escondan. En contra: los Oscuros te detectan desde más lejos.', eq: 'brazo' },
     credencial: { n: 'Credencial de contención', t: 'Llave · poco común', d: 'La mostrás en cualquier tienda y por 10 minutos todo te sale 30% menos. Se gasta al usarla.', use: 'descuento' },
     receptor: { n: 'Receptor de señales', t: 'Objeto · poco común', d: 'Capta transmisiones: te marca con una flecha dónde está el maletín de curación (3 minutos) y te avisa si hay horda, jefe o Yuki. No se gasta (1 vez por minuto).', use: 'radar' },
+    llave_rift: { n: 'Llave oxidada', t: 'Historia · abre la puerta del costado del Nogal', d: 'Tiene grabado NOGAL. Abre la puerta oxidada del costado del campamento.' },
     ganzuas: { n: 'Juego de ganzúas', t: 'Herramienta · poco común', d: 'Acercate a un CASILLERO de los mapas y forzalo: sacás vendas y algo más. También abre la cápsula del búnker. Se gasta.', use: 'forzar' },
     filtro: { n: 'Filtro portátil', t: 'Consumible · poco común', d: 'Hacés potable el agua: +40 de vida y corrés más rápido por 8 segundos.', use: 'vida' },
     suero: { n: 'Maletín de curación total', t: 'Único · rota cada 3 minutos', d: 'Te deja la vida completa. Hay uno solo en todo el mundo y cambia de mapa cada 3 minutos si nadie lo agarra.', use: 'heal', v: 9999 },
@@ -582,7 +583,7 @@
     if (STORY && window.CZ_STORY && CZ_STORY.redir) { const t = CZ_STORY.redir(e.to); if (t && MAPS[t]) { const at = arrivalOf(t, 'salida'); exitLock = true; return warpTo(t, at[0], at[1]); } }
     const dest = MAPS[e.to];
     /* puerta oxidada del Nogal: por ahora solo pasa Pablo (o el admin, para probar) */
-    if (e.lock === 'pablo' && !((look && look.npc && /^pablo/.test(look.npc)) || (me && me.role === 'admin'))) { exitLock = true; buzz(40); toast('La cerradura está oxidada. Parece que hace mucho que no se abre.'); const cx = (e.r[0] + e.r[2]) / 2 * WS, cy = (e.r[1] + e.r[3]) / 2 * WS, dx = P.x - cx, dy = P.y - cy, l = Math.hypot(dx, dy) || 1; for (let i = 0; i < 12; i++) { const nx = P.x + dx / l * 12, ny = P.y + dy / l * 12; if (walkable(nx, ny)) { P.x = nx; P.y = ny; } } return; }
+    if (e.lock === 'pablo' && !((look && look.npc && /^pablo/.test(look.npc)) || (me && me.role === 'admin') || hasItem('llave_rift') || (INV.story && INV.story.fac === me.faction && (INV.story.done || []).some(x => x === 'r16' || x === 'v11')))) { exitLock = true; buzz(40); toast('La cerradura está oxidada. Parece que hace mucho que no se abre.'); const cx = (e.r[0] + e.r[2]) / 2 * WS, cy = (e.r[1] + e.r[3]) / 2 * WS, dx = P.x - cx, dy = P.y - cy, l = Math.hypot(dx, dy) || 1; for (let i = 0; i < 12; i++) { const nx = P.x + dx / l * 12, ny = P.y + dy / l * 12; if (walkable(nx, ny)) { P.x = nx; P.y = ny; } } return; }
     if (!dest) { exitLock = true; buzz(40); toast('Camino peligroso. No se puede avanzar.'); const cx = (e.r[0] + e.r[2]) / 2 * WS, cy = (e.r[1] + e.r[3]) / 2 * WS, dx = P.x - cx, dy = P.y - cy, l = Math.hypot(dx, dy) || 1; for (let i = 0; i < 12; i++) { const nx = P.x + dx / l * 12, ny = P.y + dy / l * 12; if (walkable(nx, ny)) { P.x = nx; P.y = ny; } } return; }
     if (STORY && window.CZ_STORY && !CZ_STORY.canWarp(e)) { exitLock = true; return; }
     if (EXP && dest.base && dest.base !== me.faction) { exitLock = true; buzz(40); return toast(dest.base === 'ork' ? 'BASE ORK · no podés pasar.' : 'BASE REBELDE · no podés pasar.'); }

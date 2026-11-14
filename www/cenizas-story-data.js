@@ -130,7 +130,9 @@ window.CZ_STORY_DATA = {
     { id: 'r16', t: 'LO QUE VUELVE CON NOSOTROS', intro: [['RADIO', '…Pablo y Pol cruzaron. Acá seguimos nosotros…']],
       steps: [
         { talk: 'jota', map: 'bunker', txt: 'Volvé con Jota', lines: [['jota', 'Ellos volvieron a su tiempo. Nosotros nos quedamos con lo que queda.']] },
-        { use: 'mesa', ob: 'mesa', nm: 'MESA DE OPERACIONES', map: 'bunker', at: [200, 80], txt: 'Entregá las pruebas', lines: [['VOS', 'Expedientes, cartuchos, nombres. Todo lo que juntamos.'], ['jota', 'VIREX sigue. Pero ahora sabemos dónde mirar.']] }],
+        { use: 'mesa', ob: 'mesa', nm: 'MESA DE OPERACIONES', map: 'bunker', at: [200, 80], txt: 'Entregá las pruebas', lines: [['VOS', 'Expedientes, cartuchos, nombres. Todo lo que juntamos.'], ['jota', 'VIREX sigue. Pero ahora sabemos dónde mirar.']] },
+    { talk: 'jota', map: 'bunker', at: [-120, 40], txt: 'Hablá con Jota antes de irte', give: { llave_rift: 1 }, lines: [['jota', 'Esto estaba entre las cosas de Pablo. Una llave oxidada... tiene grabado NOGAL.'], ['VOS', 'La puerta del costado. La que nunca se abre.'], ['jota', 'Andá. Lo que haya ahí abajo es tuyo.']] },
+    { rift: true, map: 'sotano_rift', txt: 'Volvé al Nogal: abrí la puerta oxidada del costado con la llave y acercate al rift' }],
       reward: { xp: 51600, coins: 250, items: { kit: 3 } }, fin: 'FIN DE LA CAMPAÑA REBELDE · La ruta queda abierta para quienes todavía necesitan escapar.' }
   ],
   ork: [
@@ -212,7 +214,9 @@ window.CZ_STORY_DATA = {
         { use: 'c1', ob: 'consola', nm: 'CIERRE', map: 'arena_final', at: [-450, -200], txt: 'Activá el primer cierre' },
         { use: 'c2', ob: 'consola', nm: 'CIERRE', map: 'arena_final', at: [450, -200], txt: 'Activá el segundo cierre' },
         { survive: 50, map: 'arena_final', kinds: 'HUM', txt: 'Mantené el campo de contención' },
-        { kill: 'pablo', n: 1, map: 'arena_final', spawn: true, txt: 'Inmovilizá a Pablo' }],
+        { kill: 'pablo', n: 1, map: 'arena_final', spawn: true, txt: 'Inmovilizá a Pablo' },
+    { talk: 'pablo', map: 'arena_final', at: [0, -120], txt: 'Escuchá a Pablo', give: { llave_rift: 1 }, lines: [['pablo', 'No me importa lo que hagan conmigo... tomá. La llave del Nogal.'], ['pablo', 'La puerta del costado. Ahí empezó todo. Ahí se termina.'], ['VOS', '¿Qué hay abajo?'], ['pablo', 'Andá y vas a ver.']] },
+    { rift: true, map: 'sotano_rift', txt: 'Volvé al Nogal: abrí la puerta oxidada del costado con la llave y acercate al rift' }],
       reward: { xp: 76050, coins: 250, items: { kit: 3 } }, fin: 'FIN DE LA CAMPAÑA ORK · Pablo queda bajo custodia. Detenerlo no demuestra que VIREX tenga razón.' }
   ]
 };
