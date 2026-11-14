@@ -40,9 +40,9 @@ body.cine #st-dlg{display:block}
 #pz .keys{display:grid;grid-template-columns:repeat(5,52px);gap:6px;justify-content:center}
 #pz button{font-family:Bebas,sans-serif;font-size:22px;letter-spacing:.1em;color:#f1efe9;background:#2a2620;border:1px solid #5a4d36;border-radius:6px;height:44px;cursor:pointer}
 #pz .row{display:flex;gap:10px;justify-content:center;margin-top:12px}
-#pz .wires{display:grid;grid-template-columns:70px 120px 70px;gap:8px 0;align-items:center;justify-content:center}
-#pz .wb{height:38px;border-radius:19px;border:2px solid #000}
-#pz .wb.sel{outline:3px solid #fff}
+#pz .wires{display:grid;grid-template-columns:84px 110px 84px;gap:12px 0;align-items:center;justify-content:center}
+#pz .wb{height:48px;border-radius:24px;border:3px solid #000;touch-action:none}
+#pz .wb.sel{outline:4px solid #fff;box-shadow:0 0 18px #fff}
 #pz .wb.ok{opacity:.35}
 #pz .ln{height:4px;border-radius:2px}
 #st-log{position:fixed;right:max(12px,env(safe-area-inset-right,0px));top:max(52px,calc(env(safe-area-inset-top,0px) + 46px));z-index:5}
@@ -141,17 +141,22 @@ body.cine #st-dlg{display:block}
     if (t === 'code') { if (o.i < 3) { if (!p.seen.includes(o.i)) p.seen.push(o.i); save(); objective(); return say([['VOS', 'Hay un número pintado: ' + p.code[o.i] + '. Al lado, ' + ['una rayita', 'dos rayitas', 'tres rayitas'][o.i] + '.']]); }
       let v = ''; const b = pzBox('<h3>' + (step.lock || 'CERRADURA') + '</h3><p>Tres números. Las rayitas dicen el orden.</p><div class="disp">___</div><div class="keys">' + [1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map(n => '<button data-n="' + n + '">' + n + '</button>').join('') + '</div><div class="row"><button data-x="b">BORRAR</button><button data-x="c">SALIR</button></div>');
       const d = b.querySelector('.disp'), upd = () => d.textContent = (v + '___').slice(0, 3);
-      b.querySelectorAll('[data-n]').forEach(x => x.onclick = () => { if (v.length >= 3) return; v += x.dataset.n; upd(); A.SND && A.SND.pick && A.SND.pick();
-        if (v.length === 3) setTimeout(() => { if (v === p.code.join('')) { d.style.color = '#fff'; setTimeout(() => { pzClose(); pzWin(); }, 500); } else { d.style.color = '#ff5a4a'; setTimeout(() => { d.style.color = ''; v = ''; upd(); }, 650); } }, 200); });
-      b.querySelector('[data-x=b]').onclick = () => { v = v.slice(0, -1); upd(); }; b.querySelector('[data-x=c]').onclick = pzClose; return; }
+      b.querySelectorAll('[data-n]').forEach(x => x.addEventListener('pointerdown', ev => { ev.preventDefault(); ev.stopPropagation(); if (v.length >= 3) return; v += x.dataset.n; upd(); A.SND && A.SND.pick && A.SND.pick();
+        if (v.length === 3) setTimeout(() => { if (v === p.code.join('')) { d.style.color = '#fff'; setTimeout(() => { pzClose(); pzWin(); }, 500); } else { d.style.color = '#ff5a4a'; setTimeout(() => { d.style.color = ''; v = ''; upd(); }, 650); } }, 200); }));
+      b.querySelector('[data-x=b]').addEventListener('pointerdown', ev => { ev.preventDefault(); v = v.slice(0, -1); upd(); }); b.querySelector('[data-x=c]').addEventListener('pointerdown', ev => { ev.preventDefault(); pzClose(); }); return; }
     if (t === 'search') { if (p.done.includes(o.i)) return A.toast('Ya revisaste ahí.'); p.done.push(o.i); save(); objective();
       if (o.i === p.hit || p.done.length >= 3) { if (step.give) Object.entries(step.give).forEach(([k, c]) => A.addItem(k, c)); return pzWin(); }
       if (Math.random() < .5) { const q = randomAround(300, 600); if (q) A.spawnMob(['errante', 'rastrero', 'oscura'][rnd(3)], q[0], q[1]); return A.toast('Nada... y algo se movió atrás tuyo.'); } return A.toast(['Nada. Polvo y vidrios.', 'Vacío. Alguien pasó antes.', 'Solo trapos viejos.'][rnd(3)]); }
-    if (t === 'cables') { const right = [0, 1, 2].sort(() => Math.random() - .5); let selL = null; const okd = [];
-      const b = pzBox('<h3>' + (step.lock || 'TABLERO') + '</h3><p>Uní cada cable con su borne del mismo color.</p><div class="wires">' + [0, 1, 2].map(r => '<div class="wb" data-l="' + r + '" style="background:' + COLS[r][1] + '"></div><div class="ln" data-ln="' + r + '"></div><div class="wb" data-r="' + right[r] + '" style="background:' + COLS[right[r]][1] + '"></div>').join('') + '</div><div class="row"><button data-x="c">SALIR</button></div>');
-      b.querySelectorAll('[data-l]').forEach(x => x.onclick = () => { if (okd.includes(+x.dataset.l)) return; b.querySelectorAll('[data-l]').forEach(y => y.classList.remove('sel')); x.classList.add('sel'); selL = +x.dataset.l; });
-      b.querySelectorAll('[data-r]').forEach(x => x.onclick = () => { if (selL == null) return; const r = +x.dataset.r; if (r === selL) { okd.push(r); b.querySelector('[data-l="' + r + '"]').classList.add('ok'); x.classList.add('ok'); b.querySelector('[data-ln="' + r + '"]').style.background = COLS[r][1]; A.SND && A.SND.pick && A.SND.pick(); if (okd.length === 3) setTimeout(() => { pzClose(); pzWin(); }, 500); } else { A.toast('Chispazo. Ese no va ahí.'); A.buzz && A.buzz(60); } selL = null; b.querySelectorAll('[data-l]').forEach(y => y.classList.remove('sel')); });
-      b.querySelector('[data-x=c]').onclick = pzClose; } }
+    if (t === 'cables') { const right = [0, 1, 2].sort(() => Math.random() - .5); let sel = null; const okd = [];
+      const b = pzBox('<h3>' + (step.lock || 'TABLERO') + '</h3><p>Tocá un cable y después el borne del mismo color (en cualquier orden).</p><div class="wires">' + [0, 1, 2].map(r => '<div class="wb" data-s="L" data-c="' + r + '" style="background:' + COLS[r][1] + '"></div><div class="ln" data-ln="' + r + '"></div><div class="wb" data-s="R" data-c="' + right[r] + '" style="background:' + COLS[right[r]][1] + '"></div>').join('') + '</div><div class="row"><button data-x="c">SALIR</button></div>');
+      const tap = (el, fn) => el.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); fn(); });
+      const clear = () => b.querySelectorAll('.wb').forEach(y => y.classList.remove('sel'));
+      b.querySelectorAll('.wb').forEach(x => tap(x, () => { const c = +x.dataset.c, sd = x.dataset.s; if (okd.includes(c)) return;
+        if (!sel || sel.s === sd) { clear(); x.classList.add('sel'); sel = { s: sd, c, el: x }; return; }
+        if (sel.c === c) { okd.push(c); sel.el.classList.add('ok'); x.classList.add('ok'); const li = b.querySelector('[data-s="L"][data-c="' + c + '"]'); const row = [...b.querySelectorAll('[data-s="L"]')].indexOf(li); b.querySelector('[data-ln="' + row + '"]').style.background = COLS[c][1]; A.SND && A.SND.pick && A.SND.pick(); if (okd.length === 3) setTimeout(() => { pzClose(); pzWin(); }, 500); }
+        else { A.toast('Chispazo. Ese no va ahí.'); A.buzz && A.buzz(60); }
+        sel = null; clear(); }));
+      tap(b.querySelector('[data-x=c]'), pzClose); } }
   function worldNpc() { const n = ((A.MAP && A.MAP.npcs) || []).find(x => x.k === step.talk); return n || null; }
 
   /* ---------- API que usa el motor ---------- */

@@ -267,7 +267,7 @@
     kitsune: { n: 'Máscara kitsune', t: 'Objeto · 2 usos · la vende Rosa', d: 'Te ponés la máscara y desaparecés 3 segundos: los Oscuros y los otros jugadores no te ven. Después de 2 usos se rompe.', use: 'kitsune', uses: 2 }
   };
   const MOBS_T = {
-    bajo: { errante: 2, oscura: 2, perro: 1, rastrero: 1, cuervo: 1, quieta: 1 },
+    bajo: { errante: 1, oscura: 1, perro: 1, rastrero: 1, cuervo: 1, quieta: 1, corredor: 1, insecto: 1, piedra: 1, kamikaze: 1 },
     medio: { errante: 2, oscura: 1, corredor: 1, perro: 1, sombra: 1, cuervo: 1, insecto: 1, reptante: 1, kamikaze: 1, quieta: 1, griton: 1, empujador: 1, piedra: 1 },
     alto: { errante: 1, oscura: 1, corredor: 1, sombra: 1, denso: 1, lodo: 1, insecto: 1, reptante: 1, babosa: 1, incinerario: 1, kamikaze: 1, quieta: 1, griton: 1, empujador: 1, mocoso: 1, mocoso_h: 1, piedra: 1, lava: 1 },
     tope: { errante: 1, oscura: 1, corredor: 1, sombra: 1, denso: 1, lodo: 1, insecto: 1, reptante: 1, babosa: 1, incinerario: 1, kamikaze: 1, quieta: 1, griton: 1, empujador: 1, mocoso: 1, mocoso_h: 1, piedra: 1, lava: 1, lava_oscura: 1 },
@@ -282,7 +282,7 @@
   Object.entries(MAPS).forEach(([k, m]) => { if (m.safeAll || m.base) { m.mobs = {}; return; } const top = (m.lv || [1, 3])[1];
     m.mobs = EXP ? MOBS_T.pvp : top <= 12 ? MOBS_T.bajo : top <= 28 ? MOBS_T.medio : top <= 40 ? MOBS_T.alto : MOBS_T.tope;
     /* pocos y variados: cada mapa elige 5 tipos de su lista (siempre distintos entre mapas), máximo 6 Oscuros */
-    if (!EXP) { const hs = s_ => { let h = 2166136261; for (let i = 0; i < s_.length; i++) { h ^= s_.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }; const ks = Object.keys(m.mobs), h0 = hs('mob' + k); ks.sort((x, y) => (hs(x + h0) % 997) - (hs(y + h0) % 997)); const pick = {}; let tot = 0; ks.slice(0, 5).forEach(x => { const n = Math.min(m.mobs[x], tot < 4 ? 2 : 1); pick[x] = n; tot += n; }); m.mobs = pick; } });
+    if (!EXP) { const hs = s_ => { let h = 2166136261; for (let i = 0; i < s_.length; i++) { h ^= s_.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }; const ks = Object.keys(m.mobs), h0 = hs('mob' + k); ks.sort((x, y) => (hs(x + h0) % 997) - (hs(y + h0) % 997)); const pick = {}; let tot = 0; ks.slice(0, 6).forEach(x => { pick[x] = 1; tot++; }); m.mobs = pick; } });
   /* soldados ORK en bases y asentamientos ORK; rebeldes armados en asentamientos rebeldes. Sólo atacan al otro bando. */
   const HUMAN_AT = { libertador: 'ork', centro_ork: 'ork', lezama: 'ork', mcd: 'ork', muelle: 'rebel', refugioSub: 'rebel', colon: 'rebel' };
   if (!EXP) Object.entries(HUMAN_AT).forEach(([k, f]) => { const m = MAPS[k]; if (!m) return; m.mobs = Object.assign({}, m.mobs || {}, f === 'ork' ? { soldado: 1, patrulla: 1 } : { saqueador: 1, tirador: 1 }); });
@@ -747,7 +747,7 @@
     const [a, b] = (MAP && MAP.lv) || [1, 3], h = hashStr(String(id)); return Math.min(100, Math.max(1, a + h % (b - a + 1), STORY ? storyLv() - 4 + h % 4 : 0)); }
   const lvHp = L => 1 + (L - 1) * .28, lvDmg = L => 1 + (L - 1) * .075, lvXp = L => .3 + L * .05;
   function auraOf(L) { return L >= 75 ? '255,40,40' : L >= 50 ? '255,140,0' : L >= 25 ? '240,215,80' : null; }
-  function newMob(kind, id, x, y) { const T = MOB[kind], L = mobLevel(id, kind), mhp = L ? Math.round(T.hp * (T.boss ? 1 + (L - 1) * .12 : lvHp(L))) : T.hp; return { id, kind, T, lv: L, lvK: L ? lvDmg(L) : 1, mhp, au: L ? auraOf(L) : null, x, y, tx: x, ty: y, hp: mhp, face: 1, vx: 0, vy: 0, t: Math.random() * 9, hurt: 0, wind: 0, cd: 0, wx: x, wy: y, wt: 0, alpha: 0, chasing: false, stuck: 0, lx: x, ly: y, lunge: 0,
+  function newMob(kind, id, x, y) { const T = MOB[kind], L = mobLevel(id, kind), mhp = L ? Math.round(T.hp * (T.boss ? (1 + (L - 1) * .07) * (.6 + .4 * Math.min(4, 1 + (others ? others.size : 0))) : lvHp(L))) : T.hp; return { id, kind, T, lv: L, lvK: L ? (T.boss ? 1 + (L - 1) * .035 : lvDmg(L)) : 1, mhp, au: L ? auraOf(L) : null, x, y, tx: x, ty: y, hp: mhp, face: 1, vx: 0, vy: 0, t: Math.random() * 9, hurt: 0, wind: 0, cd: 0, wx: x, wy: y, wt: 0, alpha: 0, chasing: false, stuck: 0, lx: x, ly: y, lunge: 0,
     st: 'idle', stT: 0, side: Math.random() < .5 ? -1 : 1, vis: T.ai === 'blink' ? .2 : 1, dx: 0, dy: 0, hitDone: false, combo: 0, hitters: new Set(), ab: rnd(5, 8), shotT: 0, volleys: 0 }; }
   function spawnMob(kind, minDist, at) { if (!isHost || !MOB[kind]) return null; const p = at || randomMobCell(minDist); if (!p) return null; const id0 = me.id.slice(0, 4) + '-' + (mobSeq++) + '-' + ((Math.random() * 1e4) | 0); const o = newMob(kind, id0 + '~' + (mobLevel(id0, kind) || 0), p[0], p[1]); mobs.push(o);
     if (o.T.boss) { toast('⚠ ' + o.T.name + ' está en ' + MAP.name.toLowerCase()); net('boss', { k: kind }); } if (kind === 'yuki') toast('Yuki anda suelta por las ruinas. Si la alcanzás, deja su brazalete.'); return o; }
@@ -980,7 +980,7 @@
   addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
   const cv = $('#cv');
   /* joystick 2.1: base fija abajo a la izquierda; si tocás en otro lado de la mitad izquierda, se mueve ahí. Zona muerta, captura del dedo y se suelta solo si algo lo interrumpe */
-  const stickHome = () => [Math.max(96, (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sal')) || 0) + 96), innerHeight - 104];
+  const stickHome = () => [Math.max(96, (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sal')) || 0) + 96), innerHeight - 128];
   function stickRest() { const s = $('#stick'), [x, y] = stickHome(); s.style.left = x + 'px'; s.style.top = y + 'px'; s.classList.remove('live'); $('#knob').style.transform = ''; }
   function joyStart(e) { if (!running || paused || P.dead) return; if (e.clientX > innerWidth * .5 || e.clientY < 70) return; e.preventDefault(); const [hx, hy] = stickHome(); const nearHome = Math.hypot(e.clientX - hx, e.clientY - hy) < 90;
     const x0 = nearHome ? hx : e.clientX, y0 = nearHome ? hy : e.clientY; joy = { on: true, id: e.pointerId, x0, y0, dx: 0, dy: 0 }; const s = $('#stick'); s.style.left = x0 + 'px'; s.style.top = y0 + 'px'; s.classList.add('live'); $('#hintL').hidden = true; try { cv.setPointerCapture(e.pointerId); } catch (x) {} joyMove(e); }
