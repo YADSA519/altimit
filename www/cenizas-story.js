@@ -165,6 +165,9 @@ body.cine #st-dlg{display:block}
   const H = window.CZ_STORY = {
     init(api) { A = api; ui(); list = D[A.me.faction === 'ork' ? 'ork' : 'rebel'];
       S = A.INV.story && A.INV.story.fac === A.me.faction ? A.INV.story : { fac: A.me.faction, m: 0, s: 0, c: 0, done: [] };
+      /* partidas que ya habían terminado la historia: quedan terminadas, con la llave y el rift habilitado */
+      if (S.m === list.length - 1 && (S.done || []).includes(list[S.m].id)) { S.m = list.length; S.s = 0; S.finSeen = 1; save(); }
+      if (S.m >= list.length && !A.hasItem('llave_rift')) { A.addItem('llave_rift', 1); }
       if (S.m >= list.length) { mis = null; step = null; objective(); return; }
       const fresh = !A.INV.story || A.INV.story.fac !== A.me.faction; setTimeout(() => setMission(S.m, fresh && S.s === 0), 2600); },
     enter(k) { if (!A || !step) return; spawned = {}; if (step.go && step.go === k) { setTimeout(advance, 600); return; } setTimeout(() => { prep(); objective(); }, 300); },

@@ -130,8 +130,7 @@ window.CZ_STORY_DATA = {
     { id: 'r16', t: 'LO QUE VUELVE CON NOSOTROS', intro: [['RADIO', '…Pablo y Pol cruzaron. Acá seguimos nosotros…']],
       steps: [
         { talk: 'jota', map: 'bunker', txt: 'Volvé con Jota', lines: [['jota', 'Ellos volvieron a su tiempo. Nosotros nos quedamos con lo que queda.']] },
-        { use: 'mesa', ob: 'mesa', nm: 'MESA DE OPERACIONES', map: 'bunker', at: [200, 80], txt: 'Entregá las pruebas', lines: [['VOS', 'Expedientes, cartuchos, nombres. Todo lo que juntamos.'], ['jota', 'VIREX sigue. Pero ahora sabemos dónde mirar.']] },
-    { talk: 'jota', map: 'bunker', at: [-120, 40], txt: 'Hablá con Jota antes de irte', give: { llave_rift: 1 }, lines: [['jota', 'Esto estaba entre las cosas de Pablo. Una llave oxidada... tiene grabado NOGAL.'], ['VOS', 'La puerta del costado. La que nunca se abre.'], ['jota', 'Andá. Lo que haya ahí abajo es tuyo.']] },
+        { use: 'mesa', ob: 'mesa', nm: 'MESA DE OPERACIONES', map: 'bunker', at: [200, 80], txt: 'Entregá las pruebas', lines: [['VOS', 'Expedientes, cartuchos, nombres. Todo lo que juntamos.'], ['jota', 'VIREX sigue. Pero ahora sabemos dónde mirar.'], ['jota', 'Y esto estaba entre las cosas de Pablo. Una llave oxidada... tiene grabado NOGAL.'], ['VOS', 'La puerta del costado. La que nunca se abre.'], ['jota', 'Andá. Lo que haya ahí abajo es tuyo.']], give: { llave_rift: 1 } },
     { rift: true, map: 'sotano_rift', txt: 'Volvé al Nogal: abrí la puerta oxidada del costado con la llave y acercate al rift' }],
       reward: { xp: 51600, coins: 250, items: { kit: 3 } }, fin: 'FIN DE LA CAMPAÑA REBELDE · La ruta queda abierta para quienes todavía necesitan escapar.' }
   ],
