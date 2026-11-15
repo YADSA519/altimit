@@ -1013,8 +1013,17 @@
     if (mapKey === 'mvp_hospital' && mobs.some(o => o.kind === 'mvp_cs' && o.A && o.A.act === 'grito')) CAMILLAS.forEach(([cx, cy]) => { const [x, y] = W2S(cx * WS, cy * WS); c.strokeStyle = 'rgba(160,255,170,.55)'; c.lineWidth = 3 * zoom; c.beginPath(); c.ellipse(x, y, 120 * zoom, 50 * zoom, 0, 0, 7); c.stroke(); });
     others.forEach((o, id) => { if (!o.dead) return; const [x, y] = W2S(o.x, o.y); c.font = 'bold ' + Math.round(13 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; c.fillStyle = '#ff8a7c'; c.fillText('CAÍDO', x, y - 200 * zoom * .5); });
   }
+  /* MAPA: el dibujo del lugar con vos, tu grupo, las salidas y a dónde llevan */
+  function openMapa() { if (!running || !MAP) return; paused = true; const ov = $('#ov-map'); ov.hidden = false; ov.querySelector('h2').textContent = MAP.name; drawMapa(); }
+  function drawMapa() { const cv = $('#map-cv'), W0 = MW, H0 = MH, k = Math.min((innerWidth - 40) / W0, (innerHeight - 130) / H0); cv.width = Math.round(W0 * k); cv.height = Math.round(H0 * k); const g = cv.getContext('2d');
+    const im = img(MAP.img); if (ok(im)) g.drawImage(im, 0, 0, cv.width, cv.height); g.fillStyle = 'rgba(0,10,12,.35)'; g.fillRect(0, 0, cv.width, cv.height);
+    (MAP.exits || []).forEach(e => { const x = (e.r[0] + e.r[2]) / 2 * k, y = (e.r[1] + e.r[3]) / 2 * k; g.fillStyle = e.to ? '#7ff6f2' : '#ff5a4a'; g.beginPath(); g.arc(x, y, 5, 0, 7); g.fill();
+      if (e.to) { g.font = '11px TechMono, monospace'; g.textAlign = x < 60 ? 'left' : x > cv.width - 60 ? 'right' : 'center'; const ty = y < 20 ? y + 16 : y - 9; g.fillStyle = 'rgba(0,0,0,.7)'; const w = g.measureText(e.label).width + 8; const tx = g.textAlign === 'left' ? x : g.textAlign === 'right' ? x - w : x - w / 2; g.fillRect(tx - (g.textAlign === 'center' ? 0 : 0), ty - 10, w, 14); g.fillStyle = '#c8faf8'; g.fillText(e.label, g.textAlign === 'center' ? x : g.textAlign === 'left' ? x + 4 : x - 4, ty); } });
+    npcsHere().forEach(n => { if (n.obj && !n.lib) return; g.fillStyle = '#e8c070'; g.beginPath(); g.arc(n.x * k, n.y * k, 3, 0, 7); g.fill(); });
+    others.forEach(o => { g.fillStyle = o.fac === me.faction ? '#6ab0ff' : '#ff6a5c'; g.beginPath(); g.arc(o.x / WS * k, o.y / WS * k, 4, 0, 7); g.fill(); });
+    const px = P.x / WS * k, py = P.y / WS * k; g.strokeStyle = '#fff'; g.lineWidth = 2; g.fillStyle = '#ffd860'; g.beginPath(); g.arc(px, py, 7, 0, 7); g.fill(); g.stroke(); g.font = 'bold 12px TechMono, monospace'; g.textAlign = 'center'; g.fillStyle = '#fff'; g.fillText('VOS', px, py - 12); }
   function slot_is_weapon(k) { return !!WEAP[k]; }
-  $('#inv-b').onclick = openInv; $('#inv-close').onclick = closeInv; $('#lib-close').onclick = closeLib;
+  $('#inv-b').onclick = openInv; $('#inv-close').onclick = closeInv; $('#lib-close').onclick = closeLib; $('#map-b').onclick = openMapa; $('#map-close').onclick = () => { $('#ov-map').hidden = true; paused = false; };
 
   /* ---------- Oscuros compartidos: el anfitrión de la sala los mueve, todos ven los mismos ---------- */
   let isHost = true, hostId = null, roomReady = false, mobSeq = 0, snapT = 0, maintT = 0, unlocks = {}; const lastDeath = {};
@@ -1609,9 +1618,13 @@
       if (mx < -200 || mx > VW + 200 || my < -200 || my > VH + 200) return; const a = .45 + Math.sin(t * 3) * .25;
       if (!e.to) { c.fillStyle = 'rgba(200,40,30,' + a * .18 + ')'; c.fillRect(x0, y0, Math.max(6, x1 - x0), Math.max(6, y1 - y0)); return; }
       c.fillStyle = 'rgba(240,236,226,' + a * .25 + ')'; c.fillRect(x0, y0, Math.max(6, x1 - x0), Math.max(6, y1 - y0));
-      const lx = Math.max(90, Math.min(VW - 90, mx)), ly = Math.max(120, Math.min(VH - 150, my)); const arrow = { l: '◀ ', r: '', u: '▲ ', d: '▼ ' }[e.side] || '', arrowR = e.side === 'r' ? ' ▶' : '';
-      c.font = '13px TechMono, monospace'; c.textAlign = 'center'; const txt = arrow + e.label + arrowR; const w = c.measureText(txt).width + 14;
-      c.fillStyle = 'rgba(0,0,0,.65)'; c.fillRect(lx - w / 2, ly - 12, w, 20); c.fillStyle = 'rgba(240,236,226,' + (.6 + a * .4) + ')'; c.fillText(txt, lx, ly + 3); });
+      /* salida: una flechita chica en el borde; el nombre solo si estás cerca (y completo en el MAPA) */
+      const dir_ = e.side || (e.r[1] <= 30 ? 'u' : e.r[3] >= MH - 30 ? 'd' : e.r[0] <= 30 ? 'l' : e.r[2] >= MW - 30 ? 'r' : 'd'), ang = { u: -Math.PI / 2, d: Math.PI / 2, l: Math.PI, r: 0 }[dir_];
+      const ax = Math.max(18, Math.min(VW - 18, mx)), ay = Math.max(18, Math.min(VH - 18, my)), bob = Math.sin(t * 4) * 4;
+      c.save(); c.translate(ax + Math.cos(ang) * bob, ay + Math.sin(ang) * bob); c.rotate(ang); c.fillStyle = 'rgba(127,246,242,' + (.55 + a * .4) + ')'; c.shadowColor = '#7ff6f2'; c.shadowBlur = 8;
+      c.beginPath(); c.moveTo(9, 0); c.lineTo(-5, -7); c.lineTo(-2, 0); c.lineTo(-5, 7); c.closePath(); c.fill(); c.restore();
+      const [px_, py_] = W2S(P.x, P.y); if (Math.hypot(px_ - mx, py_ - my) < 260 * zoom + 120) { c.font = '10px TechMono, monospace'; c.textAlign = 'center'; c.fillStyle = 'rgba(0,0,0,.55)'; const w = c.measureText(e.label).width + 8, ly = ay - Math.sin(ang) * 22 - (dir_ === 'l' || dir_ === 'r' ? 18 : 0), lx = Math.max(w / 2 + 4, Math.min(VW - w / 2 - 4, ax - Math.cos(ang) * 30));
+        c.fillRect(lx - w / 2, ly - 9, w, 13); c.fillStyle = 'rgba(200,250,248,.85)'; c.fillText(e.label, lx, ly + 1); } });
     (MAP.tiles || []).forEach(p => { const [sx, sy] = W2S(p[0] * WS, p[1] * WS), a = .35 + Math.sin(t * 4 + p[0]) * .2; c.strokeStyle = 'rgba(120,220,255,' + a + ')'; c.lineWidth = 3; c.beginPath(); c.ellipse(sx, sy, 46 * zoom, 18 * zoom, 0, 0, 7); c.stroke(); });
     traps.forEach(tp => { const [sx, sy] = W2S(tp.x, tp.y); if (sx < -60 || sx > VW + 60 || sy < -60 || sy > VH + 60) return; c.save(); c.translate(sx, sy); c.scale(zoom, zoom * .5); c.strokeStyle = tp.cd > 0 ? 'rgba(120,110,100,.6)' : 'rgba(210,190,160,.9)'; c.lineWidth = 4; c.beginPath(); for (let i = 0; i < 12; i++) { const an = i / 12 * 6.283, r = i % 2 ? 18 : 34; c.lineTo(Math.cos(an) * r, Math.sin(an) * r); } c.closePath(); c.stroke(); c.restore(); });
     // entidades
