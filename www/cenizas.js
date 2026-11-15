@@ -909,11 +909,10 @@
     L.list.forEach((mk, i) => { const M = MVPS[mk], b = document.createElement('button'); b.className = 'libo'; const won = (INV.mvpWon || {})[mk];
       b.innerHTML = '<i>P' + (lk === 'pablo' ? i + 1 : i + 4) + '</i><b>' + M.n + '</b><small>' + M.txt + '</small>' + (won ? '<em>VENCIDO ×' + won + '</em>' : '');
       b.disabled = done; b.onclick = () => { closeLib(); startMvp(mk); }; box.appendChild(b); });
-    ov.querySelector('.libn').textContent = done ? 'Ya enfrentaste un MVP hoy. La libreta se vuelve a abrir mañana.' : 'Elegí uno. Todos los que estén en este mapa vienen con vos. Uno por día.' + ((INV.mvpPistas || []).length ? ' · Pistas: ' + INV.mvpPistas.join(' · ') : ''); }
+    ov.querySelector('.libn').textContent = done ? 'Ya venciste a un MVP hoy: la libreta se vuelve a abrir mañana. Si otro jugador la abre, podés ir con él.' : 'Elegí uno. Todos los que estén en este mapa vienen con vos. Podés intentarlo las veces que quieras hasta vencer a uno: después, hasta mañana.' + ((INV.mvpPistas || []).length ? ' · Pistas: ' + INV.mvpPistas.join(' · ') : ''); }
   function closeLib() { $('#ov-lib').hidden = true; paused = false; }
   function startMvp(mk) { if (INV.mvpDay === dayN()) return; net('mvpgo', { mk, from: mapKey, by: me.nick }); goMvp(mk, me.nick); }
-  function goMvp(mk, by) { const M = MVPS[mk]; if (!M || !MAPS[M.map]) return; if (INV.mvpDay === dayN()) { toast(by + ' abrió la libreta, pero vos ya enfrentaste un MVP hoy.'); return; }
-    INV.mvpDay = dayN(); INV.mvpBack = { map: mapKey, x: Math.round(P.x / WS), y: Math.round(P.y / WS) }; persist(); banner(M.n, by === me.nick ? 'Abriste la libreta…' : by + ' abrió la libreta…', 2400, '#ff5a6a'); SND.mob('roar', .4); setTimeout(() => warpTo(M.map), 900); }
+  function goMvp(mk, by) { const M = MVPS[mk]; if (!M || !MAPS[M.map]) return; INV.mvpBack = { map: mapKey, x: Math.round(P.x / WS), y: Math.round(P.y / WS) }; persist(); banner(M.n, by === me.nick ? 'Abriste la libreta…' : by + ' abrió la libreta…', 2400, '#ff5a6a'); SND.mob('roar', .4); setTimeout(() => warpTo(M.map), 900); }
   function mvpBack(msg) { const b = INV.mvpBack || { map: LIBS[MVPS[MVP_BY_MAP[mapKey]] ? MVPS[MVP_BY_MAP[mapKey]].lib : 'pablo'].map }; if (P.dead) { P.dead = false; P.hp = maxHp(lvlOf(P.xp)); $('#ov-dead').hidden = true; } P.hp = Math.max(P.hp, maxHp(lvlOf(P.xp)) * .6); if (msg) toast(msg); mvpEv = null; warpTo(b.map, b.x, b.y); }
   /* al entrar a un mapa de MVP */
   function mvpEnter() { mvpObjs = []; mvpEv = MAP.mvp ? { mk: MVP_BY_MAP[mapKey], t: 0, spawned: false, over: false } : null; if (mvpEv) { const M = MVPS[mvpEv.mk]; setTimeout(() => banner(M.n, M.txt, 4200, '#ff5a6a'), 700); } }
@@ -995,7 +994,7 @@
     /* revivir: botón cuando estás al lado de un caído */
     const dn = [...others.entries()].find(([id, o]) => o.dead && Math.hypot(o.x - P.x, (o.y - P.y) * 1.2) < 140); mvpEv.rev = dn ? dn[0] : null; }
   function mvpWon(kind) { if (!mvpEv || mvpEv.over) return; const mk = Object.keys(MVPS).find(k => MVPS[k].kind === kind); if (!mk) return; mvpEv.over = true; const M = MVPS[mk];
-    INV.mvpWon = INV.mvpWon || {}; INV.mvpWon[mk] = (INV.mvpWon[mk] || 0) + 1;
+    INV.mvpDay = dayN(); INV.mvpWon = INV.mvpWon || {}; INV.mvpWon[mk] = (INV.mvpWon[mk] || 0) + 1;
     banner('¡VENCIERON!', M.n + ' cayó', 3500, '#ffd860'); SND.level(); buzz([60, 40, 120]);
     if (P.dead) { P.dead = false; P.hp = maxHp(lvlOf(P.xp)) * .5; $('#ov-dead').hidden = true; }
     const got = []; M.drops.forEach(([k, ch]) => { if (Math.random() < ch) { addItem(k); got.push(ITEMS[k].n); } });
