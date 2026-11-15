@@ -49,3 +49,9 @@ body.ork .hud .pf{background-image:url(/a/ui/h_perfil_ork.webp)}
 .talk b{position:absolute;left:50%;top:60px;transform:translateX(-50%);white-space:nowrap;font-size:10px!important;color:#e8c070;background:rgba(0,0,0,.55);padding:1px 6px}
 /* DECIR con la misma burbuja */
 #say-b{width:46px;height:40px;padding:0;border:0;font-size:0;color:transparent;background:url(/a/ui/h_hablar.webp) center/contain no-repeat}
+/* bien al ras de arriba */
+.hud{top:4px!important}
+.topr{top:4px!important;align-items:flex-start}
+.topr .sala{align-self:center}
+#st-obj{top:4px!important}
+.boss{top:30px!important}
