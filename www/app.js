@@ -89,7 +89,7 @@
     $('#li-go').disabled = true; say('#li-msg', 'conectando…');
     const { error } = await sb.auth.signInWithPassword({ email: mail, password: pass });
     $('#li-go').disabled = false;
-    if (error) return say('#li-msg', /invalid/i.test(error.message) ? 'Mail o contraseña incorrectos.' : 'No se pudo entrar: ' + error.message, true);
+    if (error) { if (/not confirmed|confirm/i.test(error.message)) { pendMail = mail; return showWait('VALIDÁ TU MAIL', 'Tu cuenta todavía no está validada. Abrí el correo que te mandamos a ' + mail + ' y tocá el botón (mirá en spam). Después volvé a INGRESAR.', 'mail'); } return say('#li-msg', /invalid/i.test(error.message) ? 'Mail o contraseña incorrectos.' : 'No se pudo entrar: ' + error.message, true); }
     const rem = $('#li-remember').checked; store.set('rememberMail', rem); store.set('mail', rem ? mail : ''); store.set('keep', $('#li-keep').checked); markAlive();
     say('#li-msg', ''); $('#li-pass').value = ''; await loadMe();
   });
@@ -107,7 +107,7 @@
       if (/database error/i.test(m)) return say('#rg-msg', 'Ese nick ya está usado. Probá otro.', true);
       if (/already|registered/i.test(m)) return say('#rg-msg', 'Ese mail ya tiene cuenta. Entrá por INGRESAR.', true);
       return say('#rg-msg', 'No se pudo crear: ' + m, true); }
-    if (!data.session) return say('#rg-msg', 'Cuenta creada. Revisá tu mail para confirmarla y después ingresá.');
+    if (!data.session) { store.set('mail', mail); $('#li-mail').value = mail; pendMail = mail; return showWait('REVISÁ TU MAIL', 'Te mandamos un correo a ' + mail + '. Abrilo y tocá el botón para validar tu cuenta (mirá también en spam o promociones). Cuando lo valides, tu usuario queda habilitado solo: volvé acá y tocá INGRESAR.', 'mail'); }
     $('#rg-pass').value = $('#rg-pass2').value = ''; say('#rg-msg', ''); markAlive(); store.set('mail', mail); await loadMe();
   });
 
@@ -147,13 +147,18 @@
     const { data, error } = await sb.from('profiles').select('id,nick,status,role,faction,created_at').eq('id', u.user.id).maybeSingle();
     if (error || !data) { toast('No se pudo leer tu perfil. Revisá la conexión.'); return showAuth(); }
     me = data;
-    if (me.status === 'pending') return showWait('CUENTA EN ESPERA', 'Hola ' + me.nick + '. Tu cuenta quedó registrada y espera que el admin la habilite. Cuando te habiliten, tocá VOLVER A CONSULTAR.');
+    if (me.status === 'pending') return showWait('CUENTA EN ESPERA', 'Hola ' + me.nick + '. Validá tu mail con el botón del correo que te mandamos y tu cuenta se habilita sola (o espera que el admin la habilite). Después tocá VOLVER A CONSULTAR.');
     if (me.status === 'blocked') return showWait('CUENTA BLOQUEADA', 'La cuenta ' + me.nick + ' está bloqueada. Hablá con el admin de THE O|F.');
     if (!me.faction) return showPick();
     enterApp();
   }
-  function showWait(cap, text) { document.documentElement.dataset.skin = 'neutral'; showOnly('#wait'); $('#wait-cap').textContent = cap; $('#wait-text').textContent = text; say('#wait-msg', ''); }
-  $('#wait-retry').onclick = async () => { say('#wait-msg', 'consultando…'); await loadMe(); if (me && me.status !== 'approved') say('#wait-msg', 'Todavía no. Probá más tarde.'); };
+  let pendMail = null;
+  function showWait(cap, text, mode) { document.documentElement.dataset.skin = 'neutral'; showOnly('#wait'); $('#wait-cap').textContent = cap; $('#wait-text').textContent = text; say('#wait-msg', ''); $('#wait').dataset.mode = mode || '';
+    $('#wait-retry').textContent = mode === 'mail' ? 'INGRESAR' : 'VOLVER A CONSULTAR'; $('#wait-resend').hidden = !(mode === 'mail' || (me && me.status === 'pending')); }
+  async function resendMail() { const mail = pendMail || store.get('mail', '') || ($('#li-mail').value || '').trim(); if (!mail) return say('#wait-msg', 'Poné tu mail en INGRESAR y probá de nuevo.', true);
+    const { error } = await sb.auth.resend({ type: 'signup', email: mail }); say('#wait-msg', error ? 'No se pudo reenviar: ' + error.message : 'Listo, te lo mandamos de nuevo a ' + mail + '.', !!error); }
+  $('#wait-resend').onclick = resendMail;
+  $('#wait-retry').onclick = async () => { if ($('#wait').dataset.mode === 'mail') { showAuth(); setAuthTab('login'); $('#li-pass').focus(); return; } say('#wait-msg', 'consultando…'); await loadMe(); if (me && me.status !== 'approved') say('#wait-msg', 'Todavía no. Probá más tarde.'); };
   $('#wait-out').onclick = () => logout();
 
   /* ---------- elegir bando ---------- */
