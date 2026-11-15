@@ -192,9 +192,10 @@
   MOB.drone = nm_('incinerario', { name: 'Drone ORK', sheet: 'drone', shot: 'rayo', burn: false, hp: 8, sp: 110, pspeed: 700, xp: 40, coins: 3, fac: 'ork' });
   MOB.perro_robot = nm_('perro', { name: 'Perro Robot IA', sheet: 'perro_robot', hp: 14, dmg: 16, sp: 250, xp: 42, coins: 3, fac: 'ork' });
   /* jefes de mapa: cada día salen 3 al azar, cada uno en un mapa; si lo matan no vuelve hasta el día siguiente */
-  const BOSS_POOL = { garras: ['nueveJulio', 'banco', 'estatua'], electrico: ['patio', 'complejo8c', 'estHaedo'], pantallas: ['teatroAv', 'colon'], serpiente: ['muelle', 'puente'],
-    ignacio: ['estatua', 'express', 'congreso'], maxi: ['portena', 'esperanza'], lilia: ['lab', 'lab_cuarentena'], jefe: ['lab_cuarentena', 'arena_final'], sofia: ['banco', 'nueveJulio', 'oficina'],
-    lucas: ['lab', 'terminal_once'], noster: ['urbanoBA', 'oficina', 'callejon'], ani: ['calle_extra', 'rivadavia', 'interHaedo'], nacho: ['barrio_chino', 'plazaArbol', 'mcd'], chica: ['bar_humo'], chico: ['bar_rojo'] };
+  /* jefes del mundo: solo en zonas de nivel medio/alto (nada de jefes en Haedo ni en las zonas de arranque) */
+  const BOSS_POOL = { garras: ['oficina_ruina', 'esperanza', 'lezama'], electrico: ['complejo8c', 'subte_arena', 'rivadavia'], pantallas: ['bar_humo', 'oficina_ruina', 'urbanoBA'], serpiente: ['muelle', 'puente'],
+    ignacio: ['congreso', 'estOnce', 'terminal_once'], maxi: ['esperanza', 'muelle'], lilia: ['lab', 'lab_cuarentena'], jefe: ['lab_cuarentena', 'arena_final'], sofia: ['oficina', 'oficina_ruina', 'puente'],
+    lucas: ['lab', 'terminal_once'], noster: ['urbanoBA', 'oficina', 'arena_final'], ani: ['rivadavia', 'lezama', 'subte_arena'], nacho: ['estOnce', 'bunker', 'muelle'], chica: ['bar_humo'], chico: ['bar_rojo'] };
   Object.keys(BOSS_POOL).forEach(k => { MOB[k].respawn = 99999999; MOB[k].world = true; });
   ['chica_b', 'chica_c', 'chico_b', 'chico_c'].forEach(k => { MOB[k].respawn = 99999999; MOB[k].world = true; });
   /* balance: los Oscuros pegan menos (que no te maten de dos golpes) */
@@ -280,7 +281,7 @@
     const FIX = { libertador: [50, 60], centro_ork: [45, 55] };
     Object.entries(MAPS).forEach(([k, m]) => { if (FIX[k]) { m.lv = FIX[k]; return; } const d = Math.min(dA[k] == null ? 99 : dA[k], dB[k] == null ? 99 : dB[k]); if (d >= 99) return; const sc = d + (PM[k] || 0);
       if (sc <= 1) m.lv = [1, 4]; else if (sc === 2) m.lv = [2, 5]; else { const a = Math.round(4 + (sc - 3) * 4); m.lv = [a, a + 3 + Math.round(sc / 3)]; } }); }
-  Object.entries(MAPS).forEach(([k, m]) => { if (m.safeAll || m.base) { m.mobs = {}; return; } const top = (m.lv || [1, 3])[1];
+  Object.entries(MAPS).forEach(([k, m]) => { if (m.safeAll || m.base || m.mvp) { m.mobs = {}; return; } const top = (m.lv || [1, 3])[1];
     m.mobs = EXP ? MOBS_T.pvp : top <= 12 ? MOBS_T.bajo : top <= 28 ? MOBS_T.medio : top <= 40 ? MOBS_T.alto : MOBS_T.tope;
     /* pocos y variados: cada mapa elige 5 tipos de su lista (siempre distintos entre mapas), máximo 6 Oscuros */
     if (!EXP) { const hs = s_ => { let h = 2166136261; for (let i = 0; i < s_.length; i++) { h ^= s_.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }; const ks = Object.keys(m.mobs), h0 = hs('mob' + k); ks.sort((x, y) => (hs(x + h0) % 997) - (hs(y + h0) % 997)); const pick = {}; let tot = 0; ks.slice(0, 6).forEach(x => { pick[x] = 1; tot++; }); m.mobs = pick; } });
@@ -620,8 +621,8 @@
       P.xp = 0; P.kills = 0; P.best = 0; P.hp = maxHp(1); gc = Object.assign({}, gc, { zone: null }); setTimeout(() => toast('Reinicio general: arrancás de cero, nivel 1, en la base de tu bando.'), 1800); }
     if (INV.ver !== VER) { if (INV.ver !== '2.1') { P.xp = 0; P.kills = 0; INV.ab = []; P.hp = maxHp(1); } INV.ver = VER; gc = Object.assign({}, gc, { zone: null }); setTimeout(() => toast('THE O|F 2.1 · nivel reiniciado: arrancás en la base de tu bando.'), 1800); }
     INV.q = INV.q || { cura: 'vendas', esp: null };
-    $('#h-nick').textContent = me.nick + (EXP ? ' · PVP' : ' · HISTORIA'); ['#hud', '#topr', '#pads', '#hintL', '#stick'].forEach(s => $(s).hidden = false); if (EXP) $('#d-fac').hidden = true;
-    document.body.classList.add('playing'); $('#m-snd').textContent = 'SONIDO: ' + (SND.on ? 'SÍ' : 'NO');
+    $('#h-nick').textContent = me.nick; ['#hud', '#topr', '#pads', '#hintL', '#stick'].forEach(s => $(s).hidden = false); if (EXP) $('#d-fac').hidden = true;
+    document.body.classList.add('playing'); document.body.classList.toggle('ork', me.faction === 'ork'); $('#snd-b').classList.toggle('off', !SND.on); $('#m-snd').textContent = 'SONIDO: ' + (SND.on ? 'SÍ' : 'NO');
     for (let i = 0; i < 90; i++) ash.push(newAsh(true));
     const fresh = !MAPS[gc.zone]; const [hz, hp_] = home(); const zone = fresh ? hz : gc.zone;
     enterMap(zone, fresh ? hp_[0] * WS : gc.x, fresh ? hp_[1] * WS : gc.y, true);
@@ -657,7 +658,7 @@
     mobs.length = 0; parts.length = 0; floats.length = 0; pickups.length = 0;
     const nPick = MAP.safeAll ? 1 : 2; for (let i = 0; i < nPick; i++) spawnPickup();
     sueroTick(true);
-    Object.keys(INV.lost).forEach(w => { if (INV.lost[w] === k) { spawnPickup(w); delete INV.lost[w]; } }); shots.length = 0;
+    Object.keys(INV.lost).forEach(w => { if (INV.lost[w] === k) { spawnPickup(w); delete INV.lost[w]; } }); shots.length = 0; mvpEnter();
     hud(); healBtn(); abButtons();
     const z = $('#zone'); $('#zone-n').textContent = MAP.name; $('#zone-s').textContent = MAP.safeAll ? 'zona segura · acá no entran los Oscuros' : (Object.keys(wantMobs()).length ? 'Oscuros: ' + Object.keys(wantMobs()).map(m => MOB[m].name).join(' · ') : '');
     z.classList.add('on'); setTimeout(() => z.classList.remove('on'), 2600); if (!first) SND.zone();
@@ -677,7 +678,8 @@
     warping = true; $('#fade').classList.add('on'); persist();
     setTimeout(() => { enterMap(e.to, e.at[0] * WS, e.at[1] * WS); sendPos(true); persist(); $('#fade').classList.remove('on'); warping = false; }, 650); }
   function warpTo(k, x, y) { if (!MAPS[k]) return; warping = true; $('#fade').classList.add('on'); setTimeout(() => { enterMap(k, x != null ? x * WS : null, y != null ? y * WS : null); sendPos(true); persist(); $('#fade').classList.remove('on'); warping = false; }, 650); }
-  function hud() { const lv = lvlOf(P.xp), a = xpFor(lv), b = xpFor(lv + 1); $('#h-hp').style.width = Math.max(0, P.hp / maxHp(lv) * 100) + '%'; $('#h-xp').style.width = (lv >= 100 ? 100 : Math.min(100, (P.xp - a) / (b - a) * 100)) + '%';
+  function drawAv() { const cv = $('#h-av'); if (!cv || !look) return; const g = cv.getContext('2d'); g.clearRect(0, 0, 96, 128); let spr = null; try { spr = charSprite(look, 'd', 0, false); } catch (e) {} if (!spr) return; if (spr.hd) { g.imageSmoothingEnabled = true; g.drawImage(spr, 58, 22, 140, 186, 0, 0, 96, 128); } else { g.imageSmoothingEnabled = false; g.drawImage(spr, 0, 0, spr.width, spr.height * .7, 6, 6, 84, 116 * .9); } drawAv.ok = spr.hd ? 2 : 1; }
+  function hud() { if ((drawAv.ok || 0) < 2 && Math.random() < .3) drawAv(); const lv = lvlOf(P.xp), a = xpFor(lv), b = xpFor(lv + 1); $('#h-hp').style.width = Math.max(0, P.hp / maxHp(lv) * 100) + '%'; $('#h-xp').style.width = (lv >= 100 ? 100 : Math.min(100, (P.xp - a) / (b - a) * 100)) + '%';
     $('#h-lv').textContent = 'NV ' + lv + ' · ' + (INV ? weaponLabel() : 'PALO') + ' · ' + Math.ceil(P.hp) + '/' + maxHp(lv) + (INV && INV.eq.luz ? ' · LUZ ' + Math.ceil(INV.bat) + '%' : '') + (INV && INV.eq.ropa ? ' · ESCUDO ' + (INV.dur[INV.eq.ropa] != null ? INV.dur[INV.eq.ropa] : ITEMS[INV.eq.ropa].shield) : '') + ' · ' + (INV ? INV.coins : 0) + ' monedas' + (INV && INV.ab.length ? ' · ' + INV.ab.map(a => AB[a].n).join(' · ') : '') + (suero.map ? ' · MALETÍN: ' + MAPS[suero.map].name : ''); }
   async function persist() { if (!P || !me || !look) return; if (EXP) return persistExp(); store.set('cz-inv-' + me.id, JSON.stringify(INV));
     const row = { user_id: me.id, look, zone: mapKey, x: Math.round(P.x), y: Math.round(P.y), hp: Math.max(1, Math.round(P.hp)), xp: P.xp, kills: P.kills, updated_at: new Date().toISOString() };
@@ -729,7 +731,8 @@
     if ((c === 0 && mk === 'perro') || (c === 1 && mk === 'corredor') || (c === 2 && mk === 'errante')) m *= .6; return m; }
   function hitPlayer(d, knockFrom, knock, byId, mk) { if (P.dead || P.inv > 0 || P.furia > 0 || (!byId && inSafe(P.x, P.y))) return false;
     if (!byId && mk && d < 999 && MOB[mk]) { if (MOB[mk].burn && !(P.burn > 0)) { P.burn = 5; toast('¡Te prendiste fuego! 5 segundos de quemadura (la venda para quemaduras lo corta).'); } if (MOB[mk].poison && !(P.poison > 0)) { P.poison = 25; toast('Te envenenaron. Usá antiveneno.'); } }
-    if (P.goo > 0) d *= 2;
+    if (P.goo > 0) d *= 2; if (P.stunT > 0 && mk && MOB[mk] && MOB[mk].mvp) d *= 2.5;
+    if (mk && MOB[mk] && MOB[mk].pois5 && d < 999) { P.poison = Math.max(P.poison || 0, 5); P.poisonK = MOB[mk].pois5; }
     d = Math.max(1, Math.round(d * dmgMult() * classMult(mk || (knockFrom && knockFrom.kind) || (byId ? null : 'oscuro'))));
     P.lastHitT = performance.now(); if (P.gorro) { P.gorro = 0; P.ghost = 0; toast('Te pegaron: volviste a aparecer.'); }
     const rk = INV.eq.ropa; if (rk && ITEMS[rk]) { if (INV.dur[rk] == null) INV.dur[rk] = ITEMS[rk].shield; const take = Math.min(INV.dur[rk], d); INV.dur[rk] -= take; d -= take;
@@ -748,7 +751,7 @@
       if (byId) { const who = (others.get(byId) || {}).nick || 'alguien'; $('#ov-dead').querySelector('p').textContent = 'Te derribó ' + who + '. ' + (keep ? rescued : homeText()); pvpDrop(); net('died', { id: me.id, by: byId }); }
       else $('#ov-dead').querySelector('p').textContent = (byBoss ? MOB[mk].name + ' te derribó. ' + rescued : 'La ceniza te cubrió. ' + (keep ? rescued : homeText()));
       $('#d-lv').textContent = minus ? (EXP ? 'Caíste en el PvP: bajás del nivel ' : 'Tercera caída seguida: bajás del nivel ') + P.lostLv + ' al ' + lvlOf(P.xp) + '.' : 'No perdiste nivel: seguís en el ' + lvlOf(P.xp) + '.' + (STORY && INV.racha ? ' (Caídas seguidas: ' + INV.racha + '/3)' : '');
-      sendPos(true); persist(); setTimeout(() => $('#ov-dead').hidden = false, 700); }
+      sendPos(true); persist(); if (MAP.mvp) banner('CAÍSTE', 'Esperá que alguien te reviva', 4000, '#ff5a6a'); else setTimeout(() => $('#ov-dead').hidden = false, 700); }
     hud(); return true; }
 
   /* PvP: al morir a manos de otro jugador se te cae un objeto común */
@@ -863,8 +866,152 @@
         if (o.stunK === 'zz') c.fillText('Z z z', x, y); else if (o.stunK === 'frz') c.fillText('❄', x, y); else for (let i = 0; i < 3; i++) { const a = t * 4 + i * 2.1; c.fillText('★', x + Math.cos(a) * 26 * zoom, y + Math.sin(a) * 8 * zoom); } }
       if (o.dot && o.dot.t > 0) { c.fillStyle = o.dot.c === 'f' ? 'rgba(255,140,40,.9)' : 'rgba(120,230,90,.9)'; c.font = Math.round(16 * Math.max(.8, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; c.fillText(o.dot.c === 'f' ? '🔥' : '☠', x + 34 * zoom, y + 14 * zoom); } });
   }
+  /* ======================= LIBRETAS Y MVPs =======================
+     Libreta de Pablo (casa de Pablo, con la historia terminada): El Come Sueños · El Hombre de Galera · La Bruja Podrida.
+     Libreta de Sofía (9 de Julio, con alguna pista de Pablo): La Dama Triste · El Demonio del Palo.
+     Elegís uno y todos los del mapa viajan con vos. Uno por día. Los caídos quedan en el piso hasta que alguien los reviva. */
+  const MVPS = {
+    cs: { kind: 'mvp_cs', map: 'mvp_hospital', lib: 'pablo', n: 'EL COME SUEÑOS', pista: 'una torre rota', drops: [['chaleco_cs', .12], ['ojo_desc', .12]],
+      txt: 'Pega, salta y grita. Si grita y no estás detrás de una camilla, quedás aturdido y te destroza.' },
+    galera: { kind: 'mvp_galera', map: 'mvp_cementerio', lib: 'pablo', n: 'EL HOMBRE DE GALERA', pista: 'una calle con verdes y cortos caminos', drops: [['baston_oscuro', .12], ['gorro_desap', .12]],
+      txt: 'Casi invisible. Deja galeras: rompelas. Si junta 3, aparece atrás de alguien y lo mata de un golpe.' },
+    bruja: { kind: 'mvp_bruja', map: 'mvp_callejon', lib: 'pablo', n: 'LA BRUJA PODRIDA', pista: 'la sangre de la traidora', drops: [['ropa_distinta', .12], ['baston_resina', .12]],
+      txt: 'Lenta, pero tira mocos que envenenan. Si hay moco en el piso y están juntos, se carga y le roba el alma a uno. Sepárense.' },
+    dama: { kind: 'mvp_dama', map: 'mvp_santuario', lib: 'sofia', n: 'LA DAMA TRISTE', drops: [['anillo_lagrimas', .1], ['anillo_una', .1], ['espada_lamentos', .035]],
+      txt: 'Azul: llora y congela. Roja: se enoja y quema. Si estás prendido fuego te roba la vida. Contra el hielo, quédense de a 3 juntos.' },
+    demonio: { kind: 'mvp_demonio', map: 'mvp_patio', lib: 'sofia', n: 'EL DEMONIO DEL PALO', drops: [['palo_destino', .1], ['zapatos_fauno', .1], ['daga_demonio', .1]],
+      txt: 'El más difícil. Quema alrededor, deja clones y a veces desaparece dejando fuegos: súbanse a uno antes de que explote todo.' } };
+  const MVP_BY_MAP = {}; Object.entries(MVPS).forEach(([k, v]) => MVP_BY_MAP[v.map] = k);
+  const LIBS = { pablo: { map: 'casa_pablo', nm: 'LIBRETA DE PABLO', img: '/a/ob/libreta_pablo.png', list: ['cs', 'galera', 'bruja'] }, sofia: { map: 'nueveJulio', nm: 'LIBRETA DE SOFÍA', img: '/a/ob/libreta_sofia.png', list: ['dama', 'demonio'] } };
+  const MB = { art: 'jefe', aura: '255,40,60', pw: 30, ph: 44, sp: 150, wsp: 60, sight: 2400, wind: .35, cd: .9, reach: 95, heavy: true, boss: true, mvp: true, respawn: 99999999, coins: 300, xp: 40000, snd: 'roar', ai: 'mvp' };
+  MOB.mvp_cs = Object.assign({}, MB, { name: 'EL COME SUEÑOS', sheet: 'mvp_cs', hp: 3000, dmg: 55, sp: 175 });
+  MOB.mvp_galera = Object.assign({}, MB, { name: 'EL HOMBRE DE GALERA', sheet: 'mvp_galera', hp: 2500, dmg: 50, ph: 48, sp: 140, aura: '170,120,255' });
+  MOB.mvp_bruja = Object.assign({}, MB, { name: 'LA BRUJA PODRIDA', sheet: 'mvp_bruja', hp: 2800, dmg: 45, sp: 80, aura: '140,220,60', pspeed: 380, fdmg: 30, pois5: 25 });
+  MOB.mvp_dama = Object.assign({}, MB, { name: 'LA DAMA TRISTE', sheet: 'mvp_dama', hp: 3200, dmg: 52, ph: 46, sp: 150, aura: '120,180,255' });
+  MOB.mvp_demonio = Object.assign({}, MB, { name: 'EL DEMONIO DEL PALO', sheet: 'mvp_demonio', hp: 4400, dmg: 70, ph: 48, pw: 34, sp: 165, aura: '255,110,30' });
+  MOB.mvp_clon = Object.assign({}, MB, { name: 'CLON', sheet: 'mvp_demonio', hp: 120, dmg: 40, boss: false, mvp: false, clon: true, sp: 200, xp: 0, coins: 0, aura: '255,110,30' });
+  const SKN = [null, 'mvp_cs_grito', 'mvp_cs_salto', 'mvp_galera_humo', 'mvp_galera_golpe', 'mvp_bruja_poder', 'mvp_bruja_salto', 'mvp_dama_azul', 'mvp_dama_roja', 'mvp_dama_humo', 'mvp_demonio_humo', 'mvp_demonio_fuego'];
+  /* camillas del hospital (detrás de una, el grito no te aturde) */
+  const CAMILLAS = [[350, 240], [840, 230], [1220, 230], [130, 480], [560, 480], [1090, 480], [1550, 480], [520, 720], [1110, 720]];
+  let mvpObjs = [], mvpEv = null; const mvpSeen = {};
+  const storyFin = () => !!(INV && INV.story && INV.story.fac === me.faction && (INV.story.finSeen || (INV.story.done || []).some(x => x === 'r16' || x === 'v11')));
+  function libNpcs() { if (EXP) return []; const out = []; Object.entries(LIBS).forEach(([lk, L]) => { if (mapKey !== L.map) return; const [sx, sy] = MAP.spawn; let x = sx + 110, y = sy - 30; if (!walkable(x * WS, y * WS)) { x = sx - 110; } if (!walkable(x * WS, y * WS)) { x = sx; y = sy - 90; }
+      out.push({ obj: 1, lib: lk, k: 'libreta_' + lk, nm: L.nm, x, y }); }); return out; }
+  function banner(txt, sub, ms, col) { const b = $('#mvp-ban'); if (!b) return; b.innerHTML = '<b' + (col ? ' style="color:' + col + '"' : '') + '>' + txt + '</b>' + (sub ? '<small>' + sub + '</small>' : ''); b.hidden = false; b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); clearTimeout(banner.t); banner.t = setTimeout(() => b.hidden = true, ms || 2200); }
+  function openLib(lk) { const L = LIBS[lk]; if (!storyFin()) return toast(L.nm + ': las páginas están pegadas con ceniza. Terminá la historia para poder abrirla.');
+    if (lk === 'sofia' && !(INV.mvpPistas || []).length) return toast('LIBRETA DE SOFÍA: tiene un candado de sangre. Las pistas de la libreta de Pablo te dicen cómo abrirlo.');
+    paused = true; const ov = $('#ov-lib'); ov.hidden = false; ov.querySelector('.libimg').src = L.img; ov.querySelector('h2').textContent = L.nm;
+    const done = INV.mvpDay === dayN(); const box = ov.querySelector('.libl'); box.innerHTML = '';
+    L.list.forEach((mk, i) => { const M = MVPS[mk], b = document.createElement('button'); b.className = 'libo'; const won = (INV.mvpWon || {})[mk];
+      b.innerHTML = '<i>P' + (lk === 'pablo' ? i + 1 : i + 4) + '</i><b>' + M.n + '</b><small>' + M.txt + '</small>' + (won ? '<em>VENCIDO ×' + won + '</em>' : '');
+      b.disabled = done; b.onclick = () => { closeLib(); startMvp(mk); }; box.appendChild(b); });
+    ov.querySelector('.libn').textContent = done ? 'Ya enfrentaste un MVP hoy. La libreta se vuelve a abrir mañana.' : 'Elegí uno. Todos los que estén en este mapa vienen con vos. Uno por día.' + ((INV.mvpPistas || []).length ? ' · Pistas: ' + INV.mvpPistas.join(' · ') : ''); }
+  function closeLib() { $('#ov-lib').hidden = true; paused = false; }
+  function startMvp(mk) { if (INV.mvpDay === dayN()) return; net('mvpgo', { mk, from: mapKey, by: me.nick }); goMvp(mk, me.nick); }
+  function goMvp(mk, by) { const M = MVPS[mk]; if (!M || !MAPS[M.map]) return; if (INV.mvpDay === dayN()) { toast(by + ' abrió la libreta, pero vos ya enfrentaste un MVP hoy.'); return; }
+    INV.mvpDay = dayN(); INV.mvpBack = { map: mapKey, x: Math.round(P.x / WS), y: Math.round(P.y / WS) }; persist(); banner(M.n, by === me.nick ? 'Abriste la libreta…' : by + ' abrió la libreta…', 2400, '#ff5a6a'); SND.mob('roar', .4); setTimeout(() => warpTo(M.map), 900); }
+  function mvpBack(msg) { const b = INV.mvpBack || { map: LIBS[MVPS[MVP_BY_MAP[mapKey]] ? MVPS[MVP_BY_MAP[mapKey]].lib : 'pablo'].map }; if (P.dead) { P.dead = false; P.hp = maxHp(lvlOf(P.xp)); $('#ov-dead').hidden = true; } P.hp = Math.max(P.hp, maxHp(lvlOf(P.xp)) * .6); if (msg) toast(msg); mvpEv = null; warpTo(b.map, b.x, b.y); }
+  /* al entrar a un mapa de MVP */
+  function mvpEnter() { mvpObjs = []; mvpEv = MAP.mvp ? { mk: MVP_BY_MAP[mapKey], t: 0, spawned: false, over: false } : null; if (mvpEv) { const M = MVPS[mvpEv.mk]; setTimeout(() => banner(M.n, M.txt, 4200, '#ff5a6a'), 700); } }
+  function fxOn(pl, fx) { if (pl.me) applyPfx(fx); else net('pfx', { to: pl.id, fx }); }
+  function applyPfx(fx) { if (P.dead) return; if (fx.stun) { P.stunT = Math.max(P.stunT || 0, fx.stun); P.slow = Math.max(P.slow || 0, fx.stun); if (fx.k === 'frz') toast('¡Congelado!'); else toast('¡Aturdido!'); }
+    if (fx.burn) P.burn = Math.max(P.burn || 0, fx.burn); if (fx.slow) P.slow = Math.max(P.slow || 0, fx.slow);
+    if (fx.half) { const mh = maxHp(lvlOf(P.xp)); if (P.hp < mh * .3) hitPlayer(99999, null, 0, null, fx.mk || 'mvp_dama'); else { const d = Math.round(P.hp / 2); P.hp -= d; floats.push({ x: P.x, y: P.y - 200, t: 1, txt: '-' + d + ' HIELO', c: '#bfefff' }); hud(); } } }
+  const objNet = () => net('mvpo', { o: mvpObjs.map(o => [o.id, o.t, Math.round(o.x), Math.round(o.y), o.hp || 0]) });
+  function addObj(t, x, y, hp) { const o = { id: (Math.random() * 1e9) | 0, t, x, y, hp }; mvpObjs.push(o); objNet(); return o; }
+  /* romper galeras: cualquier golpe cerca */
+  function hitObjs(range) { mvpObjs.filter(o => o.t === 'galera').forEach(o => { if (Math.hypot(o.x - P.x, (o.y - P.y) * 1.3) < range + 40) { floats.push({ x: o.x, y: o.y - 60, t: .6, txt: '¡CRAC!', c: '#d8c8ff' }); if (isHost) breakObj(o.id); else net('mvpx', { id: o.id }); } }); }
+  function breakObj(id) { const o = mvpObjs.find(q => q.id === id); if (!o) return; o.hp = (o.hp || 1) - 1; if (o.hp <= 0) { mvpObjs.splice(mvpObjs.indexOf(o), 1); for (let i = 0; i < 12; i++) parts.push({ x: o.x, y: o.y - 20, vx: rnd(-90, 90), vy: rnd(-120, -20), life: .6, s: 4, c: 40 }); } objNet(); }
+  const near2 = (a, b, r) => Math.hypot(a.x - b.x, (a.y - b.y) * 1.2) < r;
+  function behindCamilla(p, o) { return CAMILLAS.some(([cx, cy]) => { const bx = cx * WS, by = cy * WS; if (Math.hypot(p.x - bx, p.y - by) > 190) return false;
+      const vx = p.x - o.x, vy = p.y - o.y, L2 = vx * vx + vy * vy || 1, tt = Math.max(0, Math.min(1, ((bx - o.x) * vx + (by - o.y) * vy) / L2)); return Math.hypot(o.x + vx * tt - bx, o.y + vy * tt - by) < 120 && tt > .35; }); }
+  function moveMob(o, tx, ty, sp, dt) { const dx = tx - o.x, dy = ty - o.y, d = Math.hypot(dx, dy) || 1; if (d < 6) { o.moving = false; return; } const nx = o.x + dx / d * sp * dt, ny = o.y + dy / d * sp * dt; let mv = false;
+    if (mobWalk(nx, o.y)) { o.x = nx; mv = true; } if (mobWalk(o.x, ny)) { o.y = ny; mv = true; } o.moving = mv; if (Math.abs(dx) > 8) o.face = dx < 0 ? -1 : 1; }
+  /* IA de los MVPs (solo el anfitrión) */
+  function mvpAI(o, dt, live, strikeOn_) { const T = o.T; o.t += dt; o.alpha = Math.min(1, o.alpha + dt); o.hurt = Math.max(0, o.hurt - dt); o.cd = Math.max(0, o.cd - dt); o.lunge = Math.max(0, o.lunge - dt * 3); o.chasing = true;
+    o.A = o.A || { t1: 6, t2: 12, t3: 20, act: null, at: 0 }; const A = o.A; A.t1 -= dt; A.t2 -= dt; A.t3 -= dt; if (A.at > 0) A.at -= dt;
+    let tg = null, bd = 1e9; live.forEach(p => { const d = Math.hypot(p.x - o.x, p.y - o.y); if (d < bd) { bd = d; tg = p; } });
+    const hpK = o.hp / (o.mhp || T.hp), hit = (p, d, kn) => strikeOn_(p, d, o, kn), melee = () => { if (!tg) return; if (bd < T.reach + 30) { if (o.cd <= 0) { o.cd = T.cd; o.lunge = 1; SND.mob('roar', .15); hit(tg, T.dmg, 40); } o.moving = false; } else moveMob(o, tg.x, tg.y, T.sp * (A.fast > 0 ? 1.7 : 1), dt); };
+    if (A.fast > 0) A.fast -= dt;
+    o.sk = null;
+    if (!live.length) { o.moving = false; return; }
+    if (o.kind === 'mvp_cs') {
+      if (A.act === 'grito') { o.sk = SKN[1]; o.moving = false; if (A.at <= 0) { A.act = null; shake = .6; SND.mob('roar', .6); net('mvpban', { t: '¡GRITO!', c: '#ffb070' });
+          live.forEach(p => { if (behindCamilla(p, o)) { if (p.me) floats.push({ x: P.x, y: P.y - 220, t: 1.2, txt: 'A SALVO', c: '#9fe0b0' }); return; } fxOn(p, { stun: 3.2, vuln: 1 }); }); A.fast = 5; } return; }
+      if (A.act === 'salto') { o.sk = SKN[2]; const k = 1 - A.at / .8; o.x = A.x0 + (A.x1 - A.x0) * k; o.y = A.y0 + (A.y1 - A.y0) * k; if (A.at <= 0) { A.act = null; shake = .5; for (let i = 0; i < 30; i++) parts.push({ x: o.x + rnd(-60, 60), y: o.y, vx: rnd(-160, 160), vy: rnd(-120, -10), life: .6, s: 5, c: 70 }); live.forEach(p => { if (near2(p, o, 190)) hit(p, T.dmg * 1.4, 120); }); } return; }
+      if (A.t2 <= 0) { A.t2 = hpK < .5 ? 9 : 13; A.act = 'grito'; A.at = 1.6; net('mvpban', { t: '¡VA A GRITAR!', s: 'Escondete detrás de una camilla', c: '#ffb070' }); banner('¡VA A GRITAR!', 'Escondete detrás de una camilla', 1600, '#ffb070'); return; }
+      if (A.t1 <= 0 && tg && bd > 160) { A.t1 = rnd(5, 8); A.act = 'salto'; A.at = .8; A.x0 = o.x; A.y0 = o.y; let x1 = tg.x, y1 = tg.y; if (!mobWalk(x1, y1)) { x1 = o.x; y1 = o.y; } A.x1 = x1; A.y1 = y1; return; }
+      return melee(); }
+    if (o.kind === 'mvp_galera') { o.vis = .55;
+      const hats = mvpObjs.filter(q => q.t === 'galera');
+      if (A.act === 'finale') { o.sk = SKN[3]; o.vis = .2; o.moving = false; if (A.at <= 0) { A.act = null; const v = A.vic; if (v) { const bx = v.x - 70, by_ = v.y; if (mobWalk(bx, by_)) { o.x = bx; o.y = by_; } o.sk = SKN[4]; hit(v, 99999, 60); } mvpObjs = mvpObjs.filter(q => q.t !== 'galera'); objNet(); } return; }
+      if (hats.length >= 3) { A.act = 'finale'; A.at = 1.4; A.vic = live[(Math.random() * live.length) | 0]; net('mvpban', { t: 'FINALE!', c: '#d080ff', big: 1 }); banner('FINALE!', null, 1800, '#d080ff'); SND.mob('roar', .7); shake = .4; return; }
+      if (A.t1 <= 0) { A.t1 = hpK < .5 ? 5 : 7; const p = live[(Math.random() * live.length) | 0], q = randomNear(p.x, p.y, 420); if (q && mobWalk(q[0], q[1])) { addObj('galera', q[0], q[1], 2); SND.mob('whisper', .3); } }
+      if (A.t2 <= 0 && tg) { A.t2 = 9; o.sk = SKN[3]; const q = randomNear(tg.x, tg.y, 200); if (q && mobWalk(q[0], q[1])) { o.x = q[0]; o.y = q[1]; } }
+      return melee(); }
+    if (o.kind === 'mvp_bruja') {
+      const goo = goos.length > 0, groups = live.filter(p => live.some(q => q !== p && near2(p, q, 300)));
+      if (A.act === 'poder') { o.sk = SKN[5]; o.moving = false; if (A.at <= 0) { const cand = live.filter(p => live.some(q => q !== p && near2(p, q, 300)));
+          if (cand.length) { const v = cand[(Math.random() * cand.length) | 0]; A.act = 'salto'; A.at = .6; A.x0 = o.x; A.y0 = o.y; A.x1 = v.x; A.y1 = v.y; A.vic = v; net('mvpban', { t: 'TE ROBA EL ALMA', c: '#a0ff60' }); }
+          else { A.act = null; net('mvpban', { t: 'SE LE ESCAPÓ EL ALMA', c: '#a0ff60' }); banner('SE LE ESCAPÓ EL ALMA', null, 1400, '#a0ff60'); } } return; }
+      if (A.act === 'salto') { o.sk = SKN[6]; const k = 1 - A.at / .6; o.x = A.x0 + (A.x1 - A.x0) * k; o.y = A.y0 + (A.y1 - A.y0) * k; if (A.at <= 0) { A.act = null; if (A.vic && near2(A.vic, o, 140)) hit(A.vic, 99999, 0); } return; }
+      if (A.t3 <= 0 && goo && groups.length >= 2) { A.t3 = 18; A.act = 'poder'; A.at = groups.length >= 3 ? 1.6 : 2.4; net('mvpban', { t: '¡SE ESTÁ CARGANDO!', s: '¡Sepárense!', c: '#a0ff60' }); banner('¡SE ESTÁ CARGANDO!', '¡Sepárense!', 1800, '#a0ff60'); SND.mob('hiss', .5); return; }
+      if (A.t1 <= 0 && tg) { A.t1 = hpK < .5 ? 1.6 : 2.4; o.lunge = .6; fireMob(o, tg, 'moco'); if (hpK < .6) fireMob(o, tg, 'moco', .25); }
+      return melee(); }
+    if (o.kind === 'mvp_dama') {
+      if (A.mode == null) { A.mode = 'azul'; A.sw = 10; } A.sw -= dt; if (A.sw <= 0 && !A.act) { A.mode = A.mode === 'azul' ? 'roja' : 'azul'; A.sw = 10; net('mvpban', { t: A.mode === 'azul' ? 'LLORA…' : 'SE ENOJA', c: A.mode === 'azul' ? '#8fd0ff' : '#ff6060' }); }
+      o.sk = A.mode === 'azul' ? SKN[7] : SKN[8];
+      if (A.act === 'robo') { o.sk = SKN[9]; o.moving = false; if (A.at <= 0) { const v = A.vic; A.act = 'hielo'; A.at = 1.3; if (v) { const q = [v.x + 80, v.y]; if (mobWalk(q[0], q[1])) { o.x = q[0]; o.y = q[1]; } hit(v, T.dmg * 2.2, 0); o.hp = Math.min(o.mhp || T.hp, o.hp + T.dmg * 4); floats.push({ x: o.x, y: o.y - 260, t: 1, txt: '+VIDA', c: '#ff8080' }); } A.mode = 'azul'; A.sw = 8; net('mvpban', { t: 'VA A CONGELAR', s: 'Júntense de a 3', c: '#8fd0ff' }); } return; }
+      if (A.act === 'hielo') { o.sk = SKN[7]; o.moving = false; if (A.at <= 0) { A.act = null; const v = A.vic || tg; if (v) { const n = live.filter(p => near2(p, v, 170)).length; shake = .3;
+            if (n >= 3) { net('mvpban', { t: 'HIELO BLOQUEADO', c: '#bfefff' }); banner('HIELO BLOQUEADO', null, 1200, '#bfefff'); } else fxOn(v, { half: 1, stun: 3, k: 'frz', mk: o.kind }); } } return; }
+      const burning = live.find(p => p.me ? P.burn > 0 : (others.get(p.id) || {}).burn);
+      if (A.t3 <= 0 && burning) { A.t3 = 14; A.act = 'robo'; A.at = .7; A.vic = burning; return; }
+      if (A.t2 <= 0 && tg && A.mode === 'azul') { A.t2 = 11; A.act = 'hielo'; A.at = 1.4; A.vic = tg; net('mvpban', { t: 'VA A CONGELAR', s: 'Júntense de a 3', c: '#8fd0ff' }); banner('VA A CONGELAR', 'Júntense de a 3', 1400, '#8fd0ff'); return; }
+      if (tg && bd < T.reach + 30 && o.cd <= 0) { o.cd = T.cd; o.lunge = 1; hit(tg, T.dmg, 30); fxOn(tg, A.mode === 'roja' ? { burn: 5 } : { slow: 2 }); o.moving = false; return; }
+      if (tg) moveMob(o, tg.x, tg.y, T.sp, dt); return; }
+    if (o.kind === 'mvp_demonio') {
+      A.au = (A.au || 0) - dt; if (A.au <= 0) { A.au = .5; live.forEach(p => { if (near2(p, o, 210)) hit(p, 9, 0); }); }
+      if (A.act === 'humo') { o.sk = SKN[10]; o.vis = Math.max(0, o.vis - dt * 2); o.moving = false; if (A.at <= 0) { A.act = A.boom ? 'cuenta' : null; A.at = 5; o.vis = A.boom ? 0 : 1; if (A.boom) { net('mvpban', { t: '¡SUBITE A UN FUEGO!', s: '5 segundos', c: '#ffa040', big: 1 }); banner('¡SUBITE A UN FUEGO!', '5 segundos', 2200, '#ffa040'); } } return; }
+      if (A.act === 'cuenta') { o.vis = 0; o.moving = false; const s = Math.ceil(A.at); if (s !== A.ls) { A.ls = s; net('mvpban', { t: String(s), c: '#ffa040', big: 1 }); banner(String(s), null, 900, '#ffa040'); }
+        if (A.at <= 0) { A.act = null; o.vis = 1; o.sk = SKN[11]; shake = .9; SND.shot(); const fires = mvpObjs.filter(q => q.t === 'fuego'); live.forEach(p => { if (!fires.some(f => near2(p, f, 95))) hit(p, 99999, 0); }); mvpObjs = mvpObjs.filter(q => q.t !== 'fuego'); objNet(); for (let i = 0; i < 60; i++) parts.push({ x: o.x + rnd(-600, 600), y: o.y + rnd(-300, 300), vx: rnd(-40, 40), vy: rnd(-200, -60), life: rnd(.4, 1), s: rnd(4, 8), c: 220, fire: 1 }); } return; }
+      if (A.t3 <= 0) { A.t3 = hpK < .5 ? 16 : 22; A.act = 'humo'; A.at = 1.2; A.boom = Math.random() < .55; mvpObjs = mvpObjs.filter(q => q.t !== 'fuego'); live.forEach(p => { const q = randomNear(p.x, p.y, 380) || [p.x, p.y]; addObj('fuego', q[0], q[1], 0); }); return; }
+      if (A.t2 <= 0 && tg) { A.t2 = 12; [-1, 1].forEach(s => { const c_ = spawnMob('mvp_clon', 0, [o.x + s * 120, o.y]); if (c_) { c_.ttl = 4; c_.chasing = true; c_.alpha = .8; } }); }
+      return melee(); }
+  }
+  function mvpTick(dt) { if (!mvpEv || !MAP.mvp) return; mvpEv.t += dt;
+    const boss = mobs.find(o => o.T.mvp);
+    if (isHost && !mvpEv.spawned && mvpEv.t > 3 && roomReady !== false) { mvpEv.spawned = true; if (!boss) { const M = MVPS[mvpEv.mk]; const [sx, sy] = MAP.spawn, q = [sx * WS, (sy - 160) * WS]; const o = spawnMob(M.kind, 0, mobWalk(q[0], q[1]) ? q : null); if (o) { o.chasing = true; o.alpha = 0; } } }
+    if (boss) mvpEv.seen = true;
+    /* clones: duran 4 segundos */
+    if (isHost) mobs.slice().forEach(o => { if (o.T.clon) { o.ttl = (o.ttl || 4) - dt; if (o.ttl <= 0) { const i = mobs.indexOf(o); if (i >= 0) mobs.splice(i, 1); } } });
+    /* fuegos del Demonio: queman si los pisás fuera de la cuenta */
+    mvpObjs.forEach(f => { if (f.t === 'fuego' && Math.random() < dt * 14) parts.push({ x: f.x + rnd(-40, 40), y: f.y + rnd(-14, 14), vx: rnd(-10, 10), vy: rnd(-140, -60), life: rnd(.3, .6), s: rnd(3, 6), c: 220, fire: 1 }); });
+    /* todos caídos: se termina */
+    if (P.dead && !mvpEv.over) { const anyAlive = [...others.values()].some(o => !o.dead); mvpEv.deadT = (mvpEv.deadT || 0) + dt; if (!anyAlive && mvpEv.deadT > 3) { mvpEv.over = true; banner('CAYERON TODOS', 'La libreta los devuelve…', 3000, '#ff5a6a'); setTimeout(() => mvpBack('El MVP ganó esta vez.'), 3200); } } else if (!P.dead) mvpEv.deadT = 0;
+    /* revivir: botón cuando estás al lado de un caído */
+    const dn = [...others.entries()].find(([id, o]) => o.dead && Math.hypot(o.x - P.x, (o.y - P.y) * 1.2) < 140); mvpEv.rev = dn ? dn[0] : null; }
+  function mvpWon(kind) { if (!mvpEv || mvpEv.over) return; const mk = Object.keys(MVPS).find(k => MVPS[k].kind === kind); if (!mk) return; mvpEv.over = true; const M = MVPS[mk];
+    INV.mvpWon = INV.mvpWon || {}; INV.mvpWon[mk] = (INV.mvpWon[mk] || 0) + 1;
+    banner('¡VENCIERON!', M.n + ' cayó', 3500, '#ffd860'); SND.level(); buzz([60, 40, 120]);
+    if (P.dead) { P.dead = false; P.hp = maxHp(lvlOf(P.xp)) * .5; $('#ov-dead').hidden = true; }
+    const got = []; M.drops.forEach(([k, ch]) => { if (Math.random() < ch) { addItem(k); got.push(ITEMS[k].n); } });
+    for (let i = 0; i < 2; i++) { const k = resolveLoot(pickW([['W', 2], ['C', 2], ['A', 2], ['G', 1], ['V', 2], ['P', 1]]), 'mvp'); const g = takeItem(k); if (g) got.push(ITEMS[g].n); }
+    if (M.pista) { INV.mvpPistas = INV.mvpPistas || []; if (!INV.mvpPistas.includes(M.pista)) INV.mvpPistas.push(M.pista); }
+    setTimeout(() => { toast('Ganaste: ' + got.join(' · ') + (M.pista ? ' · PISTA: "' + M.pista + '"' : '')); }, 1500);
+    if (M.pista) setTimeout(() => banner('PISTA', '"' + M.pista + '"', 4000, '#e8c070'), 4200);
+    persist(); setTimeout(() => mvpBack(), 11000); }
+  function revive(id) { if (!hasItem('suero') && !hasItem('kit')) return toast('Para revivir necesitás un maletín de curación total o un kit de curación.'); const k = hasItem('suero') ? 'suero' : 'kit'; INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; if (k === 'suero') sueroTaken();
+    net('revive', { to: id, by: me.nick }); SND.level(); toast('Lo reviviste.'); persist(); quickBtns(); }
+  function gotRevived(by) { if (!P.dead) return; P.dead = false; P.hp = Math.round(maxHp(lvlOf(P.xp)) * .5); P.inv = 3; $('#ov-dead').hidden = true; SND.level(); banner('TE REVIVIERON', by, 1800, '#9fe0b0'); hud(); sendPos(true); }
+  function mvpDraw(c, W2S, zoom, t) { if (!MAP || !MAP.mvp) return;
+    mvpObjs.forEach(o => { const [x, y] = W2S(o.x, o.y);
+      if (o.t === 'galera') { const im = iconOf('gorro_desap'), w = 70 * zoom; c.globalAlpha = .95; c.save(); c.shadowColor = '#b080ff'; c.shadowBlur = 18; try { c.drawImage(im, x - w / 2, y - w * .9 + Math.sin(t * 3 + o.id) * 4, w, w); } catch (e) {} c.restore(); c.globalAlpha = 1; for (let i = 0; i < (o.hp || 1); i++) { c.fillStyle = '#d8c8ff'; c.fillRect(x - 10 + i * 12, y + 6, 8, 4); } }
+      if (o.t === 'fuego') { c.save(); c.globalCompositeOperation = 'lighter'; const g = c.createRadialGradient(x, y, 0, x, y, 90 * zoom); g.addColorStop(0, 'rgba(255,200,80,.6)'); g.addColorStop(1, 'rgba(255,60,0,0)'); c.fillStyle = g; c.beginPath(); c.ellipse(x, y, 90 * zoom, 38 * zoom, 0, 0, 7); c.fill(); c.restore(); c.strokeStyle = 'rgba(255,190,90,.9)'; c.lineWidth = 2 * zoom; c.beginPath(); c.ellipse(x, y, 80 * zoom, 32 * zoom, 0, 0, 7); c.stroke(); } });
+    if (mapKey === 'mvp_hospital' && mobs.some(o => o.kind === 'mvp_cs' && o.A && o.A.act === 'grito')) CAMILLAS.forEach(([cx, cy]) => { const [x, y] = W2S(cx * WS, cy * WS); c.strokeStyle = 'rgba(160,255,170,.55)'; c.lineWidth = 3 * zoom; c.beginPath(); c.ellipse(x, y, 120 * zoom, 50 * zoom, 0, 0, 7); c.stroke(); });
+    others.forEach((o, id) => { if (!o.dead) return; const [x, y] = W2S(o.x, o.y); c.font = 'bold ' + Math.round(13 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; c.fillStyle = '#ff8a7c'; c.fillText('CAÍDO', x, y - 200 * zoom * .5); });
+  }
   function slot_is_weapon(k) { return !!WEAP[k]; }
-  $('#inv-b').onclick = openInv; $('#inv-close').onclick = closeInv;
+  $('#inv-b').onclick = openInv; $('#inv-close').onclick = closeInv; $('#lib-close').onclick = closeLib;
 
   /* ---------- Oscuros compartidos: el anfitrión de la sala los mueve, todos ven los mismos ---------- */
   let isHost = true, hostId = null, roomReady = false, mobSeq = 0, snapT = 0, maintT = 0, unlocks = {}; const lastDeath = {};
@@ -910,7 +1057,7 @@
   /* Yuki en PvP: 20 minutos de cada hora, a una hora distinta cada día */
   const yukiPvp = () => { const m = (minOfDay() + hashStr('yuki' + dayN()) % 60) % 60; return m < 20; };
   const bossOn = k => { const b = BOSS_AT[k]; if (!b || EXP) return false; const m = (minOfDay() + hashStr(b) % 120) % 120; return m < 20; };
-  function wantMobs() { const w = Object.assign({}, MAP.mobs || {}); if (hordeOn(mapKey)) Object.keys(w).forEach(k => w[k] *= 2); if (!EXP && !MAP.base && (MAP.dark || 0) >= .45 && !INV.eq.luz) w.ojos = 2; if (EXP) { if (mapKey === 'pvp_centro' && yukiPvp()) w.yuki = 1; return w; } Object.keys(EXTRA).forEach(k => { if (EXTRA[k][mapKey]) w[k] = (w[k] || 0) + EXTRA[k][mapKey]; }); const hb = bossesToday()[mapKey]; if (hb && bossAlive(hb)) { const ph = mobs.find(o => o.kind === hb + '_b' || o.kind === hb + '_c'); if (ph) w[ph.kind] = 1; else w[hb] = 1; }
+  function wantMobs() { const w = Object.assign({}, MAP.mobs || {}); if (hordeOn(mapKey)) Object.keys(w).forEach(k => w[k] *= 2); if (!EXP && !MAP.base && !MAP.mvp && (MAP.dark || 0) >= .45 && !INV.eq.luz) w.ojos = 2; if (EXP) { if (mapKey === 'pvp_centro' && yukiPvp()) w.yuki = 1; return w; } Object.keys(EXTRA).forEach(k => { if (EXTRA[k][mapKey]) w[k] = (w[k] || 0) + EXTRA[k][mapKey]; }); const hb = bossesToday()[mapKey]; if (hb && bossAlive(hb)) { const ph = mobs.find(o => o.kind === hb + '_b' || o.kind === hb + '_c'); if (ph) w[ph.kind] = 1; else w[hb] = 1; }
     /* nunca dos jefes juntos: queda el que ya está en el mapa, si no el primero */
     const bk = Object.keys(w).filter(k => MOB[k] && MOB[k].boss && w[k] > 0); if (bk.length > 1) { const here = bk.find(k => mobs.some(o => o.kind === k)) || bk[0]; bk.forEach(k => { if (k !== here) delete w[k]; }); }
     return w; }
@@ -936,6 +1083,7 @@
     for (let n = 0; n < Math.min(want, pts.length); n++) { const [x, y] = pts[(Math.random() * pts.length) | 0], ks = hgt / art.height;
       parts.push({ x: p.x + (p.f < 0 ? art.width / 2 - x : x - art.width / 2) * ks, y: p.y - (art.height - y) * ks * (art.hd ? 240 / 256 : 1), vx: rnd(-30, 50), vy: rnd(-90, -20), life: rnd(.35, .7), s: PXS * .9, c: Math.random() < .8 ? 40 : 150 }); }
     if (T.boss) { shake = .6; toast(T.name + ' cayó.'); }
+    if (T.mvp) mvpWon(p.kind);
     if (!p.by.includes(me.id)) return;
     INV.racha = 0; if (window.CZ_STORY && STORY) CZ_STORY.kill(p.kind, p.x, p.y);
     const lvBefore = lvlOf(P.xp), mL = mobLevel(p.id, p.kind), gx = Math.round(T.xp * (T.boss ? 1.5 + (mL || 10) / 15 : mL ? lvXp(mL) : .4) * (EXP ? 3 : 1)), gc = (T.coins || 1) + Math.floor((T.boss ? 0 : mL) / 8); P.kills++; P.xp += gx; INV.coins += gc; buzz(30);
@@ -971,7 +1119,7 @@
   const flagsOf = o => (o.moving ? 1 : 0) | (o.wind > 0 ? 2 : 0) | (o.lunge > .3 ? 4 : 0) | (o.chasing ? 8 : 0);
   /* anfitrión: un paquete por tick con los Oscuros que cambiaron; completo cada 2 s */
   function sendEnemies() { const now = Date.now(), full = needFull || now - lastFull >= NET.FULL_SNAPSHOT_INTERVAL_MS; const e = [];
-    mobs.forEach(o => { const row = [o.id, Math.round(o.x), Math.round(o.y), STC.indexOf(o.st), Math.ceil(o.hp), MKEYS.indexOf(o.kind), o.face, flagsOf(o), Math.round(o.vis * 10), o.combo % 3];
+    mobs.forEach(o => { const row = [o.id, Math.round(o.x), Math.round(o.y), STC.indexOf(o.st), Math.ceil(o.hp), MKEYS.indexOf(o.kind), o.face, flagsOf(o), Math.round(o.vis * 10), o.combo % 3, Math.max(0, SKN.indexOf(o.sk))];
       const l = lastEnemy.get(o.id); if (full || !l || Math.abs(l[1] - row[1]) > NET.POS_EPSILON || Math.abs(l[2] - row[2]) > NET.POS_EPSILON || l.slice(3).join() !== row.slice(3).join()) { e.push(row); lastEnemy.set(o.id, row); } });
     if (!full && !e.length) return; if (full) { lastFull = now; needFull = false; [...lastEnemy.keys()].forEach(id => { if (!mobs.some(o => o.id === id)) lastEnemy.delete(id); }); }
     net('enemies', { t: now, full, e }); }
@@ -980,9 +1128,9 @@
     if (last && Math.hypot(x - last.x, y - last.y) > 260) o.buf.length = 0; else if (last && now - last.t > 250) o.buf.push({ t: now - 1000 / NET.NET_TICK_HZ, x: last.x, y: last.y });
     o.buf.push({ t: now, x, y }); while (o.buf.length > 5) o.buf.shift(); }
   function applyEnemies(p) { if (netMode !== 'MULTI_CLIENT') return; const seen = p.full ? new Set() : null;
-    p.e.forEach(([id, x, y, sti, hp, ki, face, fl, vis, combo]) => { if (seen) seen.add(id); const kind = MKEYS[ki]; if (!kind) return; let o = mobs.find(m => m.id === id);
+    p.e.forEach(([id, x, y, sti, hp, ki, face, fl, vis, combo, ski]) => { if (seen) seen.add(id); const kind = MKEYS[ki]; if (!kind) return; let o = mobs.find(m => m.id === id);
       if (!o) { o = newMob(kind, id, x, y); o.alpha = 1; mobs.push(o); } pushBuf(o, x, y);
-      const wasWind = o.wind > 0, wasChase = o.chasing; o.hp = hp; o.face = face; o.moving = !!(fl & 1); o.wind = fl & 2 ? Math.max(o.wind, .01) : 0; if (fl & 4) o.lunge = 1; o.chasing = !!(fl & 8); o.vis = vis / 10; o.st = STC[sti] || 'idle'; o.combo = combo;
+      const wasWind = o.wind > 0, wasChase = o.chasing; o.hp = hp; o.face = face; o.moving = !!(fl & 1); o.wind = fl & 2 ? Math.max(o.wind, .01) : 0; if (fl & 4) o.lunge = 1; o.chasing = !!(fl & 8); o.vis = vis / 10; o.st = STC[sti] || 'idle'; o.combo = combo; o.sk = SKN[ski || 0] || null;
       if (o.wind > 0 && !wasWind) { if (o.T.heavy) SND.mob('roar', .2); else SND.warn(); } if (o.chasing && !wasChase) SND.mob(o.T.snd, .2); });
     if (seen) { for (let i = mobs.length - 1; i >= 0; i--) if (!seen.has(mobs[i].id)) mobs.splice(i, 1); gotFull = true; } }
   /* interpolación con ~100 ms de atraso; si no llega nada, adivina hasta 200 ms y se congela */
@@ -1051,6 +1199,12 @@
         else if (v) toast(v.nick + ' cayó.'); },
       mhit: p => { if (netMode !== 'MULTI_HOST') return; const o = mobs.find(m => m.id === p.id); if (o) { mobHit(o, p.d, p.kx, p.ky, p.by); if (p.fx) applyMobFx(o, p.fx, p.by); } },
       throw: p => { throws.push({ k: p.k, x0: p.x0, y0: p.y0, x1: p.x1, y1: p.y1, t: 0, T: .75, dmg: 0, remote: 1 }); },
+      mvpgo: p => { if (p.from === mapKey) goMvp(p.mk, p.by); },
+      pfx: p => { if (p.to === me.id) applyPfx(p.fx); },
+      mvpo: p => { if (isHost) return; mvpObjs = p.o.map(([id, t, x, y, hp]) => ({ id, t, x, y, hp })); },
+      mvpx: p => { if (isHost) breakObj(p.id); },
+      mvpban: p => { banner(p.t, p.s, p.big ? 1400 : 1800, p.c); if (p.t === 'FINALE!') SND.mob('roar', .7); },
+      revive: p => { if (p.to === me.id) gotRevived(p.by); },
       mfx: p => { if (!isHost) return; const o = mobs.find(m => m.id === p.id); if (o) applyMobFx(o, p.fx, p.by); },
       mdie: p => onMobDie(p),
       mstrike: p => { if (p.to === me.id) hitPlayer(p.d, { x: p.x, y: p.y }, p.k, null, p.mk || 'oscuro'); },
@@ -1083,7 +1237,7 @@
   const NPCS = {}; Object.entries(MAPS).forEach(([k, m]) => { if (m.npcs) NPCS[k] = m.npcs.map(n => Object.assign({}, n, n.act === 'heal' ? { heal: n.fac, act: null } : {}, n.k === 'mercedes' ? { brz: 'ork' } : {}, n.act === 'brazalete' ? { brz: n.fac, act: null } : {})); });
   if (EXP) { NPCS.pvp_azul = [{ k: 'ex10', nm: 'INTENDENTE', line: 'Kit de combate. Elegí bien.', x: 640, y: 330, act: 'kit', fac: 'rebel' }]; NPCS.pvp_rojo = [{ k: 'instructor_ork', nm: 'INSTRUCTOR', line: 'Equipate, recluta.', x: 760, y: 330, act: 'kit', fac: 'ork' }]; }
   const damaNpcs = () => mobs.filter(o => o.T.passive && o.hp > 0).map(o => ({ k: o.T.sheet, nm: o.T.name, line: '…', x: o.x / WS, y: o.y / WS, dama: o.id }));
-  const npcsHere = () => CAS.concat(NPCS[mapKey] || [], damaNpcs()).filter(n => !n.cada || ((minOfDay() + hashStr(n.k) % 60) % 60) < 20 || (STORY && window.CZ_STORY && CZ_STORY.wants && CZ_STORY.wants(n.k))).concat(STORY && window.CZ_STORY ? CZ_STORY.npcs(mapKey) : []);
+  const npcsHere = () => CAS.concat(libNpcs(), NPCS[mapKey] || [], damaNpcs()).filter(n => !n.cada || ((minOfDay() + hashStr(n.k) % 60) % 60) < 20 || (STORY && window.CZ_STORY && CZ_STORY.wants && CZ_STORY.wants(n.k))).concat(STORY && window.CZ_STORY ? CZ_STORY.npcs(mapKey) : []);
   function nearNpc() { let best = null, bd = 150; npcsHere().forEach(n => { const d = Math.hypot(n.x * WS - P.x, (n.y * WS - P.y) * 1.2); if (d < bd) { bd = d; best = n; } }); return best; }
   const healCd = {};
   /* el bando contrario no te atiende: te maldicen, te insultan o te lastiman */
@@ -1106,6 +1260,7 @@
     INV.quests[q.id] = 1; SND.level(); buzz([30, 40, 60]); toast('MISIÓN CUMPLIDA · ' + n.nm + ': "' + q.done + '"'); hud(); persist(); }
   function talkNpc(n) { n.sayT = 4; SND.pick();
     if (n.dama) return damaTalk(n);
+    if (n.lib) return openLib(n.lib);
     if (n.cas) { const op = INV.cas && INV.cas[n.id] === dayN(); if (op) return toast('Casillero abierto. Ya no queda nada (vuelve a llenarse mañana).'); if (!hasItem('ganzuas')) return toast('Casillero cerrado. Necesitás ganzúas para forzarlo.'); return useItem('ganzuas', 'use'); }
     if (n.story && window.CZ_STORY) return CZ_STORY.talk(n);
     if (n.act === 'kit') return n.fac !== me.faction ? hostil(n) : openKit(n);
@@ -1177,6 +1332,7 @@
   function attack() { if (!P || P.dead || paused || P.cd > 0) return; const wk = curW(), W = WEAP[wk], EI = ITEMS[wk] || {}; if (W.gun && !gunReady(wk)) return; P.atk = .3; P.cd = W.cd * (INV.ab.includes('rapido') ? .7 : 1); P.wk = wk;
     if (P.gorro) { P.gorro = 0; P.ghost = 0; }
     const fx = { d: [0, 1], u: [0, -1], l: [-1, 0], r: [1, 0] }[P.dir], dmg = playerDmg(), range = W.range; let hitAny = false; const hitList = [];
+    if (MAP.mvp && mvpObjs.length) hitObjs(W.gun ? 300 : range);
     if (W.gun) { shoot(fx, dmg, W); return; }
     if (EI.lamento) { if (P.lamC % 3 === 2 && P.lamTg && !mobs.some(m => m.id === P.lamTg && m.hp > 0)) { const nx = mobs.filter(m => m.hp > 0 && !m.T.passive && Math.hypot(m.x - P.x, m.y - P.y) < 700).sort((a, b) => Math.hypot(a.x - P.x, a.y - P.y) - Math.hypot(b.x - P.x, b.y - P.y))[0];
         if (nx) { for (let i = 0; i < 16; i++) parts.push({ x: P.x + rnd(-20, 20), y: P.y - rnd(0, 150), vx: rnd(-50, 50), vy: rnd(-80, -10), life: .6, s: 4, c: 10 }); const bx = nx.x - (nx.face || 1) * 90; if (walkable(bx, nx.y)) { P.x = bx; P.y = nx.y; } else { P.x = nx.x; P.y = nx.y + 40; } P.dir = (nx.x - P.x) < 0 ? 'l' : 'r'; P.lamTg = nx.id; floats.push({ x: P.x, y: P.y - 220, t: 1, txt: 'SOMBRA', c: '#b080ff' }); } } }
@@ -1227,14 +1383,15 @@
             net('hit', { id: me.id, to: id, d, ax: Math.round(P.x), ay: Math.round(P.y) }); } }); }
       if (b.boom) { b.t0 += dt; if (b.t0 > .55 && !b.back) { b.back = 1; b.vx = -b.vx; b.vy = -b.vy; } }
       b.life -= dt; if (hit || b.life <= 0) { for (let j = 0; j < 6; j++) parts.push({ x: b.x, y: b.y + 95 - 95, vx: rnd(-80, 80), vy: rnd(-80, 0), life: .3, s: 2, c: 200 }); shots.splice(i, 1); } } }
-  function pressA() { if (!P || P.dead || paused) return; const n = nearNpc(); if (n) return talkNpc(n); }
+  function pressA() { if (!P || P.dead || paused) return; if (mvpEv && mvpEv.rev) return revive(mvpEv.rev); const n = nearNpc(); if (n) return talkNpc(n); }
   function sendSay() { const t = $('#say-in').value.trim(); $('#say').hidden = true; $('#say-in').blur(); if (!t) return; P.say = t; P.sayT = 6; net('say', { id: me.id, t }); }
   $('#say-go').onclick = sendSay; $('#say-in').addEventListener('keydown', e => { if (e.key === 'Enter') sendSay(); if (e.key === 'Escape') { $('#say').hidden = true; $('#say-in').blur(); } });
 
   /* ---------- menú / salir ---------- */
   function openMenu() { if (!running) return; paused = true; $('#ov-menu').hidden = false; }
   $('#menu-b').onclick = openMenu; $('#m-back').onclick = () => { paused = false; $('#ov-menu').hidden = true; };
-  $('#m-snd').onclick = () => { SND.init(); $('#m-snd').textContent = 'SONIDO: ' + (SND.toggle() ? 'SÍ' : 'NO'); };
+  $('#m-snd').onclick = () => { SND.init(); $('#m-snd').textContent = 'SONIDO: ' + (SND.toggle() ? 'SÍ' : 'NO'); $('#snd-b').classList.toggle('off', !SND.on); };
+  $('#snd-b').onclick = () => { SND.init(); const on = SND.toggle(); $('#snd-b').classList.toggle('off', !on); $('#m-snd').textContent = 'SONIDO: ' + (on ? 'SÍ' : 'NO'); toast(on ? 'Sonido prendido.' : 'Sonido apagado.'); };
   $('#m-exit').onclick = async () => { $('#m-exit').disabled = true; $('#m-exit').textContent = 'GUARDANDO…'; await persist(); leaveRoom();
     try { if (PL.ScreenOrientation) await PL.ScreenOrientation.lock({ orientation: 'portrait' }); } catch (e) {} location.replace('/index.html#theof'); };
   if (PL.App && PL.App.addListener) PL.App.addListener('backButton', () => { if (!$('#say').hidden) { $('#say').hidden = true; return; } if (!$('#ov-inv').hidden) { closeInv(); return; } if (!$('#ov-shop').hidden) { paused = false; $('#ov-shop').hidden = true; return; } if (paused) { paused = false; $('#ov-menu').hidden = true; } else openMenu(); });
@@ -1285,7 +1442,7 @@
     if (P.slow > 0) P.slow -= dt; if (P.stunT > 0) P.stunT -= dt; if (P.fast > 0) P.fast -= dt; if (P.smoke > 0) P.smoke -= dt;
     if (P.burn > 0 && !P.dead) { P.burn -= dt; P.dotT = (P.dotT || 0) + dt; if (Math.random() < dt * 8) parts.push({ x: P.x + rnd(-18, 18), y: P.y - rnd(20, 150), vx: rnd(-10, 10), vy: -60, life: .5, s: 4, c: 200, fire: 1 }); }
     if (P.poison > 0 && !P.dead) { P.poison -= dt; P.dotT = (P.dotT || 0) + dt; if (Math.random() < dt * 4) parts.push({ x: P.x + rnd(-14, 14), y: P.y - rnd(40, 150), vx: 0, vy: -30, life: .7, s: 3, c: 120 }); }
-    if ((P.burn > 0 || P.poison > 0) && P.dotT >= 1 && !P.dead) { P.dotT = 0; const dd = (P.burn > 0 ? 3 : 0) + (P.poison > 0 ? 2 : 0); P.hp -= dd; floats.push({ x: P.x, y: P.y - 200, t: .7, txt: (P.burn > 0 ? 'QUEMADO ' : '') + (P.poison > 0 ? 'VENENO ' : '') + '-' + dd, c: P.burn > 0 ? '#ff9a50' : '#9fe070' }); hud(); if (P.hp <= 0) { P.hp = 1; hitPlayer(999, null, 0, null, P.burn > 0 ? 'incinerario' : 'insecto'); } }
+    if ((P.burn > 0 || P.poison > 0) && P.dotT >= 1 && !P.dead) { P.dotT = 0; const dd = (P.burn > 0 ? 3 : 0) + (P.poison > 0 ? (P.poisonK || 2) : 0); if (!(P.poison > 1)) P.poisonK = 0; P.hp -= dd; floats.push({ x: P.x, y: P.y - 200, t: .7, txt: (P.burn > 0 ? 'QUEMADO ' : '') + (P.poison > 0 ? 'VENENO ' : '') + '-' + dd, c: P.burn > 0 ? '#ff9a50' : '#9fe070' }); hud(); if (P.hp <= 0) { P.hp = 1; hitPlayer(999, null, 0, null, P.burn > 0 ? 'incinerario' : 'insecto'); } }
     { const fx = $('#fx-st'); if (fx) { const tx = (P.burn > 0 ? '🔥 QUEMADO · venda para quemaduras  ' : '') + (P.poison > 0 ? '☠ ENVENENADO · antiveneno' : '') + (P.smoke > 0 ? ' · sin aire' : '') + (P.fast > 0 ? ' · veloz' : '') + (P.goo > 0 ? ' · 🟢 EN EL MOCO: te pegan el doble' : P.stunT > 0 ? ' · 💫 ATURDIDO' : ''); if (fx.textContent !== tx) fx.textContent = tx; fx.hidden = !tx; } }
     pvpTick(dt); if (STORY && window.CZ_STORY) CZ_STORY.tick(dt);
     const fireD = MAP.fire ? Math.hypot(P.x - MAP.fire[0] * WS, P.y - MAP.fire[1] * WS) : 9999;
@@ -1293,8 +1450,8 @@
     const lv = lvlOf(P.xp);
     if (INV.eq.luz) { INV.bat = Math.max(0, INV.bat - dt * .8); if (INV.bat <= 0) { if (hasItem('pilas')) { INV.items.pilas--; if (!INV.items.pilas) delete INV.items.pilas; INV.bat = 100; toast('Cambiaste las pilas de la linterna.'); } else { INV.eq.luz = null; toast('La linterna se quedó sin pilas.'); } } if ((t % 1) < dt) hud(); }
     shake = Math.max(0, shake - dt); updateShots(dt); updateMobShots(dt); sueroTick(false);
-    gearTick(dt); P.vendaCd = Math.max(0, (P.vendaCd || 0) - dt); P.ghost = Math.max(0, (P.ghost || 0) - dt); P.ghostCd = Math.max(0, (P.ghostCd || 0) - dt);
-    $('#shop-b').hidden = true; const nn = nearNpc(); const al = $('#a-lab'); if (al) { const want = nn ? nn.nm : 'HABLAR'; if (al.textContent !== want) al.textContent = want; } $('#btn-a').hidden = !nn; npcsHere().forEach(n => { if (n.sayT > 0) n.sayT -= dt; });
+    gearTick(dt); mvpTick(dt); P.vendaCd = Math.max(0, (P.vendaCd || 0) - dt); P.ghost = Math.max(0, (P.ghost || 0) - dt); P.ghostCd = Math.max(0, (P.ghostCd || 0) - dt);
+    $('#shop-b').hidden = true; const nn = nearNpc(); const rv = mvpEv && mvpEv.rev; const al = $('#a-lab'); if (al) { const want = rv ? 'REVIVIR' : nn ? nn.nm : 'HABLAR'; if (al.textContent !== want) al.textContent = want; } $('#btn-a').hidden = !nn && !rv; npcsHere().forEach(n => { if (n.sayT > 0) n.sayT -= dt; });
     for (let i = pickups.length - 1; i >= 0; i--) { const q = pickups[i]; q.t += dt; if (q.cool > 0) { q.cool -= dt; continue; } if (!P.dead && Math.hypot(q.x - P.x, (q.y - P.y) * 1.2) < 70) { pickups.splice(i, 1); if (q.k === 'pista') q.k = PISTA(); q.k = resolveLoot(q.k); if (!ITEMS[q.k]) continue; const got = takeItem(q.k); if (got) q.k = got; SND.pick(); buzz(20);
         if (EXP && /^pista_/.test(q.k) && INV.items[q.k] >= 3) { INV.items[q.k] -= 3; if (!INV.items[q.k]) delete INV.items[q.k]; addItem(BRZ()); setTimeout(() => toast('Juntaste 3 pistas: tenés el ' + ITEMS[BRZ()].n.toLowerCase() + '. Usalo desde la MOCHILA.'), 1200); } if (q.k === 'suero') sueroTaken(); if (q.pid) net('took', { pid: q.pid });
         if (got === q.k && !(ITEMS[q.k].gun && INV.items[q.k] > 1)) toast('Encontraste: ' + ITEMS[q.k].n + (ITEMS[q.k].r && ITEMS[q.k].r !== 'g' ? ' (' + RAR[ITEMS[q.k].r][0] + ')' : '') + (ITEMS[q.k].eq ? ' · equipalo desde la MOCHILA' : ITEMS[q.k].hab ? ' · va en HABILIDAD' : ''));
@@ -1329,7 +1486,7 @@
     function blinkTo(o, tg, near, minFar) { let p = null; if (near && tg) for (let k = 0; k < 25 && !p; k++) { const a = Math.random() * 6.283, r = rnd(110, 190), nx = tg.x + Math.cos(a) * r, ny = tg.y + Math.sin(a) * r * .7; if (mobWalk(nx, ny)) p = [nx, ny]; }
       if (!p) { if (tg && minFar) { for (let k = 0; k < 40 && !p; k++) { const q = randomMobCell(0); if (q && Math.hypot(q[0] - tg.x, q[1] - tg.y) > minFar) p = q; } } if (!p) p = randomMobCell(500); }
       if (p) { for (let i = 0; i < 18; i++) parts.push({ x: o.x + rnd(-20, 20), y: o.y - rnd(0, o.T.h), vx: rnd(-40, 40), vy: rnd(-60, -10), life: rnd(.4, .9), s: rnd(2, 5), c: 20 }); o.x = p[0]; o.y = p[1]; } }
-    mobs.slice().forEach(o => { const T = o.T; if (mobStatus(o, dt)) { o.t += dt; o.hurt = Math.max(0, o.hurt - dt); return; } o.t += dt; o.alpha = Math.min(1, o.alpha + dt * .8); o.hurt = Math.max(0, o.hurt - dt); o.cd = Math.max(0, o.cd - dt); o.lunge = Math.max(0, o.lunge - dt * 3); o.stT -= dt; o.ab -= dt; o.shotT -= dt;
+    mobs.slice().forEach(o => { const T = o.T; if (mobStatus(o, dt)) { o.t += dt; o.hurt = Math.max(0, o.hurt - dt); return; } if (T.ai === 'mvp') { mvpAI(o, dt, live, strikeOn); return; } o.t += dt; o.alpha = Math.min(1, o.alpha + dt * .8); o.hurt = Math.max(0, o.hurt - dt); o.cd = Math.max(0, o.cd - dt); o.lunge = Math.max(0, o.lunge - dt * 3); o.stT -= dt; o.ab -= dt; o.shotT -= dt;
       // objetivo: el jugador vivo más cercano que lo pueda ver
       let tg = null, best = 1e9; live.forEach(p => { if (T.fac && p.fac === T.fac) return; const d = Math.hypot(p.x - o.x, p.y - o.y); if (d < T.sight * p.sm * (o.chasing ? 1.4 : 1) && d < best) { best = d; tg = p; } });
       if (T.eyes && (INV.eq.luz || (tg && tg.me && INV.eq.luz))) { o.vis = Math.max(0, o.vis - dt * 2.5); if (o.vis <= 0) { const ii = mobs.indexOf(o); if (ii >= 0) mobs.splice(ii, 1); lastDeath[o.kind] = Date.now(); return; } tg = null; }
@@ -1509,7 +1666,8 @@
       let vis = o.vis; if (T.ai === 'blink' && (INV.eq.brazo === 'b_resonancia' || INV.eq.luz)) vis = Math.max(vis, .55);
       if (vis < .03) return;
       const fast = o.st === 'run' ? 20 : o.chasing ? (T.boss ? 14 : 9) : 5, frame = o.moving ? (Math.floor(o.t * fast) % 2 ? 1 : 2) : 0;
-      const art = artOf(T, frame, o.hurt > 0, o.moving, o.lunge > 0 || o.st === 'aim'), S = PXS * zoom, W = T.pw * S, H = T.ph * S;
+      const TT = o.sk ? (o.Tsk && o.Tsk.sheet === o.sk ? o.Tsk : (o.Tsk = Object.assign({}, T, { sheet: o.sk }))) : T, f4 = Math.floor(o.t * 7) % 4;
+      const art = o.sk ? artOf(TT, f4 % 3, o.hurt > 0, false, f4 === 3) : artOf(T, frame, o.hurt > 0, o.moving, o.lunge > 0 || o.st === 'aim'), S = PXS * zoom, W = T.pw * S, H = T.ph * S;
       const AX = art.hd ? CELL_HD * H * HD_K / 220 : W, AY = art.hd ? 240 * H * HD_K / 220 : H, AW = art.hd ? AX : W, AH = art.hd ? AX : H; // HD: celda cuadrada con pies en 240
       let lx = 0, jx = 0; if (o.lunge > 0) lx = o.face * 26 * o.lunge * zoom; if (o.wind > 0 || o.st === 'aim') jx = Math.sin(t * 60) * 2 * zoom;
       shadow(sx, sy, Math.max(22, T.pw * 1.6));
@@ -1525,7 +1683,7 @@
       if (T.ai === 'mole' && o.wind > 0 && o.combo % 3 === 2) { const k = 1 - o.wind / (T.wind * 1.5); c.strokeStyle = 'rgba(255,60,40,' + (.4 + k * .5) + ')'; c.lineWidth = 3; c.beginPath(); c.ellipse(sx + o.face * 50 * zoom, sy, 120 * zoom * k, 40 * zoom * k, 0, 0, 7); c.stroke(); }
       if (T.ai === 'ranged' || T.boss) { const ar = (T.aura ? 110 : 60) * zoom * (1 + Math.sin(t * 4) * .06); c.globalCompositeOperation = 'lighter'; const gr = c.createRadialGradient(sx, sy - H * .55, 0, sx, sy - H * .55, ar); gr.addColorStop(0, T.aura ? 'rgba(' + T.aura + ',.32)' : 'rgba(255,120,40,.22)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = gr; c.fillRect(sx - ar, sy - H * .55 - ar, ar * 2, ar * 2); c.globalCompositeOperation = 'source-over'; }
       if (T.ai === 'slam' && o.wind > 0) { const k = 1 - o.wind / T.wind; c.strokeStyle = 'rgba(255,90,70,' + (.25 + k * .5) + ')'; c.lineWidth = 2; c.beginPath(); c.ellipse(sx, sy, T.aoe * zoom * k, T.aoe * .35 * zoom * k, 0, 0, 7); c.stroke(); } }
-    function drawNpc(n) { if (n.obj) { const [ox, oy] = W2S(n.x * WS, n.y * WS); if (n.cas) { const im = img('/a/ob/casillero.png'), h = 150 * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, 30); if (INV.cas && INV.cas[n.id] === dayN()) c.globalAlpha = .55; c.drawImage(im, ox - w / 2, oy - h, w, h); c.globalAlpha = 1; } } if (nearNpc() === n) { c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; c.fillStyle = '#e8c070'; c.fillText(n.nm + ' · A', ox, oy - 40 * zoom); } return; } const [sx, sy] = W2S(n.x * WS, n.y * WS); if (sx < -200 || sx > VW + 200 || sy < -50 || sy > VH + 300) return; const S = 6.4 * zoom; shadow(sx, sy, 28);
+    function drawNpc(n) { if (n.obj) { const [ox, oy] = W2S(n.x * WS, n.y * WS); if (n.lib) { const im = img(LIBS[n.lib].img), h = 70 * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, 26); c.save(); c.shadowColor = n.lib === 'pablo' ? '#ff4060' : '#ff9ad0'; c.shadowBlur = 16 + Math.sin(t * 3) * 8; c.drawImage(im, ox - w / 2, oy - h - 10 + Math.sin(t * 2) * 3, w, h); c.restore(); } } if (n.cas) { const im = img('/a/ob/casillero.png'), h = 150 * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, 30); if (INV.cas && INV.cas[n.id] === dayN()) c.globalAlpha = .55; c.drawImage(im, ox - w / 2, oy - h, w, h); c.globalAlpha = 1; } } if (nearNpc() === n) { c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; c.fillStyle = '#e8c070'; c.fillText(n.nm + ' · A', ox, oy - 40 * zoom); } return; } const [sx, sy] = W2S(n.x * WS, n.y * WS); if (sx < -200 || sx > VW + 200 || sy < -50 || sy > VH + 300) return; const S = 6.4 * zoom; shadow(sx, sy, 28);
       const dir = Math.abs(P.x - n.x * WS) > 120 ? (P.x < n.x * WS ? 'l' : 'r') : 'd'; blitChar(c, charSprite({ npc: n.k }, dir, 0, false), sx, sy, S, n.sc ? HD_K * n.sc : undefined); c.imageSmoothingEnabled = true;
       const near = nearNpc() === n; c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; const nm = n.nm + (near ? ' · A' : ''); const w = c.measureText(nm).width + 10, ny = sy - 27 * S - 6;
       c.fillStyle = 'rgba(0,0,0,.6)'; c.fillRect(sx - w / 2, ny - 12, w, 15); c.fillStyle = '#e8c070'; c.fillText(nm, sx, ny);
@@ -1552,7 +1710,7 @@
       else { const l = Math.hypot(b.vx, b.vy) || 1, ux = b.vx / l, uy = b.vy / l; c.strokeStyle = '#e8ecf0'; c.lineWidth = 3 * zoom; c.beginPath(); c.moveTo(x - ux * 18 * zoom, y - uy * 18 * zoom); c.lineTo(x + ux * 12 * zoom, y + uy * 12 * zoom); c.stroke(); } });
     // balas
     shots.forEach(b => { if (!b.fire) return; const [x, y] = W2S(b.x, b.y); c.globalCompositeOperation = 'lighter'; const gr = c.createRadialGradient(x, y, 0, x, y, 24 * zoom); gr.addColorStop(0, 'rgba(255,245,200,1)'); gr.addColorStop(.4, 'rgba(255,150,50,.9)'); gr.addColorStop(1, 'rgba(200,40,10,0)'); c.fillStyle = gr; c.fillRect(x - 24 * zoom, y - 24 * zoom, 48 * zoom, 48 * zoom); c.globalCompositeOperation = 'source-over'; });
-    gearDraw(c, W2S, zoom, t);
+    gearDraw(c, W2S, zoom, t); mvpDraw(c, W2S, zoom, t);
     shots.forEach(b => { if (b.fire) return; const [x, y] = W2S(b.x, b.y); const [x2, y2] = W2S(b.x - b.vx * .03, b.y - b.vy * .03); c.strokeStyle = b.tear ? '#bfefff' : b.moco ? '#7fe060' : b.bolt ? '#d8c8a0' : b.knife ? '#e8ecf0' : 'rgba(255,230,160,.9)'; if (b.tear || b.moco) { c.fillStyle = c.strokeStyle; c.beginPath(); c.arc(x, y, 9 * zoom, 0, 7); c.fill(); } c.lineWidth = 3 * zoom; c.beginPath(); c.moveTo(x2, y2); c.lineTo(x, y); c.stroke(); });
     // partículas
     parts.forEach(p => { const [x, y] = W2S(p.x, p.y); const v = p.c || 30; c.fillStyle = p.fire ? 'rgba(255,' + (120 + (Math.random() * 100 | 0)) + ',40,' + Math.min(1, p.life * 2) + ')' : 'rgba(' + v + ',' + v + ',' + (v + 2) + ',' + Math.min(1, p.life) * .85 + ')'; c.fillRect(x, y, p.s * zoom, p.s * zoom); });

@@ -1,0 +1,31 @@
+/* HUD del juego · marcos de metal oxidado (perfil por bando, joystick, botonera, casilleros) */
+.hud{display:block;gap:0}
+.hud .pf{position:relative;width:min(300px,34vw);aspect-ratio:600/240;background:url(/a/ui/h_perfil_reb.webp) center/100% 100% no-repeat}
+body.ork .hud .pf{background-image:url(/a/ui/h_perfil_ork.webp)}
+.hud .pf canvas{position:absolute;left:7%;top:12%;width:21%;height:72%;object-fit:cover;image-rendering:auto;z-index:-1;background:#0b0b0b}
+.hud .pf .nk{position:absolute;left:35%;top:12%;width:30%;height:22%;display:flex;align-items:center;font-size:clamp(11px,1.6vw,16px);overflow:hidden;white-space:nowrap;max-width:none}
+.hud .pf .bar{position:absolute;left:42.5%;width:54%;height:8%;border:0;background:rgba(0,0,0,.6);border-radius:4px;overflow:hidden;margin:0}
+.hud .pf .bar i{border-radius:4px}
+.hud .pf .bar.hp{top:48%}.hud .pf .bar.hp i{background:linear-gradient(180deg,#ff6a5a,#b8261c)}
+.hud .pf .bar.st{top:65.5%}.hud .pf .bar.st i{background:linear-gradient(180deg,#7ff6f2,#14a8b0)}
+.hud .pf .bar.xp{top:83%}.hud .pf .bar.xp i{background:linear-gradient(180deg,#d29bff,#7a2ed0)}
+.hud>small{margin-left:4px}
+.topr .menub.ico{width:46px;height:40px;padding:0;border:0;font-size:0;color:transparent;background:center/contain no-repeat}
+#inv-b.ico{background-image:url(/a/ui/h_mochila.webp)}#snd-b.ico{background-image:url(/a/ui/h_sonido.webp)}#menu-b.ico{background-image:url(/a/ui/h_salir.webp)}
+#snd-b.off{filter:grayscale(1) brightness(.6)}
+.qs{width:58px;height:58px;border:0;border-radius:0;background:url(/a/ui/h_slot.webp) center/100% 100% no-repeat}
+.qs canvas{width:34px;height:34px}
+.qs.hab{width:70px;height:70px;border:0;box-shadow:none;border-radius:50%;background:url(/a/ui/h_hab.webp) center/100% 100% no-repeat}
+.qs.hab canvas{width:38px;height:38px}
+.pads .pb.r{width:62px;height:62px;border:0;background:url(/a/ui/h_correr.webp) center/100% 100% no-repeat;font-size:0;color:transparent}
+.pads .pb.r small,.pads .pb.b small{font-size:9px;color:var(--ash);position:relative;top:40px}
+.pads .pb.r.on{filter:brightness(1.35) drop-shadow(0 0 8px #7ff6f2)}
+.pads .pb.b{width:100px;height:100px;border:0;background:url(/a/ui/h_golpe.webp) center/100% 100% no-repeat;font-size:0;color:transparent}
+.pads .pb.b small{top:58px}
+.pads .pb:active,.pads .qs:active{filter:brightness(1.3)}
+.stick{border:0;width:128px;height:128px;background:url(/a/ui/h_stick.webp) center/100% 100% no-repeat}
+.stick i{width:46px;height:46px;margin:-23px 0 0 -23px;background:radial-gradient(circle at 40% 35%,#9a948a,#57534c 70%);box-shadow:0 0 0 2px #2a2724,0 3px 6px rgba(0,0,0,.6)}
+.talk{border:0;border-radius:0;background:url(/a/ui/h_hablar.webp) center top/64px auto no-repeat;padding:58px 6px 0;font-size:11px;min-width:80px;text-align:center;text-shadow:0 1px 2px #000}
+.talk{font-size:0}.talk b{font-size:11px}
+.hud .pf{isolation:isolate}
+#st-obj{top:calc(max(10px,env(safe-area-inset-top,0px)) + min(138px,13.6vw + 34px))!important}
