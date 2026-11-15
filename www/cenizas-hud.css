@@ -28,4 +28,24 @@ body.ork .hud .pf{background-image:url(/a/ui/h_perfil_ork.webp)}
 .talk{border:0;border-radius:0;background:url(/a/ui/h_hablar.webp) center top/64px auto no-repeat;padding:58px 6px 0;font-size:11px;min-width:80px;text-align:center;text-shadow:0 1px 2px #000}
 .talk{font-size:0}.talk b{font-size:11px}
 .hud .pf{isolation:isolate}
-#st-obj{top:calc(max(10px,env(safe-area-inset-top,0px)) + min(138px,13.6vw + 34px))!important}
+#st-obj{top:max(8px,env(safe-area-inset-top,0px))!important;left:50%!important;transform:translateX(-50%);max-width:min(30vw,280px)!important;text-align:center}
+/* ===== distribución como en el diseño: todo más arriba y ordenado ===== */
+:root{--sb:max(10px,env(safe-area-inset-bottom,0px));--sr:max(14px,env(safe-area-inset-right,0px))}
+.hud .pf{width:min(240px,27vw)}
+.hud>div:last-child small{max-width:min(320px,36vw);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:9px}
+.pads{position:fixed!important;inset:0!important;display:block!important;pointer-events:none;z-index:4}
+.pads>*{pointer-events:auto;position:absolute!important;margin:0!important}
+.pads small{position:absolute!important;left:50%!important;transform:translateX(-50%);top:auto!important;bottom:-13px!important;white-space:nowrap;font-size:8.5px!important}
+.pads #btn-b{right:var(--sr);bottom:calc(var(--sb) + 22px);width:96px;height:96px}
+.pads #btn-k{right:calc(var(--sr) + 14px);bottom:calc(var(--sb) + 136px);width:66px;height:66px}
+.pads #btn-r{right:calc(var(--sr) + 108px);bottom:calc(var(--sb) + 20px);width:58px;height:58px}
+.pads #btn-x{right:calc(var(--sr) + 100px);bottom:calc(var(--sb) + 98px);width:52px;height:52px;border-radius:50%;border:0;background:url(/a/ui/h_hab.webp) center/100% 100% no-repeat;font-size:18px}
+.pads #btn-w,.pads #btn-h,.pads #btn-s{bottom:calc(var(--sb) + 22px);width:56px;height:56px}
+.pads #btn-w{left:calc(50% - 92px)}.pads #btn-h{left:calc(50% - 28px)}.pads #btn-s{left:calc(50% + 36px)}
+.pads #btn-w i{font-size:7.5px;bottom:4px}
+.pads .ab{right:calc(var(--sr) + 176px);bottom:calc(var(--sb) + 20px)}
+/* hablar: la burbuja arriba del joystick */
+.talk{left:max(96px,calc(var(--sal,0px) + 96px))!important;bottom:calc(var(--sb) + 196px)!important;transform:translateX(-50%);width:64px;height:58px;padding:0!important;background-size:64px auto!important;font-size:0!important}
+.talk b{position:absolute;left:50%;top:60px;transform:translateX(-50%);white-space:nowrap;font-size:10px!important;color:#e8c070;background:rgba(0,0,0,.55);padding:1px 6px}
+/* DECIR con la misma burbuja */
+#say-b{width:46px;height:40px;padding:0;border:0;font-size:0;color:transparent;background:url(/a/ui/h_hablar.webp) center/contain no-repeat}

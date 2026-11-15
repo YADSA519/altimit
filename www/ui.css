@@ -130,3 +130,14 @@ input.good{filter:drop-shadow(0 0 4px rgba(69,240,234,.7))}
 .kv{border-style:solid;border-width:14px 16px;border-image:url(/a/ui/f_card.webp) 50 64 fill / 14px 16px stretch}
 .kv dd{color:var(--hi)}
 .clock{color:#fff;text-shadow:0 0 10px rgba(69,240,234,.5)}
+/* menú: título centrado */
+.brand{display:flex!important;flex-direction:column;align-items:center!important;justify-items:center;text-align:center}
+.brand .wordmark{align-self:center;margin:0 auto!important;text-align:center}
+.brand .tag{text-align:center!important}
+/* admin más compacto */
+#adm-users .person{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;flex-wrap:nowrap}
+#adm-users .person>div:first-child{min-width:0;flex:1}
+#adm-users .person .nm{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#adm-users .person small{font-size:10px;color:var(--dim);white-space:nowrap}
+#adm-users .person .row2{flex:none;flex-wrap:nowrap;gap:4px}
+#adm-users .btn.small{font-size:11px;letter-spacing:.08em;padding:0 1px;border-width:5px 9px;border-image-width:5px 9px;white-space:nowrap}

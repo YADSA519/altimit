@@ -229,6 +229,10 @@
     hid.pickId = id => { const p = people[id]; if (p) pick(p); };
   }
   document.addEventListener('input', e => { if (e.target.id !== 'adm-q') return; const q = e.target.value.trim().toLowerCase(); document.querySelectorAll('#adm-users .row').forEach(r => r.hidden = !!q && !r.textContent.toLowerCase().includes(q)); });
+  /* jugando ahora: los que guardaron su partida en los últimos 2 minutos (el juego guarda cada 20 s) */
+  async function playingNow() { try { const since = new Date(Date.now() - 120000).toISOString(); const { count, error } = await sb.from('game_chars').select('user_id', { count: 'exact', head: true }).gte('updated_at', since);
+      const n = error || count == null ? 0 : count; $('#live-n').textContent = String(n).padStart(3, '0'); const lbl = $('#live-n').previousElementSibling; if (lbl) lbl.textContent = 'JUGANDO AHORA'; } catch (e) {} }
+  setInterval(() => { if (me && !$('#app').hidden) playingNow(); }, 30000);
   /* ---------- navegación ---------- */
   const VIEWS = { theof: 1, mail: 1, news: 1, accessory: 1, audio: 1, data: 1, desktop: 1, admin: 1 };
   function go(k, silent) {
@@ -262,7 +266,7 @@
     const { data } = await sb.from('profiles').select('id,nick,status,role,faction,created_at').order('nick');
     people = {}; (data || []).forEach(p => people[p.id] = p);
     const ok = Object.values(people).filter(p => p.status === 'approved');
-    $('#mf-people').textContent = ok.length + (ok.length === 1 ? ' usuario' : ' usuarios'); $('#live-n').textContent = String(ok.length).padStart(3, '0');
+    $('#mf-people').textContent = ok.length + (ok.length === 1 ? ' usuario' : ' usuarios'); playingNow();
     $('#spark').innerHTML = Array.from({ length: 40 }, (_, i) => '<i style="height:' + (20 + Math.round(Math.abs(Math.sin(i * 1.7 + ok.length)) * 80)) + '%"></i>').join('');
     const others = ok.filter(p => p.id !== me.id);
     if (me.role === 'admin') renderAdmin();
