@@ -40,8 +40,8 @@ body.ork .hud .pf{background-image:url(/a/ui/h_perfil_ork.webp)}
 .pads #btn-k{right:calc(var(--sr) + 14px);bottom:calc(var(--sb) + 136px);width:66px;height:66px}
 .pads #btn-r{right:calc(var(--sr) + 108px);bottom:calc(var(--sb) + 20px);width:58px;height:58px}
 .pads #btn-x{right:calc(var(--sr) + 100px);bottom:calc(var(--sb) + 98px);width:52px;height:52px;border-radius:50%;border:0;background:url(/a/ui/h_hab.webp) center/100% 100% no-repeat;font-size:18px}
-.pads #btn-w,.pads #btn-h,.pads #btn-s{bottom:calc(var(--sb) + 22px);width:56px;height:56px}
-.pads #btn-w{left:calc(50% - 92px)}.pads #btn-h{left:calc(50% - 28px)}.pads #btn-s{left:calc(50% + 36px)}
+.pads #btn-w,.pads #btn-h,.pads #btn-s,.pads #btn-e{bottom:calc(var(--sb) + 22px);width:56px;height:56px}
+.pads #btn-w{left:calc(50% - 124px)}.pads #btn-h{left:calc(50% - 60px)}.pads #btn-s{left:calc(50% + 4px)}.pads #btn-e{left:calc(50% + 68px)}
 .pads #btn-w i{font-size:7.5px;bottom:4px}
 .pads .ab{right:calc(var(--sr) + 176px);bottom:calc(var(--sb) + 20px)}
 /* hablar: la burbuja arriba del joystick */
@@ -58,7 +58,7 @@ body.ork .hud .pf{background-image:url(/a/ui/h_perfil_ork.webp)}
 /* sin textos de más: la sala, la línea de datos y los números de los accesos */
 .topr .sala{display:none!important}
 #h-lv{display:none!important}
-.pads #btn-w i,.pads #btn-h i,.pads #btn-s i{display:none!important}
+.pads #btn-w i,.pads #btn-h i,.pads #btn-s i,.pads #btn-e i{display:none!important}
 .hud .pf .nk{width:42%;font-size:clamp(10px,1.45vw,15px);gap:6px}
 .hud .pf .nk em{font-style:normal;color:#7ff6f2;font-size:.85em;flex:none;text-shadow:0 0 6px rgba(127,246,242,.6)}
 .topr .sysbar{display:flex;gap:8px;align-items:center;align-self:center;font-family:TechMono,monospace;font-size:11px;letter-spacing:.1em;color:#7ff6f2;text-shadow:0 1px 3px #000;margin-right:4px}
