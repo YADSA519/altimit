@@ -72,7 +72,7 @@ body.cine #st-dlg{display:block}
   /* ---------- diálogos ---------- */
   let queue = [], onDone = null, typing = null;
   function say(lines, cb) { if (!lines || !lines.length) { cb && cb(); return; } queue = lines.slice(); onDone = cb; A.setPaused(true); document.body.classList.add('cine'); show(); }
-  function show() { const [k, txt] = queue[0]; $('#st-nm').textContent = nameOf(k); $('#st-por').src = portrait(k);
+  function show() { const [k, txt, nm_] = queue[0]; $('#st-nm').textContent = nm_ || nameOf(k); $('#st-por').src = portrait(k);
     const el = $('#st-tx'); el.textContent = ''; let i = 0; clearInterval(typing); typing = setInterval(() => { i += 2; el.textContent = txt.slice(0, i); if (i >= txt.length) { clearInterval(typing); typing = null; } }, 22); A.SND && A.SND.pick && A.SND.pick(); }
   function next() { if (!queue.length) return; if (typing) { clearInterval(typing); typing = null; $('#st-tx').textContent = queue[0][1]; return; }
     queue.shift(); if (queue.length) return show(); document.body.classList.remove('cine'); A.setPaused(false); const cb = onDone; onDone = null; cb && setTimeout(cb, 250); }
