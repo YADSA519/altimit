@@ -277,10 +277,11 @@
   /* MODO HISTORIA · niveles por avance: los mapas de arranque (cerca del Nogal y de Libertador) van de 1 a 5;
      cuanto más lejos, más alto. Puerto Madero suma extra. Las bases enemigas tienen guardias de nivel alto. */
   if (STORY) { const bfs = s0 => { const d = { [s0]: 0 }, q = [s0]; while (q.length) { const k = q.shift(); for (const e of (MAPS[k].exits || [])) if (e.to && MAPS[e.to] && !(e.to in d)) { d[e.to] = d[k] + 1; q.push(e.to); } } return d; };
-    const dA = bfs('nogal'), dB = MAPS.libertador ? bfs('libertador') : {}, PM = { muelle: 3, puente: 5, bunker: 6, lab: 7, lab_cuarentena: 7, arena_final: 9 };
-    const FIX = { libertador: [50, 60], centro_ork: [45, 55] };
-    Object.entries(MAPS).forEach(([k, m]) => { if (FIX[k]) { m.lv = FIX[k]; return; } const d = Math.min(dA[k] == null ? 99 : dA[k], dB[k] == null ? 99 : dB[k]); if (d >= 99) return; const sc = d + (PM[k] || 0);
-      if (sc <= 1) m.lv = [1, 4]; else if (sc === 2) m.lv = [2, 5]; else { const a = Math.round(4 + (sc - 3) * 4); m.lv = [a, a + 3 + Math.round(sc / 3)]; } }); }
+    const dA = bfs('nogal'), dB = MAPS.libertador ? bfs('libertador') : {};
+    /* el nivel lo da el mapa (no el jugador): al salir de las bases 1-6 y sube a medida que te alejás. Puerto Madero y el final, lo más alto. */
+    const BYD = [[1, 4], [2, 6], [5, 10], [9, 15], [14, 21], [20, 28], [27, 36]];
+    const FIX = { libertador: [1, 4], nogal: [1, 4], muelle: [38, 46], puente: [46, 55], bunker: [55, 65], lab: [64, 74], lab_cuarentena: [74, 85], arena_final: [82, 92] };
+    Object.entries(MAPS).forEach(([k, m]) => { if (m.mvp) return; if (FIX[k]) { m.lv = FIX[k]; return; } const d = Math.min(dA[k] == null ? 99 : dA[k], dB[k] == null ? 99 : dB[k]); if (d >= 99) return; m.lv = BYD[Math.min(d, BYD.length - 1)]; }); }
   Object.entries(MAPS).forEach(([k, m]) => { if (m.safeAll || m.base || m.mvp) { m.mobs = {}; return; } const top = (m.lv || [1, 3])[1];
     m.mobs = EXP ? MOBS_T.pvp : top <= 12 ? MOBS_T.bajo : top <= 28 ? MOBS_T.medio : top <= 40 ? MOBS_T.alto : MOBS_T.tope;
     /* pocos y variados: cada mapa elige 5 tipos de su lista (siempre distintos entre mapas), máximo 6 Oscuros */
@@ -1037,8 +1038,8 @@
   const tgtLv = (i, N) => i < 0 ? 1 : Math.min(90, Math.round(3 + 87 * Math.pow((i + 1) / N, 1.15)));
   function storyLv() { if (!STORY || !INV || !INV.story) return 1; const D_ = window.CZ_STORY_DATA, N = ((D_ && D_[me && me.faction === 'ork' ? 'ork' : 'rebel']) || []).length || 16; return tgtLv((INV.story.m || 0) - 1, N); }
   function mobLevel(id, kind) { const T = MOB[kind]; if (!T) return 0; const tag = /~(\d+)$/.exec(String(id)); if (tag) return +tag[1];
-    if (T.boss) { if (!STORY) return 0; const top = ((MAP && MAP.lv) || [1, 3])[1]; return Math.min(100, Math.max(12, top + 4, storyLv() + 5)); } if (T.lv1) return 1;
-    const [a, b] = (MAP && MAP.lv) || [1, 3], h = hashStr(String(id)); return Math.min(100, Math.max(1, a + h % (b - a + 1), STORY ? storyLv() - 4 + h % 4 : 0)); }
+    if (T.boss) { if (!STORY) return 0; const top = ((MAP && MAP.lv) || [1, 3])[1]; return Math.min(100, Math.max(8, top + 4)); } if (T.lv1) return 1;
+    const [a, b] = (MAP && MAP.lv) || [1, 3], h = hashStr(String(id)); return Math.min(100, Math.max(T.human && T.fac && MAP && (MAP.base || HUMAN_AT[mapKey]) ? 45 : 1, a + h % (b - a + 1))); }
   const lvHp = L => 1 + (L - 1) * .28, lvDmg = L => 1 + (L - 1) * .075, lvXp = L => .3 + L * .05;
   function auraOf(L) { return L >= 75 ? '255,40,40' : L >= 50 ? '255,140,0' : L >= 25 ? '240,215,80' : null; }
   function newMob(kind, id, x, y) { const T = MOB[kind], L = mobLevel(id, kind), mhp = L ? Math.round(T.hp * (T.boss ? (1 + (L - 1) * .07) * (.6 + .4 * Math.min(4, 1 + (others ? others.size : 0))) : lvHp(L))) : T.hp; return { id, kind, T, lv: L, lvK: L ? (T.boss ? 1 + (L - 1) * .035 : lvDmg(L)) : 1, mhp, au: L ? auraOf(L) : null, x, y, tx: x, ty: y, hp: mhp, face: 1, vx: 0, vy: 0, t: Math.random() * 9, hurt: 0, wind: 0, cd: 0, wx: x, wy: y, wt: 0, alpha: 0, chasing: false, stuck: 0, lx: x, ly: y, lunge: 0,
