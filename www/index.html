@@ -12,6 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="THE O|F">
 <title>THE O|F</title>
 <link rel="stylesheet" href="/app.css">
+<link rel="stylesheet" href="/ui.css">
 </head>
 <body>
 <div class="noise" aria-hidden="true"></div><div class="scan" aria-hidden="true"></div>
@@ -19,6 +20,7 @@
 <!-- ================= LOGIN · LA RED clásica ================= -->
 <section class="login" id="login" hidden>
   <canvas class="ash" data-ash="neutral" width="300" height="300" aria-hidden="true"></canvas>
+  <div class="ologo" aria-hidden="true"></div>
   <div class="wordmark">THE O<span class="bar"></span>F</div>
   <div class="tag">Conecta · Informa · Sobrevive</div>
   <div class="ltabs" role="tablist">
@@ -122,7 +124,7 @@
         <p class="note" style="margin:4px 0 12px">Jugá sin internet, tranquilo. Tu progreso queda en este teléfono.</p>
         <button class="btn enter" id="enter-exp">MODO PVP EXPERIMENTAL</button>
         <p class="note" style="margin:4px 0 12px">Divertite luchando con otros jugadores.</p>
-        <p class="note">HISTORIA: las misiones de tu bando (16 rebeldes · 11 ORK), sin perder nivel salvo 3 caídas seguidas. PVP: campamento azul, campamento rojo y las ruinas del centro; el intendente te da 20 vendas y dos armas, Yuki aparece y deja su brazalete. Todos arrancan de cero en la 2.1.</p>
+        <p class="note">HISTORIA: las misiones de tu bando (16 rebeldes · 11 ORK), sin perder nivel salvo 3 caídas seguidas. Al terminarla se abren las libretas de Pablo y Sofía con los MVPs. PVP: campamento azul, campamento rojo y las ruinas del centro; el intendente te da vendas y dos armas.</p>
       </div>
     </section>
 
@@ -137,7 +139,7 @@
     <!-- NEWS -->
     <section class="view" id="v-news" hidden>
       <header class="head"><button class="back" data-go="menu" aria-label="Volver al menú"></button><h1>NEWS</h1><div class="meta" id="news-meta"></div></header>
-      <div class="tabs" role="tablist"><button role="tab" data-ntab="all" aria-selected="true">TODAS</button><button role="tab" data-ntab="ev" aria-selected="false">PRÓXIMOS EVENTOS</button></div>
+      <div class="tabs" role="tablist"><button role="tab" data-ntab="all" aria-selected="true">TODAS</button><button role="tab" data-ntab="ev" aria-selected="false">PRÓXIMOS</button><button role="tab" data-ntab="evs" aria-selected="false">EVENTOS</button></div>
       <div class="body" id="news-body"></div>
     </section>
 
@@ -180,7 +182,7 @@
       <div class="tabs" role="tablist"><button role="tab" data-atab="talk" aria-selected="true">HABLAR</button><button role="tab" data-atab="inbox" aria-selected="false">RECIBIDOS<span class="tb" id="n-aud" hidden></span></button></div>
       <div class="body">
         <div id="aud-talk">
-          <div class="chan"><span class="section-title" style="margin:0">CANAL</span><select id="aud-to" aria-label="A quién le hablás"></select></div>
+          <div class="chan"><span class="section-title" style="margin:0">PARA</span><input type="hidden" id="aud-to"></div>
           <div class="wave" id="wave"></div>
           <div class="center" id="tm" style="font-size:20px;color:var(--hi)">0:00 / 0:30</div>
           <button class="ptt" id="ptt" aria-label="Mantené presionado para hablar"></button>
@@ -200,7 +202,7 @@
         <div class="card pad" id="ph-compose" hidden>
           <div class="filters" id="ph-filters" role="group" aria-label="Filtro"></div>
           <canvas id="ph-canvas" class="phprev"></canvas>
-          <label class="section-title" for="ph-to">PARA</label><select id="ph-to"></select>
+          <label class="section-title">PARA</label><input type="hidden" id="ph-to">
           <label class="section-title" for="ph-cap">COMENTARIO</label><input id="ph-cap" maxlength="200" placeholder="Qué es, dónde fue…">
           <div class="msgline" id="ph-msg" role="status"></div>
           <div class="row2" style="justify-content:flex-end"><button class="btn" id="ph-cancel" type="button">CANCELAR</button><button class="btn solid" id="ph-send" type="button">ENVIAR</button></div>
@@ -242,6 +244,7 @@
       <div class="tabs" role="tablist"><button role="tab" data-xtab="users" aria-selected="true">USUARIOS<span class="tb" id="n-pend" hidden></span></button><button role="tab" data-xtab="pub" aria-selected="false">PUBLICAR</button></div>
       <div class="body">
         <div id="adm-users">
+          <input id="adm-q" placeholder="Buscar jugador por nick…" autocomplete="off" autocapitalize="off" aria-label="Buscar jugador" style="margin-top:4px">
           <div class="section-title">SOLICITUDES</div><div class="card" id="adm-pending"></div>
           <div class="section-title">HABILITADOS</div><div class="card" id="adm-ok"></div>
           <div class="section-title">BLOQUEADOS</div><div class="card" id="adm-blocked"></div>

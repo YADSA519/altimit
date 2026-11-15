@@ -206,6 +206,7 @@ button.row:hover{background:rgba(255,255,255,.03)}
 .ptt.on svg{stroke:#ff8b80}
 .chan{display:flex;gap:10px;align-items:center;justify-content:center;margin-bottom:8px}
 .chan select{width:auto;min-width:10em}
+.chan .nickwrap{flex:1;max-width:320px}
 .play{width:34px;height:34px;border:1px solid var(--line);display:grid;place-items:center}
 .play::before{content:"";border-left:11px solid var(--ash);border-top:7px solid transparent;border-bottom:7px solid transparent;margin-left:3px}
 .play.on::before{border:0;width:10px;height:12px;border-left:3px solid var(--ash);border-right:3px solid var(--ash);margin:0}

@@ -191,7 +191,7 @@
   async function enterApp() {
     const f = me.faction; document.documentElement.dataset.skin = f; const S = SKIN[f];
     $('#tagline').textContent = S.tag; $('#skinpill').textContent = S.pill; $('#emblem').src = S.emb;
-    $('#hero-words').innerHTML = S.words; $('#hero-quote').textContent = S.quote;
+    $('#hero-words').innerHTML = S.words; $('#hero-quote').textContent = S.quote; $('#hero-quote').classList.add('pulse'); $('#hero-quote').insertAdjacentHTML('beforeend', '<svg class="beat" viewBox="0 0 76 28" aria-hidden="true"><path d="M0 16 H20 L25 16 L29 6 L34 26 L39 2 L44 20 L48 16 H76"/></svg>');
     $('#mf-user').textContent = me.nick; $('#m-ico').innerHTML = THEOF.ICONSET[f].salir;
     $('#ptt').innerHTML = THEOF.mic;
     showOnly('#app'); renderNav();
@@ -200,9 +200,35 @@
     fillDesktop();
     await loadPeople();
     await Promise.all([loadMail(), loadNews(), loadAudios(), loadPhotos()]);
+    nickPick($('#aud-to')); nickPick($('#ph-to'));
     goLive(); askNotifOnce();
   }
 
+
+  /* PARA: se escribe el nick y se autocompleta con los que existen (sin desplegables) */
+  function nickPick(hid) {
+    if (!hid || hid._nick) return; hid._nick = 1;
+    const wrap = document.createElement('div'); wrap.className = 'nickwrap';
+    const inp = document.createElement('input'); inp.type = 'text'; inp.placeholder = 'Escribí el nick…'; inp.autocomplete = 'off'; inp.setAttribute('autocapitalize', 'off'); inp.spellcheck = false; inp.maxLength = 20; inp.setAttribute('aria-label', 'Nick');
+    const list = document.createElement('div'); list.className = 'nicklist'; list.hidden = true;
+    hid.parentNode.insertBefore(wrap, hid); wrap.append(inp, list, hid);
+    const pool = () => Object.values(people).filter(p => p.status === 'approved' && me && p.id !== me.id);
+    const set = p => { hid.value = p ? p.id : ''; inp.classList.toggle('good', !!p); if (p) inp.classList.remove('bad'); };
+    const pick = p => { inp.value = p.nick; set(p); list.hidden = true; };
+    inp.oninput = () => {
+      const q = inp.value.trim().toLowerCase(); const all = pool(); const ex = all.find(p => p.nick.toLowerCase() === q); set(ex);
+      if (!q) { list.hidden = true; return; }
+      const m = all.filter(p => p.nick.toLowerCase().includes(q)).sort((a, b) => (b.nick.toLowerCase().startsWith(q) - a.nick.toLowerCase().startsWith(q)) || a.nick.localeCompare(b.nick)).slice(0, 6);
+      list.innerHTML = ''; m.forEach(p => { const b = document.createElement('button'); b.type = 'button'; b.textContent = p.nick;
+        if (p.faction && me && p.faction !== me.faction) { const sm = document.createElement('small'); sm.textContent = 'otro bando'; b.appendChild(sm); }
+        b.onmousedown = e => e.preventDefault(); b.onclick = () => pick(p); list.appendChild(b); });
+      inp.classList.toggle('bad', !ex && !m.length); list.hidden = !m.length || (!!ex && m.length === 1);
+    };
+    inp.onkeydown = e => { if (e.key === 'Enter' && !list.hidden && list.firstChild) { e.preventDefault(); list.firstChild.click(); } };
+    inp.onblur = () => setTimeout(() => { list.hidden = true; if (!hid.value) { const q = inp.value.trim().toLowerCase(); const m = pool().filter(p => p.nick.toLowerCase().startsWith(q)); if (q && m.length === 1) pick(m[0]); } }, 120);
+    hid.pickId = id => { const p = people[id]; if (p) pick(p); };
+  }
+  document.addEventListener('input', e => { if (e.target.id !== 'adm-q') return; const q = e.target.value.trim().toLowerCase(); document.querySelectorAll('#adm-users .row').forEach(r => r.hidden = !!q && !r.textContent.toLowerCase().includes(q)); });
   /* ---------- navegación ---------- */
   const VIEWS = { theof: 1, mail: 1, news: 1, accessory: 1, audio: 1, data: 1, desktop: 1, admin: 1 };
   function go(k, silent) {
@@ -239,10 +265,6 @@
     $('#mf-people').textContent = ok.length + (ok.length === 1 ? ' usuario' : ' usuarios'); $('#live-n').textContent = String(ok.length).padStart(3, '0');
     $('#spark').innerHTML = Array.from({ length: 40 }, (_, i) => '<i style="height:' + (20 + Math.round(Math.abs(Math.sin(i * 1.7 + ok.length)) * 80)) + '%"></i>').join('');
     const others = ok.filter(p => p.id !== me.id);
-    ['#aud-to', '#ph-to'].forEach(sel => { const s = $(sel); const keep = s.value; s.innerHTML = '';
-      if (!others.length) { const o = el('option', null, 'todavía no hay nadie más'); o.value = ''; s.appendChild(o); }
-      others.forEach(p => { const o = el('option', null, p.nick + (p.faction && p.faction !== me.faction ? ' · otro bando' : '')); o.value = p.id; s.appendChild(o); });
-      if (keep) s.value = keep; });
     if (me.role === 'admin') renderAdmin();
   }
 
@@ -289,12 +311,11 @@
         card.appendChild(row); }); box.appendChild(card);
     }
     if (t === 'new') {
-      const f = el('form', 'card pad'); f.innerHTML = '<label class="section-title" for="nw-to">PARA</label><select id="nw-to"></select><label class="section-title" for="nw-txt">MENSAJE</label><textarea id="nw-txt" maxlength="2000" placeholder="Escribí tu mensaje…"></textarea><label class="check"><input type="checkbox" id="nw-inv"> mandarlo como invitación (a un grupo, un evento, una misión)</label><div class="msgline" id="nw-msg"></div><div class="row2" style="justify-content:flex-end"><button class="btn solid" type="submit">ENVIAR</button></div>';
+      const f = el('form', 'card pad'); f.innerHTML = '<label class="section-title" for="nw-to">PARA</label><input type="hidden" id="nw-to"><label class="section-title" for="nw-txt">MENSAJE</label><textarea id="nw-txt" maxlength="2000" placeholder="Escribí tu mensaje…"></textarea><label class="check"><input type="checkbox" id="nw-inv"> mandarlo como invitación (a un grupo, un evento, una misión)</label><div class="msgline" id="nw-msg"></div><div class="row2" style="justify-content:flex-end"><button class="btn solid" type="submit">ENVIAR</button></div>';
       const sel = f.querySelector('#nw-to'); const others = Object.values(people).filter(p => p.status === 'approved' && p.id !== me.id);
-      if (!others.length) sel.innerHTML = '<option value="">todavía no hay nadie más en la red</option>';
-      others.forEach(p => { const o = el('option', null, p.nick + (p.faction && p.faction !== me.faction ? ' · otro bando' : '')); o.value = p.id; sel.appendChild(o); });
+      nickPick(sel);
       f.onsubmit = async e => { e.preventDefault(); const to = sel.value, txt = f.querySelector('#nw-txt').value.trim(), inv = f.querySelector('#nw-inv').checked;
-        if (!to) return say('#nw-msg', 'Elegí a quién.', true); if (!txt) return say('#nw-msg', 'Escribí algo.', true);
+        if (!to) return say('#nw-msg', 'Escribí el nick de alguien que exista.', true); if (!txt) return say('#nw-msg', 'Escribí algo.', true);
         const row = { sender: me.id, recipient: to, body: txt, kind: inv ? 'inv' : 'msg' }; if (inv) row.inv_state = 'pending';
         const { error } = await sb.from('mails').insert(row); if (error) return say('#nw-msg', 'No se pudo enviar: ' + error.message, true);
         toast((inv ? 'Invitación enviada a ' : 'Mensaje enviado a ') + nickOf(to) + '.'); await loadMail(); if (inv) mailTab('inv'); else openChat(to); };
@@ -350,6 +371,7 @@
   }
   function renderNews() {
     const box = $('#news-body'); box.innerHTML = ''; const seen = store.get('newsSeen', 0);
+    if (newsTabCur === 'evs') { const ev = news.filter(n => n.category === 'evento' || n.event_at).sort((a, b) => (b.event_at || b.created_at).localeCompare(a.event_at || a.created_at)); if (!ev.length) box.appendChild(el('div', 'empty', 'Todavía no hubo eventos.')); ev.forEach(n => box.appendChild(n.event_at ? eventRow(n, new Date(n.event_at) > new Date()) : el('div', 'empty', n.title))); return; }
     if (newsTabCur === 'ev') { const ev = upcoming(); if (!ev.length) box.appendChild(el('div', 'empty', 'No hay eventos anunciados.')); ev.forEach(n => box.appendChild(eventRow(n, true))); return; }
     if (!news.length) { box.appendChild(el('div', 'empty', 'Todavía no llegaron noticias a tu red.')); return; }
     news.forEach(n => { const a = el('article', 'news' + (n.id > seen ? ' new' : ''));
@@ -479,19 +501,41 @@
     if (a.recipient === me.id && !a.heard_at) { a.heard_at = new Date().toISOString(); heardLocal.add(a.id); audioBadge(); clearPush('AUDIO'); await sb.rpc('mark_seen', { kind: 'audio', item_id: a.id }); loadAudios(); }
   }
   // grabar
-  let rec = null, chunks = [], t0 = 0, iv = null, stream = null;
+  let rec = null, chunks = [], t0 = 0, iv = null, stream = null, W = null, stopping = false, actx = null;
+  /* efecto walkie-talkie: banda de radio (450–2800 Hz), un poco de saturación, estática de fondo y el "kshh" del botón */
+  function walkie(st) {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)(); try { actx.resume(); } catch (e) {}
+    const A = actx, src = A.createMediaStreamSource(st), dest = A.createMediaStreamDestination();
+    const bq = (type, f, q, g) => { const b = A.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q != null) b.Q.value = q; if (g != null) b.gain.value = g; return b; };
+    const hp = bq('highpass', 450, .8), lp = bq('lowpass', 2800, .9), pk = bq('peaking', 1700, 1.1, 7), hp2 = bq('highpass', 380, .7);
+    const ws = A.createWaveShaper(), n = 1024, cv = new Float32Array(n), k = 22; for (let i = 0; i < n; i++) { const x = i * 2 / n - 1; cv[i] = (1 + k) * x / (1 + k * Math.abs(x)); } ws.curve = cv; ws.oversample = '2x';
+    const pre = A.createGain(); pre.gain.value = .55; const comp = A.createDynamicsCompressor(); comp.threshold.value = -26; comp.ratio.value = 8;
+    const out = A.createGain(); out.gain.value = .9; const an = A.createAnalyser(); an.fftSize = 256;
+    src.connect(hp); hp.connect(lp); lp.connect(pk); pk.connect(pre); pre.connect(ws); ws.connect(hp2); hp2.connect(comp); comp.connect(out); out.connect(dest); comp.connect(an);
+    const nb = A.createBuffer(1, A.sampleRate * 2, A.sampleRate), d = nb.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    const hiss = A.createBufferSource(); hiss.buffer = nb; hiss.loop = true; const hb = bq('bandpass', 2400, .6), hg = A.createGain(); hg.gain.value = .02; hiss.connect(hb); hb.connect(hg); hg.connect(dest); hiss.start();
+    const kshh = () => { const s2 = A.createBufferSource(); s2.buffer = nb; const b = bq('bandpass', 1900, .5), g = A.createGain(), t = A.currentTime; g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.45, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + .24);
+      s2.connect(b); b.connect(g); g.connect(dest); const g2 = A.createGain(); g2.gain.value = .25; g.connect(g2); g2.connect(A.destination); s2.start(t, Math.random()); s2.stop(t + .26); };
+    return { dest, an, kshh, stop() { try { hiss.stop(); src.disconnect(); } catch (e) {} } };
+  }
   const ptt = $('#ptt');
   async function recStart(e) {
-    e.preventDefault(); if (rec) return;
-    if (!$('#aud-to').value) return say('#aud-msg', 'Todavía no hay a quién hablarle.', true);
-    try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (err) { return say('#aud-msg', 'Necesito permiso para usar el micrófono. Activalo en Ajustes → Apps → THE O|F → Permisos.', true); }
+    e.preventDefault(); if (rec || stopping) return;
+    if (!$('#aud-to').value) return say('#aud-msg', 'Escribí el nick de a quién le hablás.', true);
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }); } catch (err) { return say('#aud-msg', 'Necesito permiso para usar el micrófono. Activalo en Ajustes → Apps → THE O|F → Permisos.', true); }
+    let recStream = stream; W = null; try { W = walkie(stream); recStream = W.dest.stream; } catch (er) { W = null; }
     const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : (MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : '');
-    rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined); chunks = []; rec.ondataavailable = ev => { if (ev.data.size) chunks.push(ev.data); };
-    rec.onstop = sendRec; rec.start(250); t0 = Date.now(); ptt.classList.add('on'); say('#aud-msg', 'grabando…');
-    iv = setInterval(() => { const s = Math.floor((Date.now() - t0) / 1000); $('#tm').textContent = '0:' + pad(Math.min(30, s)) + ' / 0:30'; $$('#wave i').forEach(i => i.style.height = (4 + Math.random() * 60) + 'px'); if (s >= 30) recStop(); }, 120);
+    rec = new MediaRecorder(recStream, mime ? { mimeType: mime } : undefined); chunks = []; rec.ondataavailable = ev => { if (ev.data.size) chunks.push(ev.data); };
+    rec.onstop = sendRec; rec.start(250); if (W) W.kshh(); t0 = Date.now(); ptt.classList.add('on'); say('#aud-msg', 'grabando… (sale con efecto de radio)');
+    const buf = new Uint8Array(128);
+    iv = setInterval(() => { const s = Math.floor((Date.now() - t0) / 1000); $('#tm').textContent = '0:' + pad(Math.min(30, s)) + ' / 0:30';
+      let lv = Math.random(); if (W) { W.an.getByteTimeDomainData(buf); let m = 0; for (const v of buf) m = Math.max(m, Math.abs(v - 128)); lv = m / 128; }
+      $$('#wave i').forEach(i => i.style.height = (4 + (W ? lv * (40 + Math.random() * 40) : Math.random() * 60)) + 'px'); if (s >= 30) recStop(); }, 90);
     try { navigator.vibrate && navigator.vibrate(30); } catch (er) {}
   }
-  function recStop() { if (!rec) return; clearInterval(iv); ptt.classList.remove('on'); $('#tm').textContent = '0:00 / 0:30'; try { rec.stop(); } catch (e) {} if (stream) stream.getTracks().forEach(t => t.stop()); }
+  function recStop() { if (!rec || stopping) return; stopping = true; clearInterval(iv); ptt.classList.remove('on'); $('#tm').textContent = '0:00 / 0:30';
+    if (W) W.kshh();
+    setTimeout(() => { try { rec.stop(); } catch (e) {} if (W) W.stop(); if (stream) stream.getTracks().forEach(t => t.stop()); stopping = false; }, W ? 280 : 0); }
   async function sendRec() {
     const secs = Math.round((Date.now() - t0) / 1000); const r = rec; rec = null;
     if (secs < 1 || !chunks.length) return say('#aud-msg', 'Mantené apretado para grabar.', true);
@@ -569,7 +613,7 @@
     if (mode === 'fotocopia') { x.font = fs + 'px Elite, monospace'; x.fillStyle = 'rgba(20,20,20,.85)'; x.textAlign = 'left'; x.fillText('RESISTIR', w * .05, h * .94); }
   }
   $('#ph-cancel').onclick = () => { $('#ph-compose').hidden = true; phBlob = null; };
-  $('#ph-send').onclick = async () => { const to = $('#ph-to').value; if (!to) return say('#ph-msg', 'Todavía no hay a quién mandarle.', true); if (!phBlob) return;
+  $('#ph-send').onclick = async () => { const to = $('#ph-to').value; if (!to) return say('#ph-msg', 'Escribí el nick de a quién se la mandás.', true); if (!phBlob) return;
     $('#ph-send').disabled = true; say('#ph-msg', 'enviando…'); const path = me.id + '/' + to + '/' + Date.now() + '.jpg';
     const up = await sb.storage.from('fotos').upload(path, phBlob, { contentType: 'image/jpeg' });
     if (up.error) { $('#ph-send').disabled = false; return say('#ph-msg', 'No se pudo subir: ' + up.error.message, true); }
