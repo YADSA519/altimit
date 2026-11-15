@@ -1,0 +1,67 @@
+/* ===== menús del juego: metal oxidado (tienda, pausa, mochila, mapa, carga, caíste, libretas) ===== */
+.ov{background:rgba(0,0,0,.78)}
+.gbox{position:relative;border:0!important;background:none!important;border-style:solid!important;border-width:34px 34px 30px!important;border-image:url(/a/ui/g_marco.webp) 70 70 64 fill / 34px 34px 30px stretch!important;padding:12px 16px 10px!important}
+.gbox>h2{display:block;width:min(260px,70%);margin:-40px auto 6px!important;padding:13px 0 9px;background:url(/a/ui/g_titulo.webp) center/100% 100% no-repeat;font-size:24px!important;color:#f3ead8!important;text-shadow:0 2px 0 #000;letter-spacing:.14em}
+.gbox::before,.gbox::after{content:"";position:absolute;top:-30px;width:74px;height:66px;background:center/contain no-repeat;pointer-events:none;z-index:2}
+.gbox::before{left:-26px;background-image:url(/a/ui/g_band_reb.webp)}.gbox::after{right:-26px;background-image:url(/a/ui/g_band_ork.webp)}
+.gbox .btn{border:0!important;border-radius:0;background:url(/a/ui/g_btn_osc.webp) center/100% 100% no-repeat!important;color:#f3ead8!important;font-family:"Bebas",sans-serif;font-size:18px;letter-spacing:.12em;padding:9px 22px 7px;min-width:130px;text-shadow:0 1px 0 #000}
+.gbox .btn.solid{background-image:url(/a/ui/g_btn_papel.webp)!important;color:#1a140c!important;text-shadow:none}
+.gbox .btn:disabled{filter:grayscale(.8) brightness(.6)}
+#shop-close,#inv-close,#map-close{background-image:url(/a/ui/g_btn_naranja.webp)!important;min-width:170px;padding:12px 26px 10px;font-size:20px}
+.xbtn{position:absolute;top:-14px;right:-6px;width:40px;height:40px;border:0;background:url(/a/ui/m_x.webp) center/contain no-repeat;z-index:3}
+/* tienda */
+.shopsub{margin:0 auto 4px!important;padding:8px 16px 6px;width:min(100%,420px);background:url(/a/ui/g_papel.webp) center/100% 100% no-repeat;color:#2a1d10!important;font-family:"Elite",monospace;font-size:13px;text-align:center}
+.shopsub b{color:#2a1d10}
+.shop .shopr{border:1px solid #6a4a2a!important;border-radius:4px;background:linear-gradient(180deg,rgba(30,24,18,.92),rgba(14,11,8,.92))!important;box-shadow:inset 0 0 0 1px rgba(255,150,60,.15),0 2px 6px rgba(0,0,0,.6);padding:8px 10px;margin-bottom:6px;gap:12px;min-height:62px}
+.shop .shopr canvas{width:46px;height:46px;padding:6px;background:url(/a/ui/g_casilla.webp) center/100% 100% no-repeat;box-sizing:content-box;image-rendering:auto}
+.shop .shopr b{font-family:"Bebas",sans-serif;font-weight:400;font-size:17px;letter-spacing:.08em;color:#f3ead8}
+.shop .shopr small{color:#cdbfa6}
+.shop .shopr .btn{min-width:84px;padding:10px 12px 8px;background-image:url(/a/ui/g_btn_papel.webp)!important;color:#1a140c!important;font-size:19px}
+.shop .kitr small{color:#e8a050;letter-spacing:.2em}
+/* mochila */
+.mochi .eq{display:grid!important;grid-template-columns:repeat(8,minmax(0,1fr))!important;gap:4px!important}
+.mochi .eq span{position:relative;aspect-ratio:1;border:0!important;padding:0!important;background:url(/a/ui/m_s_arma.webp) center/100% 100% no-repeat;display:block;overflow:hidden}
+.mochi .eq span[data-s="cabeza"]{background-image:url(/a/ui/m_s_cabeza.webp)}.mochi .eq span[data-s="ropa"]{background-image:url(/a/ui/m_s_ropa.webp)}.mochi .eq span[data-s="brazo"]{background-image:url(/a/ui/m_s_brazo.webp)}
+.mochi .eq span[data-s="pies"]{background-image:url(/a/ui/m_s_pies.webp)}.mochi .eq span[data-s="acc1"]{background-image:url(/a/ui/m_s_acc1.webp)}.mochi .eq span[data-s="acc2"]{background-image:url(/a/ui/m_s_acc2.webp)}.mochi .eq span[data-s="luz"]{background-image:url(/a/ui/m_s_luz.webp)}
+.mochi .eq span.full{background-image:url(/a/ui/m_celda.webp)!important;box-shadow:inset 0 0 0 2px var(--rc,transparent)}
+.mochi .eq span img{position:absolute;inset:14%;width:72%;height:72%;object-fit:contain}
+.mochi .eq span u,.mochi .eq span b{position:absolute;left:0;right:0;text-align:center;text-decoration:none;font-size:7.5px;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 2px #000}
+.mochi .eq span u{top:3px;color:#c9b998}.mochi .eq span b{bottom:3px;color:#f3ead8;font-size:7px}
+.mochi .eq span:not(.full) b{display:none}
+.mochi .slots{grid-template-columns:repeat(auto-fill,minmax(50px,1fr))!important;gap:3px!important;padding:2px}
+.mochi .slots button{border:0!important;background:url(/a/ui/m_celda.webp) center/100% 100% no-repeat!important}
+.mochi .slots button[aria-pressed="true"]{background-image:url(/a/ui/m_celda_on.webp)!important}
+.mochi .slots canvas{width:34px;height:34px;image-rendering:auto}
+.mochi .det{color:#e6dccb}
+/* carga */
+.loadbox{width:min(92vw,640px)!important;aspect-ratio:800/160;border:0!important;background:url(/a/ui/p_carga.webp) center/100% 100% no-repeat!important;padding:0!important;position:relative}
+.loadbox h2{visibility:hidden;margin:0!important}
+.loadbox #load-t{position:absolute;left:0;right:0;top:72%;font-size:12px;color:#d6c8ad;margin:0}
+/* caíste */
+.deadbox{width:min(92vw,620px)!important;aspect-ratio:820/457;border:0!important;background:url(/a/ui/d_caiste.webp) center/100% 100% no-repeat!important;padding:0!important;position:relative}
+.deadbox h2,.deadbox>p:not(#d-lv){visibility:hidden;height:0;margin:0!important}
+.deadbox #d-lv{position:absolute;left:0;right:0;top:56%;font-size:12px;margin:0}
+.deadbox .row{position:static}
+.deadbox #d-ok{position:absolute;left:22%;right:22%;top:65%;height:17%;border:0;background:none;font-size:0;color:transparent}
+.deadbox #d-fac{position:absolute;left:50%;transform:translateX(-50%);bottom:-44px;border:0;background:url(/a/ui/g_btn_osc.webp) center/100% 100% no-repeat;color:#f3ead8;font-size:12px;padding:8px 16px}
+/* libretas */
+.libbook{position:relative;width:min(96vw,calc(88vh * 1.789),880px);aspect-ratio:880/492;background:url(/a/ui/l_pablo.webp) center/100% 100% no-repeat}
+#ov-lib[data-lib="sofia"] .libbook{background-image:url(/a/ui/l_sofia.webp)}
+.libl{position:absolute;left:12.5%;width:29.5%;top:36%;display:flex;flex-direction:column;gap:2.6%;height:40%}
+#ov-lib[data-lib="sofia"] .libl{top:42%;gap:4%}
+.libl button{height:30%;border:0;background:none;border-radius:6px}
+#ov-lib[data-lib="sofia"] .libl button{height:34%}
+.libl button.on{box-shadow:0 0 0 2px #ff9a4a,0 0 14px rgba(255,140,60,.7)}
+.libd{position:absolute;left:54.5%;right:10.5%;top:12%;bottom:15%;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 8px;overflow:hidden;text-align:center}
+.libd img{width:auto;height:46%;object-fit:contain;filter:sepia(.25) contrast(1.05)}
+.libd b{font-family:"Bebas",sans-serif;font-weight:400;font-size:clamp(14px,2.3vw,20px);letter-spacing:.1em;color:#ff7a6a}
+.libd small{font-size:clamp(9px,1.25vw,11.5px);color:#dccfb8;line-height:1.3}
+.libd em{font-style:normal;font-size:10px;color:#ffd860}
+.libgo{margin-top:auto;border:0;background:url(/a/ui/g_btn_papel.webp) center/100% 100% no-repeat;color:#1a140c;font-family:"Bebas",sans-serif;font-size:16px;letter-spacing:.12em;padding:7px 22px 5px}
+.libgo:disabled{filter:grayscale(1) brightness(.7)}
+.libn{position:absolute;left:12%;width:32%;bottom:9%;margin:0;font-size:clamp(8px,1.1vw,10.5px);color:#3a2a18;line-height:1.3}
+.libbook .xbtn{top:-6px;right:4%}
+.gbox.inv{overflow:visible!important}
+.gbox.inv>h2{margin-top:-42px!important}
+.loadbox #load-t{top:86%;font-size:10px;color:#9a8c74}
+.libn{bottom:6%}

@@ -143,6 +143,7 @@ body{position:fixed;inset:0}
 #mvp-ban.pop b{animation:mvpop .5s cubic-bezier(.2,1.6,.4,1)}@keyframes mvpop{from{transform:scale(2.4);opacity:0}to{transform:scale(1);opacity:1}}
 </style>
 <link rel="stylesheet" href="/cenizas-hud.css">
+<link rel="stylesheet" href="/cenizas-ui3.css">
 </head>
 <body>
 <canvas id="cv"></canvas>
@@ -171,27 +172,27 @@ body{position:fixed;inset:0}
 
 <div class="say" id="say" hidden><input id="say-in" maxlength="80" placeholder="Decí algo…" autocomplete="off"><button class="btn solid" id="say-go">DECIR</button></div>
 
-<div class="ov" id="ov-load"><div class="box"><h2>THE O|F</h2><p id="load-t">cargando…</p></div></div>
+<div class="ov" id="ov-load"><div class="box loadbox"><h2>THE O|F</h2><p id="load-t">cargando…</p></div></div>
 
-<div class="ov" id="ov-menu" hidden><div class="box"><h2>PAUSA</h2><p>Tu personaje queda donde está. La próxima vez arrancás acá mismo.</p>
+<div class="ov" id="ov-menu" hidden><div class="box gbox"><h2>PAUSA</h2><p>Tu personaje queda donde está. La próxima vez arrancás acá mismo.</p>
   <div class="row" style="margin-bottom:10px"><button class="btn" id="m-snd">SONIDO: SÍ</button></div>
   <div class="row"><button class="btn" id="m-back">SEGUIR</button><button class="btn solid" id="m-exit">GUARDAR Y VOLVER</button></div></div></div>
 
-<div class="ov" id="ov-lib" hidden><div class="box"><img class="libimg" alt=""><div><h2>LIBRETA</h2><div class="libl"></div><p class="libn"></p><button class="btn" id="lib-close">CERRAR</button></div></div></div>
+<div class="ov" id="ov-lib" hidden><div class="libbook"><div class="libl"></div><div class="libd"></div><p class="libn"></p><button class="xbtn" id="lib-close" aria-label="Cerrar"></button></div></div>
 <div id="mvp-ban" hidden></div>
-<div class="ov" id="ov-map" hidden><div class="box mapbox"><h2>MAPA</h2><canvas id="map-cv"></canvas><p class="mapley"><b style="color:#ffd860">●</b> vos · <b style="color:#6ab0ff">●</b> aliados · <b style="color:#ff6a5c">●</b> otro bando · <b style="color:#e8c070">●</b> personajes · <b style="color:#7ff6f2">●</b> salidas</p><button class="btn" id="map-close">CERRAR</button></div></div>
-<div class="ov" id="ov-inv" hidden><div class="box inv"><h2>MOCHILA</h2>
+<div class="ov" id="ov-map" hidden><div class="box mapbox gbox"><h2>MAPA</h2><canvas id="map-cv"></canvas><p class="mapley"><b style="color:#ffd860">●</b> vos · <b style="color:#6ab0ff">●</b> aliados · <b style="color:#ff6a5c">●</b> otro bando · <b style="color:#e8c070">●</b> personajes · <b style="color:#7ff6f2">●</b> salidas</p><button class="btn" id="map-close">CERRAR</button></div></div>
+<div class="ov" id="ov-inv" hidden><div class="box inv gbox mochi"><h2>MOCHILA</h2><button class="xbtn" id="inv-x" aria-label="Cerrar"></button>
   <div class="eq" id="inv-eq"></div>
   <div class="slots" id="inv-slots"></div>
   <div class="det" id="inv-det"><p>Tocá un objeto para ver qué hace.</p></div>
   <div class="row"><button class="btn" id="inv-close">CERRAR</button></div></div></div>
 
-<div class="ov" id="ov-shop" hidden><div class="box inv"><h2>ROSA</h2><p style="margin:0;text-align:center"><i>"Elegí bien, chico."</i> · <b id="shop-c">0 monedas</b></p>
+<div class="ov" id="ov-shop" hidden><div class="box inv gbox shop"><h2>ROSA</h2><p class="shopsub"><i>"Elegí bien, chico."</i> · <b id="shop-c">0 monedas</b></p>
   <div id="shop-l"></div><div class="row"><button class="btn" id="shop-close">CERRAR</button></div></div></div>
 
 <div class="boss" id="boss" hidden><b id="boss-n"></b><div class="bar"><i id="boss-hp"></i></div></div>
 
-<div class="ov" id="ov-dead" hidden><div class="box"><h2>CAÍSTE</h2><p>La ceniza te cubrió. Despertás en tu base.</p><p id="d-lv" style="color:#ff7a70"></p><div class="row"><button class="btn solid" id="d-ok">LEVANTARSE</button><button class="btn" id="d-fac">ELEGIR BANDO DE NUEVO</button></div></div></div>
+<div class="ov" id="ov-dead" hidden><div class="box deadbox"><h2>CAÍSTE</h2><p>La ceniza te cubrió. Despertás en tu base.</p><p id="d-lv" style="color:#ff7a70"></p><div class="row"><button class="btn solid" id="d-ok">LEVANTARSE</button><button class="btn" id="d-fac">ELEGIR BANDO DE NUEVO</button></div></div></div>
 
 <section class="cre" id="cre" hidden>
   <div class="pv"><h1>TU SOBREVIVIENTE</h1><canvas id="pv" width="48" height="64"></canvas><button class="btn" id="pv-rot" style="font-size:15px;padding:6px 12px 4px">GIRAR</button></div>

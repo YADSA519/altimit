@@ -368,6 +368,8 @@
   Object.entries(EPIC).forEach(([k, o]) => { ITEMS[k] = Object.assign({ t: (o.eq === 'arma' ? 'Arma' : o.eq === 'ropa' ? 'Ropa' : o.eq === 'acc' ? 'Accesorio' : o.eq === 'pies' ? 'Pies' : 'Cabeza') + ' · ÉPICO · MVP', r: 'e', epic: 1 }, o); ICO(k, k); });
   Object.assign(WEAP, { palo_destino: { n: 'PALO DEL DESTINO', dmg: 5, range: 150, cd: .45, kb: 40, mul: 1.6 }, daga_demonio: { n: 'DAGA', dmg: 4, range: 105, cd: .22, kb: 14, mul: 1.6 },
     baston_oscuro: { n: 'BASTÓN OSCURO', dmg: 5, range: 145, cd: .55, kb: 170, mul: 1.6 }, baston_resina: { n: 'BASTÓN DE RESINA', dmg: 6, range: 140, cd: .5, kb: 50, mul: 1.7 }, espada_lamentos: { n: 'LAMENTOS', dmg: 7, range: 140, cd: .3, kb: 30, mul: 1.9 } });
+  /* fotos propias para los que antes compartían o no tenían */
+  ['brz_ork', 'brz_reb', 'b_contencion', 'b_resonancia', 'brz_jefe', 'campera', 'chaleco_t', 'armadura', 'botiquin', 'venda_q', 'kit', 'canister', 'baston', 'pista_ork', 'pista_reb', 'pista', 'fragmento', 'trampa', 'antiveneno', 'linterna', 'receptor', 'pilas'].forEach(k => ICO(k, k));
   const WEAPON_KEYS = ['palo'].concat(Object.keys(WEAP).filter(k => k !== 'palo' && ITEMS[k]));
   /* suma de bonos de todo lo equipado */
   function gearSum(st) { if (!INV || !INV.eq) return 0; let s = 0; Object.values(INV.eq).forEach(k => { const it = k && ITEMS[k]; if (it && it[st]) s += it[st]; }); return s; }
@@ -777,7 +779,7 @@
     const eqName = k => k ? (k === 'palo' ? 'Palo' : ITEMS[k].n) : '—';
     $('#inv-eq').onclick = e => { const sp = e.target.closest('[data-s]'); if (!sp) return; const sl = sp.dataset.s; if (sl === 'arma') setWeapon('palo'); else INV.eq[sl] = null; hud(); renderInv(); };
     const col = k => k && ITEMS[k] && ITEMS[k].r ? ' style="color:' + RAR[ITEMS[k].r][1] + '"' : '';
-    $('#inv-eq').innerHTML = [['arma', 'ARMA'], ['cabeza', 'CABEZA'], ['ropa', 'ROPA'], ['brazo', 'BRAZO'], ['pies', 'PIES'], ['acc1', 'ACC 1'], ['acc2', 'ACC 2'], ['luz', 'LUZ']].map(([s_, l_]) => '<span data-s="' + s_ + '">' + l_ + ' <b' + col(INV.eq[s_]) + '>' + (s_ === 'luz' ? (INV.eq.luz ? 'Linterna ' + Math.ceil(INV.bat) + '%' : '—') : eqName(INV.eq[s_])) + (s_ === 'ropa' && INV.eq.ropa && ITEMS[INV.eq.ropa] ? ' ' + Math.ceil(INV.dur[INV.eq.ropa] != null ? INV.dur[INV.eq.ropa] : ITEMS[INV.eq.ropa].shield) : '') + '</b></span>').join('');
+    $('#inv-eq').innerHTML = [['arma', 'ARMA'], ['cabeza', 'CABEZA'], ['ropa', 'ROPA'], ['brazo', 'BRAZO'], ['pies', 'PIES'], ['acc1', 'ACC 1'], ['acc2', 'ACC 2'], ['luz', 'LUZ']].map(([s_, l_]) => { const ek = s_ === 'luz' ? (INV.eq.luz ? 'linterna' : null) : INV.eq[s_], src_ = ek && ICONS[ek] && ICONS[ek].src ? ICONS[ek].src : ''; return '<span data-s="' + s_ + '" class="' + (ek ? 'full' : '') + '"' + (ek && ITEMS[ek] && ITEMS[ek].r ? ' style="--rc:' + RAR[ITEMS[ek].r][1] + '"' : '') + '>' + (src_ ? '<img src="' + src_ + '" alt="">' : '') + '<u>' + l_ + '</u> <b' + col(INV.eq[s_]) + '>' + (s_ === 'luz' ? (INV.eq.luz ? 'Linterna ' + Math.ceil(INV.bat) + '%' : '—') : eqName(INV.eq[s_])) + (s_ === 'ropa' && INV.eq.ropa && ITEMS[INV.eq.ropa] ? ' ' + Math.ceil(INV.dur[INV.eq.ropa] != null ? INV.dur[INV.eq.ropa] : ITEMS[INV.eq.ropa].shield) : '') + '</b></span>'; }).join('');
     const box = $('#inv-slots'); box.innerHTML = ''; const keys = Object.keys(ITEMS).filter(k => hasItem(k));
     if (!keys.length) box.innerHTML = '<div class="empty">La mochila está vacía. Buscá cosas brillando en el piso.</div>';
     keys.sort((a, b) => TORD[tierOf(b)] - TORD[tierOf(a)]); keys.forEach(k => { const b = document.createElement('button'); b.setAttribute('aria-pressed', invSel === k); if (Object.values(INV.eq).includes(k)) b.classList.add('on'); if (ITEMS[k].r && ITEMS[k].r !== 'g') { b.style.borderColor = RAR[ITEMS[k].r][1]; b.style.boxShadow = 'inset 0 0 10px ' + RAR[ITEMS[k].r][1] + '66'; }
@@ -912,12 +914,13 @@
   function banner(txt, sub, ms, col) { const b = $('#mvp-ban'); if (!b) return; b.innerHTML = '<b' + (col ? ' style="color:' + col + '"' : '') + '>' + txt + '</b>' + (sub ? '<small>' + sub + '</small>' : ''); b.hidden = false; b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); clearTimeout(banner.t); banner.t = setTimeout(() => b.hidden = true, ms || 2200); }
   function openLib(lk) { const L = LIBS[lk]; if (!storyFin()) return toast(L.nm + ': las páginas están pegadas con ceniza. Terminá la historia para poder abrirla.');
     if (lk === 'sofia' && !(INV.mvpPistas || []).length) return toast('LIBRETA DE SOFÍA: tiene un candado de sangre. Las pistas de la libreta de Pablo te dicen cómo abrirlo.');
-    paused = true; const ov = $('#ov-lib'); ov.hidden = false; ov.querySelector('.libimg').src = L.img; ov.querySelector('h2').textContent = L.nm;
-    const done = INV.mvpDay === dayN(); const box = ov.querySelector('.libl'); box.innerHTML = '';
-    L.list.forEach((mk, i) => { const M = MVPS[mk], b = document.createElement('button'); b.className = 'libo'; const won = (INV.mvpWon || {})[mk];
-      b.innerHTML = '<i>P' + (lk === 'pablo' ? i + 1 : i + 4) + '</i><b>' + M.n + '</b><small>' + M.txt + '</small>' + (won ? '<em>VENCIDO ×' + won + '</em>' : '');
-      b.disabled = done; b.onclick = () => { closeLib(); startMvp(mk); }; box.appendChild(b); });
-    ov.querySelector('.libn').textContent = done ? 'Ya venciste a un MVP hoy: la libreta se vuelve a abrir mañana. Si otro jugador la abre, podés ir con él.' : 'Elegí uno. Todos los que estén en este mapa vienen con vos. Podés intentarlo las veces que quieras hasta vencer a uno: después, hasta mañana.' + ((INV.mvpPistas || []).length ? ' · Pistas: ' + INV.mvpPistas.join(' · ') : ''); }
+    paused = true; const ov = $('#ov-lib'); ov.hidden = false; ov.dataset.lib = lk; const done = INV.mvpDay === dayN(); const box = ov.querySelector('.libl'); box.innerHTML = '';
+    const det = ov.querySelector('.libd'); const pick = mk => { const M = MVPS[mk], won = (INV.mvpWon || {})[mk]; box.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.mk === mk));
+      det.innerHTML = '<img src="/a/ob/mvp_' + mk + '.webp" alt=""><b>' + M.n + '</b><small>' + M.txt + '</small>' + (won ? '<em>VENCIDO ×' + won + '</em>' : '') + (M.pista && won ? '<em>PISTA: "' + M.pista + '"</em>' : '');
+      const go = document.createElement('button'); go.className = 'libgo'; go.textContent = done ? 'HASTA MAÑANA' : 'ENFRENTAR'; go.disabled = done; go.onclick = () => { closeLib(); startMvp(mk); }; det.appendChild(go); };
+    L.list.forEach(mk => { const b = document.createElement('button'); b.dataset.mk = mk; b.setAttribute('aria-label', MVPS[mk].n); b.onclick = () => pick(mk); box.appendChild(b); });
+    pick(L.list[0]);
+    ov.querySelector('.libn').textContent = done ? 'Ya venciste a un MVP hoy. Si otro jugador abre la libreta, podés ir con él.' : 'Todos los que estén en este mapa vienen con vos.' + ((INV.mvpPistas || []).length ? ' Pistas: ' + INV.mvpPistas.join(' · ') : ''); }
   function closeLib() { $('#ov-lib').hidden = true; paused = false; }
   function startMvp(mk) { if (INV.mvpDay === dayN()) return; net('mvpgo', { mk, from: mapKey, by: me.nick }); goMvp(mk, me.nick); }
   function goMvp(mk, by) { const M = MVPS[mk]; if (!M || !MAPS[M.map]) return; INV.mvpBack = { map: mapKey, x: Math.round(P.x / WS), y: Math.round(P.y / WS) }; persist(); banner(M.n, by === me.nick ? 'Abriste la libreta…' : by + ' abrió la libreta…', 2400, '#ff5a6a'); SND.mob('roar', .4); setTimeout(() => warpTo(M.map), 900); }
@@ -1031,7 +1034,7 @@
     others.forEach(o => { g.fillStyle = o.fac === me.faction ? '#6ab0ff' : '#ff6a5c'; g.beginPath(); g.arc(o.x / WS * k, o.y / WS * k, 4, 0, 7); g.fill(); });
     const px = P.x / WS * k, py = P.y / WS * k; g.strokeStyle = '#fff'; g.lineWidth = 2; g.fillStyle = '#ffd860'; g.beginPath(); g.arc(px, py, 7, 0, 7); g.fill(); g.stroke(); g.font = 'bold 12px TechMono, monospace'; g.textAlign = 'center'; g.fillStyle = '#fff'; g.fillText('VOS', px, py - 12); }
   function slot_is_weapon(k) { return !!WEAP[k]; }
-  $('#inv-b').onclick = openInv; $('#inv-close').onclick = closeInv; $('#lib-close').onclick = closeLib; $('#map-b').onclick = openMapa; $('#map-close').onclick = () => { $('#ov-map').hidden = true; paused = false; };
+  $('#inv-b').onclick = openInv; $('#inv-close').onclick = closeInv; $('#lib-close').onclick = closeLib; $('#inv-x').onclick = closeInv; $('#map-b').onclick = openMapa; $('#map-close').onclick = () => { $('#ov-map').hidden = true; paused = false; };
 
   /* ---------- Oscuros compartidos: el anfitrión de la sala los mueve, todos ven los mismos ---------- */
   let isHost = true, hostId = null, roomReady = false, mobSeq = 0, snapT = 0, maintT = 0, unlocks = {}; const lastDeath = {};
@@ -1764,6 +1767,6 @@
     const lv = lvlOf(P.xp); if (!P.dead && P.hp < maxHp(lv) * .25) { c.fillStyle = 'rgba(120,10,5,' + (.12 + Math.sin(t * 5) * .08) + ')'; c.fillRect(0, 0, VW, VH); }
   }
 
-    window.__cz = { EXP, npcs: () => npcsHere(), talk: () => { const n = nearNpc(); if (n) talkNpc(n); return n && n.k; }, get skins() { return mySkins; }, get look() { return look; }, get net() { return { mode: netMode, peers, sent: NETC.sent, recv: NETC.recv, gotFull }; }, get host() { return isHost; }, get hostId() { return hostId; }, set unlocks(v) { unlocks = v; }, get unlocks() { return unlocks; }, mshots, clouds, killMob, get suero() { return suero; }, get P() { return P; }, get INV() { return INV; }, pickups, mobs, walkable: (x, y) => walkable(x, y), othersMap: others, spawnMob, spawnPickup, useItem, useHab, attack, takeItem, get map() { return mapKey; }, warp: k => enterMap(k, 0, 0) };
+    window.__cz = { EXP, npcs: () => npcsHere(), talk: () => { const n = nearNpc(); if (n) talkNpc(n); return n && n.k; }, get skins() { return mySkins; }, get look() { return look; }, get net() { return { mode: netMode, peers, sent: NETC.sent, recv: NETC.recv, gotFull }; }, get host() { return isHost; }, get hostId() { return hostId; }, set unlocks(v) { unlocks = v; }, get unlocks() { return unlocks; }, mshots, clouds, killMob, get suero() { return suero; }, get P() { return P; }, get INV() { return INV; }, pickups, mobs, ITEMS, ICONS, walkable: (x, y) => walkable(x, y), othersMap: others, spawnMob, spawnPickup, useItem, useHab, attack, takeItem, get map() { return mapKey; }, warp: k => enterMap(k, 0, 0) };
   boot().catch(e => { $('#load-t').textContent = 'Error al cargar: ' + (e.message || e); });
 })();
