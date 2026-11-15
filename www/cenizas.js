@@ -656,7 +656,7 @@
     loadMap(k); placeCas();
     const okPos = x && y && walkable(x, y);
     P.x = okPos ? x : MAP.spawn[0] * WS; P.y = okPos ? y : MAP.spawn[1] * WS; P.inv = 4; exitLock = true; P.exitT = 1.5;
-    mobs.length = 0; parts.length = 0; floats.length = 0; pickups.length = 0;
+    netMode = 'SOLO'; mobs.length = 0; parts.length = 0; floats.length = 0; pickups.length = 0;
     const nPick = MAP.safeAll ? 1 : 2; for (let i = 0; i < nPick; i++) spawnPickup();
     sueroTick(true);
     Object.keys(INV.lost).forEach(w => { if (INV.lost[w] === k) { spawnPickup(w); delete INV.lost[w]; } }); shots.length = 0; mvpEnter();
@@ -724,7 +724,8 @@
       SND.hurt(); buzz([30, 30, 30]); toast((WEAP[w].gun ? (w === 'baston' ? 'El bastón se apagó y se rompió' : 'Se te acabaron los tiros de la ' + it.n.toLowerCase()) : 'Se rompió ' + (/lanza|katana|barra/.test(w) ? 'la ' : 'el ') + it.n.toLowerCase()) + '. Dicen que apareció otra en ' + MAPS[where].name.toLowerCase() + '.'); persist(); }
     hud(); }
   function randomWalkCell(minDist) { for (let k = 0; k < 400; k++) { const c = (Math.random() * grid.length) | 0; if (!grid[c]) continue; const x = (c % GW + .5) * CW, y = (((c / GW) | 0) + .5) * CW; if (Math.hypot(x - P.x, y - P.y) > minDist && !(MAP.exits || []).some(e => x / WS >= e.r[0] - 40 && x / WS <= e.r[2] + 40 && y / WS >= e.r[1] - 40 && y / WS <= e.r[3] + 40)) return [x, y]; } return null; }
-  function spawnPickup(k, at, w) { const p = at || randomWalkCell(300); if (!p) return; const kk = resolveLoot(k || pickW(LOOT[mapKey] || LOOT.parque), w); if (!ITEMS[kk]) return; pickups.push({ k: kk, x: p[0], y: p[1], t: Math.random() * 6 }); }
+  let pkSeq = 0;
+  function spawnPickup(k, at, w) { if (!at && netMode === 'MULTI_CLIENT') return; const p = at || randomWalkCell(300); if (!p) return; const kk = resolveLoot(k || pickW(LOOT[mapKey] || LOOT.parque), w); if (!ITEMS[kk]) return; const pid = me.id.slice(0, 6) + '-' + (pkSeq++) + '-' + ((Math.random() * 1e4) | 0); pickups.push({ k: kk, x: p[0], y: p[1], t: Math.random() * 6, pid, loc: !at }); if (netMode !== 'SOLO') net('drop', { pid, k: kk, x: Math.round(p[0]), y: Math.round(p[1]) }); }
   function addItem(k, n) { INV.items[k] = (INV.items[k] || 0) + (n || 1); }
   function hasItem(k) { return (INV.items[k] || 0) > 0; }
   const dmgMult = () => { let m = 1; if (P.jefe > 0) m *= .5; if (INV.eq.brazo === 'b_contencion') m *= .7; if (INV.eq.cabeza === 'mascara' && /refugioSub|bunker|lab|patio/.test(mapKey)) m *= .8; m *= 1 - Math.min(.6, gearSum('def')); return m; };
@@ -1134,12 +1135,13 @@
     mobs.forEach(o => { const row = [o.id, Math.round(o.x), Math.round(o.y), STC.indexOf(o.st), Math.ceil(o.hp), MKEYS.indexOf(o.kind), o.face, flagsOf(o), Math.round(o.vis * 10), o.combo % 3, Math.max(0, SKN.indexOf(o.sk))];
       const l = lastEnemy.get(o.id); if (full || !l || Math.abs(l[1] - row[1]) > NET.POS_EPSILON || Math.abs(l[2] - row[2]) > NET.POS_EPSILON || l.slice(3).join() !== row.slice(3).join()) { e.push(row); lastEnemy.set(o.id, row); } });
     if (!full && !e.length) return; if (full) { lastFull = now; needFull = false; [...lastEnemy.keys()].forEach(id => { if (!mobs.some(o => o.id === id)) lastEnemy.delete(id); }); }
-    net('enemies', { t: now, full, e }); }
+    net('enemies', { t: now, full, e, pk: full ? pickups.filter(q => q.k !== 'suero').map(q => [q.pid, q.k, Math.round(q.x), Math.round(q.y)]) : undefined }); }
   /* cliente: guarda los estados con la hora de llegada para interpolar */
   function pushBuf(o, x, y) { const now = performance.now(); o.buf = o.buf || []; const last = o.buf[o.buf.length - 1];
     if (last && Math.hypot(x - last.x, y - last.y) > 260) o.buf.length = 0; else if (last && now - last.t > 250) o.buf.push({ t: now - 1000 / NET.NET_TICK_HZ, x: last.x, y: last.y });
     o.buf.push({ t: now, x, y }); while (o.buf.length > 5) o.buf.shift(); }
-  function applyEnemies(p) { if (netMode !== 'MULTI_CLIENT') return; const seen = p.full ? new Set() : null;
+  function applyEnemies(p) { if (netMode !== 'MULTI_CLIENT') return;
+    if (p.pk) { const keep = pickups.filter(q => q.k === 'suero' || (q.cool > 0)); const have = new Set(keep.map(q => q.pid)); pickups.length = 0; keep.forEach(q => pickups.push(q)); p.pk.forEach(([pid, k, x, y]) => { if (!have.has(pid) && ITEMS[k]) pickups.push({ k, x, y, t: Math.random() * 6, pid }); }); } const seen = p.full ? new Set() : null;
     p.e.forEach(([id, x, y, sti, hp, ki, face, fl, vis, combo, ski]) => { if (seen) seen.add(id); const kind = MKEYS[ki]; if (!kind) return; let o = mobs.find(m => m.id === id);
       if (!o) { o = newMob(kind, id, x, y); o.alpha = 1; mobs.push(o); } pushBuf(o, x, y);
       const wasWind = o.wind > 0, wasChase = o.chasing; o.hp = hp; o.face = face; o.moving = !!(fl & 1); o.wind = fl & 2 ? Math.max(o.wind, .01) : 0; if (fl & 4) o.lunge = 1; o.chasing = !!(fl & 8); o.vis = vis / 10; o.st = STC[sti] || 'idle'; o.combo = combo; o.sk = SKN[ski || 0] || null;
@@ -1470,14 +1472,14 @@
         if (got === q.k && !(ITEMS[q.k].gun && INV.items[q.k] > 1)) toast('Encontraste: ' + ITEMS[q.k].n + (ITEMS[q.k].r && ITEMS[q.k].r !== 'g' ? ' (' + RAR[ITEMS[q.k].r][0] + ')' : '') + (ITEMS[q.k].eq ? ' · equipalo desde la MOCHILA' : ITEMS[q.k].hab ? ' · va en HABILIDAD' : ''));
         if (q.k === 'pagina') { const n = INV.items.pagina; floats.push({ x: P.x, y: P.y - 210, t: 1.6, txt: 'página ' + n, c: '#e8e4da' }); }
         if (q.k === 'suero') net('suero', { slot: suero.slot, by: me.nick }); abButtons();
-        if (!q.pid) { const mk = mapKey; setTimeout(() => { if (mapKey === mk && pickups.length < (MAP.safeAll ? 1 : 2)) spawnPickup(); }, rnd(120000, 240000)); } persist(); } }
+        if (q.loc) { const mk = mapKey; setTimeout(() => { if (mapKey === mk && pickups.length < (MAP.safeAll ? 1 : 2)) spawnPickup(); }, rnd(120000, 240000)); } persist(); } }
     if (yuki) { yuki.t += dt; yukiTouch(); }
     // salidas
     const ix0 = P.x / WS, iy0 = P.y / WS; let inExit = null;
     (MAP.exits || []).forEach(e => { if (ix0 >= e.r[0] - 4 && ix0 <= e.r[2] + 4 && iy0 >= e.r[1] - 4 && iy0 <= e.r[3] + 4) inExit = e; });
     P.exitT = Math.max(0, (P.exitT || 0) - dt); if (!inExit) exitLock = false; else if (!exitLock && !P.dead && P.exitT <= 0) warp(inExit);
     // otros jugadores
-    others.forEach(o => { if (o.buf) interp(o, o.mv); else { o.x += (o.tx - o.x) * Math.min(1, dt * 10); o.y += (o.ty - o.y) * Math.min(1, dt * 10); } if (o.mv) o.walkT = (o.walkT || 0) + dt * 9; if (o.sayT > 0) o.sayT -= dt; if (o.atk > 0) o.atk -= dt; });
+    others.forEach(o => { if (o.buf) { const sx = o.x, sy = o.y; interp(o, o.mv); if (o.sm) { const k = Math.min(1, dt * 14), jx = o.x - sx, jy = o.y - sy; if (Math.hypot(jx, jy) < 220) { o.x = sx + jx * k; o.y = sy + jy * k; } } o.sm = 1; } else { o.x += (o.tx - o.x) * Math.min(1, dt * 10); o.y += (o.ty - o.y) * Math.min(1, dt * 10); } if (o.mv) o.walkT = (o.walkT || 0) + dt * 9; if (o.sayT > 0) o.sayT -= dt; if (o.atk > 0) o.atk -= dt; });
     // Oscuros
     const pSafe = inSafe(P.x, P.y);
     if (netMode === 'MULTI_CLIENT') {
@@ -1753,6 +1755,6 @@
     const lv = lvlOf(P.xp); if (!P.dead && P.hp < maxHp(lv) * .25) { c.fillStyle = 'rgba(120,10,5,' + (.12 + Math.sin(t * 5) * .08) + ')'; c.fillRect(0, 0, VW, VH); }
   }
 
-    window.__cz = { EXP, npcs: () => npcsHere(), talk: () => { const n = nearNpc(); if (n) talkNpc(n); return n && n.k; }, get skins() { return mySkins; }, get look() { return look; }, get net() { return { mode: netMode, peers, sent: NETC.sent, recv: NETC.recv, gotFull }; }, get host() { return isHost; }, get hostId() { return hostId; }, set unlocks(v) { unlocks = v; }, get unlocks() { return unlocks; }, mshots, clouds, killMob, get suero() { return suero; }, get P() { return P; }, get INV() { return INV; }, pickups, mobs, spawnMob, spawnPickup, useItem, useHab, attack, takeItem, get map() { return mapKey; }, warp: k => enterMap(k, 0, 0) };
+    window.__cz = { EXP, npcs: () => npcsHere(), talk: () => { const n = nearNpc(); if (n) talkNpc(n); return n && n.k; }, get skins() { return mySkins; }, get look() { return look; }, get net() { return { mode: netMode, peers, sent: NETC.sent, recv: NETC.recv, gotFull }; }, get host() { return isHost; }, get hostId() { return hostId; }, set unlocks(v) { unlocks = v; }, get unlocks() { return unlocks; }, mshots, clouds, killMob, get suero() { return suero; }, get P() { return P; }, get INV() { return INV; }, pickups, mobs, othersMap: others, spawnMob, spawnPickup, useItem, useHab, attack, takeItem, get map() { return mapKey; }, warp: k => enterMap(k, 0, 0) };
   boot().catch(e => { $('#load-t').textContent = 'Error al cargar: ' + (e.message || e); });
 })();
