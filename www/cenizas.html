@@ -77,8 +77,8 @@ body{position:fixed;inset:0}
 .dmg{position:fixed;pointer-events:none}
 .box.inv{width:min(100%,620px);max-height:100%;display:flex;flex-direction:column;gap:8px;padding:12px 14px;text-align:left}
 .box.inv h2{text-align:center;margin:0}
-.eq{display:flex;gap:6px;flex-wrap:wrap;font-size:11px;color:var(--dim);letter-spacing:.06em}
-.eq span{border:1px solid #333;padding:3px 7px}.eq b{color:var(--hi);font-weight:400}
+.eq{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;font-size:10px;color:var(--dim);letter-spacing:.04em}
+.eq span{border:1px solid #333;padding:3px 5px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.eq b{display:block;font-size:10.5px;overflow:hidden;text-overflow:ellipsis}.eq b{color:var(--hi);font-weight:400}
 .slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:6px;overflow-y:auto;min-height:56px}
 .slots button{position:relative;aspect-ratio:1;border:1px solid #333;background:#111;display:grid;place-items:center}
 .slots button[aria-pressed="true"]{border-color:var(--acc);background:#1b1b1b}
@@ -123,6 +123,7 @@ body{position:fixed;inset:0}
 .qs small{position:absolute;left:0;right:0;bottom:-15px;font-size:9px;letter-spacing:.08em;color:var(--ash);text-align:center}
 .qs.off{opacity:.45}.qs:active{background:rgba(255,255,255,.18)}
 #btn-w i{left:2px;right:2px;top:auto;bottom:2px;font-size:8px;text-align:center}
+.qs.hab{border-color:#ff9a2a;box-shadow:0 0 8px rgba(255,154,42,.45)}.qs.cd{opacity:.5}.qs.hab i{color:#ffcf8a}
 .stick{opacity:.55;transition:opacity .15s}.stick.live{opacity:1}
 .talk{position:fixed;left:max(96px,calc(var(--sal,0px) + 96px));bottom:calc(max(14px,env(safe-area-inset-bottom,0px)) + 214px);transform:translateX(-50%);z-index:4;padding:11px 22px 10px;border:1px solid #e8c070;border-radius:20px;background:rgba(0,0,0,.65);color:#e8c070;font-size:13px;letter-spacing:.08em}
 .talk b{font-weight:400}
@@ -141,6 +142,7 @@ body{position:fixed;inset:0}
   <button class="qs" id="btn-w" aria-label="Arma: cambiar"><canvas width="48" height="48"></canvas><i></i><small>ARMA</small></button>
   <button class="qs" id="btn-h" aria-label="Cura rápida"><canvas width="48" height="48"></canvas><i></i><small>CURA</small></button>
   <button class="qs" id="btn-s" aria-label="Objeto especial"><canvas width="48" height="48"></canvas><i></i><small>ESPECIAL</small></button>
+  <button class="qs hab" id="btn-k" aria-label="Habilidad"><canvas width="48" height="48"></canvas><i></i><small>HABILIDAD</small></button>
   <button class="pb r" id="btn-r" aria-label="Correr">»<small>CORRER</small></button>
   <button class="pb x" id="btn-x" hidden aria-label="Huir invisible">◌<small>HUIR</small></button>
   <button class="pb b" id="btn-b" aria-label="Golpear">B<small>GOLPEAR</small></button>
