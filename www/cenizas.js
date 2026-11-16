@@ -1036,14 +1036,14 @@
     others.forEach(o => { g.fillStyle = o.fac === me.faction ? '#6ab0ff' : '#ff6a5c'; g.beginPath(); g.arc(o.x / WS * k, o.y / WS * k, 4, 0, 7); g.fill(); });
     const px = P.x / WS * k, py = P.y / WS * k; g.strokeStyle = '#fff'; g.lineWidth = 2; g.fillStyle = '#ffd860'; g.beginPath(); g.arc(px, py, 7, 0, 7); g.fill(); g.stroke(); g.font = 'bold 12px TechMono, monospace'; g.textAlign = 'center'; g.fillStyle = '#fff'; g.fillText('VOS', px, py - 12); }
   /* ===== efectos dibujados (golpes, proyectiles, impactos) ===== */
-  const FXI = {}; ['tajo_corto', 'tajo_largo', 'impacto', 'impacto_pesado', 'estocada', 'cadena', 'bala', 'bala_chica', 'perdigones', 'virote', 'llamarada', 'bola_fuego', 'hielo', 'moco', 'cuchillo', 'chispa', 'explosion', 'fuego_piso', 'charco_moco', 'hielo_piso', 'onda'].forEach(k => { const i = new Image(); i.src = '/a/fx/' + k + '.webp'; FXI[k] = i; });
+  const FXI = {}; ['tajo_corto', 'tajo_largo', 'impacto', 'impacto_pesado', 'estocada', 'cadena', 'bala', 'bala_chica', 'perdigon', 'perdigones', 'virote', 'llamarada', 'bola_fuego', 'hielo', 'moco', 'cuchillo', 'chispa', 'explosion', 'fuego_piso', 'charco_moco', 'hielo_piso', 'onda'].forEach(k => { const i = new Image(); i.src = '/a/fx/' + k + '.webp'; FXI[k] = i; });
   const fxOk = k => FXI[k] && FXI[k].complete && FXI[k].naturalWidth;
   const fxs = [];
   function fx(k, x, y, o) { if (fxs.length > 60) fxs.shift(); fxs.push(Object.assign({ k, x, y, t: 0, T: .3, ang: 0, s: 1, grow: .25, flip: false }, o || {})); }
   function drawFxImg(c, k, x, y, w, ang, alpha, flip) { if (!fxOk(k)) return false; const im = FXI[k], h = w * im.naturalHeight / im.naturalWidth; c.save(); c.globalAlpha = Math.max(0, Math.min(1, alpha)); c.translate(x, y); c.rotate(ang); if (flip) c.scale(1, -1); c.drawImage(im, -w / 2, -h / 2, w, h); c.restore(); return true; }
   function shotSprite(b) { if (b.enemy) return false; if (b.knife) return ['cuchillo', 70, 1]; if (b.tear) return ['hielo', 80, 1]; if (b.moco) return ['moco', 80, 1]; if (b.boom) return ['bola_fuego', 80, 0];
-    if (b.flame) return ['llamarada', 90, 1]; if (b.fire) return ['bola_fuego', 70, 0]; if (b.bolt) return ['virote', 95, 1]; const w = b.wk || '';
-    if (w === 'escopeta') return ['bala_chica', 40, 0]; if (w === 'metralleta') return ['bala_chica', 46, 0]; return ['bala', 62, 0]; }
+    if (b.flame) return ['llamarada', 90, 1]; if (b.fire) return ['bola_fuego', 70, 0]; if (b.bolt) return ['virote', 110, 0]; const w = b.wk || '';
+    if (w === 'escopeta') return ['perdigon', 58, 0]; if (w === 'metralleta') return ['bala', 52, 0]; return ['bala', 70, 0]; }
   function fxTick(dt) { for (let i = fxs.length - 1; i >= 0; i--) { fxs[i].t += dt; if (fxs[i].t >= fxs[i].T) fxs.splice(i, 1); } }
   function fxDraw(c, W2S, zoom) { fxs.forEach(f => { const k = f.t / f.T, [x, y] = W2S(f.x, f.y); drawFxImg(c, f.k, x, y, f.w * zoom * (1 + f.grow * k), f.ang, k < .25 ? .6 + k * 1.6 : (1 - k) / .75, f.flip); }); }
   /* golpe cuerpo a cuerpo según el arma */
