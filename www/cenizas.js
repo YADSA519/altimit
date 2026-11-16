@@ -1036,7 +1036,7 @@
     others.forEach(o => { g.fillStyle = o.fac === me.faction ? '#6ab0ff' : '#ff6a5c'; g.beginPath(); g.arc(o.x / WS * k, o.y / WS * k, 4, 0, 7); g.fill(); });
     const px = P.x / WS * k, py = P.y / WS * k; g.strokeStyle = '#fff'; g.lineWidth = 2; g.fillStyle = '#ffd860'; g.beginPath(); g.arc(px, py, 7, 0, 7); g.fill(); g.stroke(); g.font = 'bold 12px TechMono, monospace'; g.textAlign = 'center'; g.fillStyle = '#fff'; g.fillText('VOS', px, py - 12); }
   /* ===== efectos dibujados (golpes, proyectiles, impactos) ===== */
-  const FXI = {}; ['tajo_corto', 'tajo_largo', 'impacto', 'impacto_pesado', 'estocada', 'cadena', 'bala', 'bala_chica', 'perdigon', 'perdigones', 'virote', 'llamarada', 'bola_fuego', 'hielo', 'moco', 'cuchillo', 'chispa', 'explosion', 'fuego_piso', 'charco_moco', 'hielo_piso', 'onda'].forEach(k => { const i = new Image(); i.src = '/a/fx/' + k + '.webp'; FXI[k] = i; });
+  const FXI = {}; ['tajo_corto', 'tajo_largo', 'impacto', 'impacto_pesado', 'estocada', 'cadena', 'bala', 'bala_chica', 'perdigon', 'perdigones', 'virote', 'llamarada', 'bola_fuego', 'hielo', 'moco', 'cuchillo', 'chispa', 'explosion', 'fuego_piso', 'charco_moco', 'hielo_piso', 'onda', 'g_madera', 'g_madera2', 'g_acero', 'g_sangre', 'g_naranja', 'g_azul', 'g_violeta', 'g_verde', 'g_celeste', 'g_fuego', 'g_veneno', 'g_rayo'].forEach(k => { const i = new Image(); i.src = '/a/fx/' + k + '.webp'; FXI[k] = i; });
   const fxOk = k => FXI[k] && FXI[k].complete && FXI[k].naturalWidth;
   const fxs = [];
   function fx(k, x, y, o) { if (fxs.length > 60) fxs.shift(); fxs.push(Object.assign({ k, x, y, t: 0, T: .3, ang: 0, s: 1, grow: .25, flip: false }, o || {})); }
@@ -1049,7 +1049,11 @@
   /* golpe cuerpo a cuerpo según el arma */
   const SWING = { cuchillo: ['tajo_corto', 110, 70], daga_demonio: ['tajo_corto', 110, 70], katana: ['tajo_largo', 175, 85], machete: ['tajo_largo', 160, 80], espada_lamentos: ['tajo_largo', 185, 90],
     lanza: ['estocada', 190, 105], baston: ['estocada', 170, 95], cadena: ['cadena', 200, 85], hacha: ['tajo_largo', 170, 90], martillo: ['tajo_largo', 175, 90], bate: ['tajo_largo', 165, 90], baston_oscuro: ['tajo_largo', 170, 90], barra: ['tajo_largo', 170, 95], tubo: ['tajo_largo', 160, 90] };
-  function swingFx(wk) { const b = baseOf(wk), [k, w, d] = SWING[b] || ['tajo_corto', 130, 85], v = { d: [0, 1], u: [0, -1], l: [-1, 0], r: [1, 0] }[P.dir], ang = Math.atan2(v[1], v[0]);
+  const ARC = { palo: 'g_madera', bate: 'g_madera2', barra: 'g_acero', tubo: 'g_sangre', martillo: 'g_acero', hacha: 'g_sangre', cadena: null, machete: 'g_sangre',
+    baston_oscuro: 'g_rayo', baston_resina: 'g_veneno', palo_destino: 'g_fuego', daga_demonio: 'g_fuego', espada_lamentos: 'g_celeste' }, ARC_T = { a: 'g_azul', p: 'g_violeta', n: 'g_naranja' };
+  function swingFx(wk) { const it = ITEMS[wk] || {}, b0 = baseOf(wk), arc = (ARC[wk] && it.epic) ? ARC[wk] : ARC_T[it.r] || (b0 === 'cadena' || b0 === 'lanza' || b0 === 'baston' ? null : ARC[b0]);
+    if (arc && fxOk(arc)) { const v = { d: [0, 1], u: [0, -1], l: [-1, 0], r: [1, 0] }[P.dir]; fx(arc, P.x + v[0] * 85, P.y - 95 + v[1] * 60, { w: 170, ang: Math.atan2(v[1], v[0]) - .35, flip: P.dir === 'l', T: .24, grow: .15 }); return; }
+    const b = b0, [k, w, d] = SWING[b] || ['tajo_corto', 130, 85], v = { d: [0, 1], u: [0, -1], l: [-1, 0], r: [1, 0] }[P.dir], ang = Math.atan2(v[1], v[0]);
     const ground = k === 'impacto' || k === 'impacto_pesado'; fx(k, P.x + v[0] * d, P.y - (ground ? 40 : 95) + v[1] * d * .7, { w, ang: ground ? 0 : ang, flip: !ground && P.dir === 'l', T: ground ? .32 : .24, grow: ground ? .35 : .15 }); }
   function slot_is_weapon(k) { return !!WEAP[k]; }
   $('#inv-b').onclick = openInv; $('#inv-close').onclick = closeInv; $('#lib-close').onclick = closeLib; $('#inv-x').onclick = closeInv; $('#map-b').onclick = openMapa; $('#map-close').onclick = () => { $('#ov-map').hidden = true; paused = false; };
