@@ -458,6 +458,11 @@
       /* salidas finitas, al ras del borde: así no se comen el piso ni dejan objetos inalcanzables */
       { const w = m.w || 1672, h = m.h || 941, r = e.r, key = Object.keys(MAPS).find(q => MAPS[q] === m), cls = MASK[key];
         const walkC = (x, y) => { if (!cls) return false; const i = Math.floor(x / C), j = Math.floor(y / C); return i >= 0 && j >= 0 && i < cls.gw && j < cls.gh && !!cls[j * cls.gw + i]; };
+        /* puertas en el medio del mapa: franja fina de 26 px donde más se pisa */
+        const edge_ = r[1] <= 30 || h - r[3] <= 30 || r[0] <= 30 || w - r[2] <= 30;
+        if (!edge_ && cls) { const ww = r[2] - r[0], hh = r[3] - r[1], T2 = 26; if (Math.min(ww, hh) > 34) { const horiz = ww >= hh; let best = null, bv = -1;
+            for (let o = 0; o + T2 <= (horiz ? hh : ww); o += 4) { let v = 0; for (let x = (horiz ? r[0] : r[0] + o) + 4; x <= (horiz ? r[2] : r[0] + o + T2); x += 8) for (let y = (horiz ? r[1] + o : r[1]) + 4; y <= (horiz ? r[1] + o + T2 : r[3]); y += 8) if (walkC(x, y)) v++; if (v > bv || (v === bv && v > 0)) { bv = v; best = o; } }
+            if (best != null && bv >= 2) e.r = horiz ? [r[0], r[1] + best, r[2], r[1] + best + T2] : [r[0] + best, r[1], r[0] + best + T2, r[3]]; } }
         /* se busca la franja más fina (desde el borde hacia adentro) que todavía se pueda pisar */
         for (const T of [20, 36, 52, 70]) { let nr = null;
           if (e.side === 'd' && h - r[3] <= 30) nr = [r[0], Math.max(r[1], h - T), r[2], h - 1]; else if (e.side === 'u' && r[1] <= 30) nr = [r[0], 0, r[2], Math.min(r[3], T)];
