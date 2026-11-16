@@ -195,8 +195,8 @@
   /* jefes del mundo: solo en zonas de nivel medio/alto (nada de jefes en Haedo ni en las zonas de arranque) */
   const BOSS_POOL = { garras: ['oficina_ruina', 'esperanza', 'lezama'], electrico: ['complejo8c', 'subte_arena', 'rivadavia'], pantallas: ['bar_humo', 'oficina_ruina', 'urbanoBA'], serpiente: ['muelle', 'puente'],
     ignacio: ['congreso', 'estOnce', 'terminal_once'], maxi: ['esperanza', 'muelle'], lilia: ['lab', 'lab_cuarentena'], jefe: ['lab_cuarentena', 'arena_final'], sofia: ['oficina', 'oficina_ruina', 'puente'],
-    lucas: ['lab', 'terminal_once'], noster: ['urbanoBA', 'oficina', 'arena_final'], ani: ['rivadavia', 'lezama', 'subte_arena'], nacho: ['estOnce', 'bunker', 'muelle'], chica: ['bar_humo'], chico: ['bar_rojo'] };
-  Object.keys(BOSS_POOL).forEach(k => { MOB[k].respawn = 99999999; MOB[k].world = true; });
+    lucas: ['lab', 'terminal_once'], noster: ['urbanoBA', 'oficina', 'arena_final'], ani: ['rivadavia', 'lezama', 'subte_arena'], nacho: ['estOnce', 'bunker', 'muelle'] };
+  Object.keys(BOSS_POOL).concat(['chica', 'chico']).forEach(k => { MOB[k].respawn = 99999999; MOB[k].world = true; });
   ['chica_b', 'chica_c', 'chico_b', 'chico_c'].forEach(k => { MOB[k].respawn = 99999999; MOB[k].world = true; });
   /* balance: los Oscuros pegan menos (que no te maten de dos golpes) */
   Object.values(MOB).forEach(T => { const f = T.boss ? .45 : .8; T.dmg = Math.round(T.dmg * f); if (T.fdmg) T.fdmg = Math.round(T.fdmg * f); if (T.big) T.big = Math.round(T.big * f); if (!T.boss) T.sight = Math.round(T.sight * .85); });
@@ -712,7 +712,7 @@
     if (suero.taken === slot) { suero.map = null; hud(); return; }
     try { sb.from('game_state').select('v').eq('k', 'suero').maybeSingle().then(res => { const v = res && res.data && res.data.v; if (v && v.slot === slot) { suero.taken = slot; suero.map = null; clearSuero(); hud(); } }, () => {}); } catch (e) {}
     if (suero.map === mapKey) { for (let k = 0; k < 3000; k++) { const c = (r() * grid.length) | 0; if (grid[c]) { pickups.push({ k: 'suero', x: (c % GW + .5) * CW, y: (((c / GW) | 0) + .5) * CW, t: 0, pid: 'suero-' + slot }); break; } } }
-    if (changed && running) toast('Rumor en la red: hay un maletín de curación en ' + MAPS[suero.map].name.toLowerCase() + '.'); hud(); }
+    hud(); }
   function sueroTaken() { suero.taken = suero.slot; suero.map = null; try { sb.from('game_state').upsert({ k: 'suero', v: { slot: suero.slot, by: me.nick }, updated_at: new Date().toISOString() }).then(() => {}, () => {}); } catch (e) {} hud(); }
 
   /* ---------- items ---------- */
@@ -1073,6 +1073,8 @@
   /* los 3 jefes del día y dónde están (todos ven lo mismo porque sale de la fecha) */
   function bossesToday() { const d = dayN(); if (bossesToday.d === d) return bossesToday.v; const mix = x => { let h = hashStr(x); h = Math.imul(h ^ (h >>> 16), 2246822507); h ^= h >>> 13; h = Math.imul(h, 3266489909); h ^= h >>> 16; return h >>> 0; }; const ks = Object.keys(BOSS_POOL).sort((a, b) => mix(a + ':' + d) - mix(b + ':' + d)); const v = {}, used = new Set();
     for (const k of ks) { if (Object.keys(v).length >= 3) break; const l = BOSS_POOL[k].filter(m => MAPS[m] && !used.has(m)); if (!l.length) continue; const m = l[mix(k + '@' + d) % l.length]; v[m] = k; used.add(m); }
+    /* la dama y el galán: un día ella en el Bar de Humo, al otro él en el Bar de Luz Roja, todo el día */
+    if (d % 2) { if (MAPS.bar_humo) v.bar_humo = 'chica'; } else if (MAPS.bar_rojo) v.bar_rojo = 'chico';
     bossesToday.d = d; bossesToday.v = v; return v; }
   const dayStart = () => (dayN() * 864e5) + 3 * 3600e3;
   const bossAlive = k => (hourlyDead[k] || 0) < dayStart();
@@ -1239,7 +1241,7 @@
       dama: p => { if (isHost) damaNext(p.id, p.by); },
       boss: p => { if (MOB[p.k]) toast('⚠ ' + MOB[p.k].name + ' está en ' + MAP.name.toLowerCase()); },
       shot: p => { shots.push({ x: p.x, y: p.y, vx: p.vx * 1100, vy: p.vy * 1100 * .8, life: .6, fake: true }); SND.shot(.35); },
-      suero: p => { if (p.slot === suero.slot) { suero.taken = p.slot; suero.map = null; clearSuero(); toast(p.by + ' agarró el maletín de curación.'); hud(); } },
+      suero: p => { if (p.slot === suero.slot) { suero.taken = p.slot; suero.map = null; clearSuero(); hud(); } },
       drop: p => { if (!pickups.some(q => q.pid === p.pid)) pickups.push({ k: p.k, x: p.x, y: p.y, t: 0, pid: p.pid }); },
       took: p => { const i = pickups.findIndex(q => q.pid === p.pid); if (i >= 0) pickups.splice(i, 1); }
     };
@@ -1273,8 +1275,14 @@
   function tryBrazalete(n) { const have = INV.items[PISTA()] || 0; if (have < 3) { if (n.act === null && !n.heal) npcSay(n, 'Traeme 3 pistas y te doy algo que vale la pena. Tenés ' + have + '.'); return false; }
     INV.items[PISTA()] -= 3; if (!INV.items[PISTA()]) delete INV.items[PISTA()]; addItem(BRZ()); SND.level(); toast(n.nm + ' te da el ' + ITEMS[BRZ()].n.toLowerCase() + '.'); persist(); return true; }
   /* misiones de búsqueda: te piden algo, lo traés, te dan algo (una sola vez por cuenta) */
+  /* trueques que se repiten: Claudia (3 puchos → chaleco) y Pablo (3 manzanas → venda azul) */
+  const TRADES = { claudia: ['cigarrillo', 3, () => Math.random() < .25 ? 'chaleco_a' : 'chaleco', 'Traeme 3 puchos y te doy un chaleco.', 'Tomá, abrigate. Y no me mires así.'],
+    pablo: ['manzana', 3, () => 'vendas_a', 'Si me traés 3 manzanas te doy una venda azul.', 'Gracias. Tomá, esta venda cura bien.'] };
+  function npcTrade(n) { const t = TRADES[n.k] || TRADES[(n.k || '').replace(/_\d+$/, '')]; if (!t || EXP) return false; const [need, c, give, ask, thx] = t;
+    if ((INV.items[need] || 0) < c) { npcSay(n, ask + ' (tenés ' + (INV.items[need] || 0) + '/' + c + ')'); return true; }
+    INV.items[need] -= c; if (!INV.items[need]) delete INV.items[need]; const g = give(); takeItem(g); SND.level(); npcSay(n, thx); toast('Recibiste: ' + ITEMS[g].n + '.'); quickBtns(); hud(); persist(); return true; }
   function questTalk(n) { const q = n.quest; INV.quests = INV.quests || {};
-    if (INV.quests[q.id]) { if (n.shop) return openShop(n); return npcSay(n, q.done); }
+    if (INV.quests[q.id]) { if (n.shop) return openShop(n); if (npcTrade(n)) return; return npcSay(n, q.done); }
     const falta = Object.entries(q.need).filter(([k, c]) => (INV.items[k] || 0) < c);
     if (falta.length) { INV.quests_seen = INV.quests_seen || {}; INV.quests_seen[q.id] = n.nm; npcSay(n, q.txt + ' (' + Object.entries(q.need).map(([k, c]) => ITEMS[k].n + ' ' + Math.min(c, INV.items[k] || 0) + '/' + c).join(' · ') + ')'); return; }
     Object.entries(q.need).forEach(([k, c]) => { INV.items[k] -= c; if (INV.items[k] <= 0) delete INV.items[k]; });
@@ -1294,6 +1302,7 @@
     if (n.fac && n.fac !== me.faction && !n.heal && !n.brz) return hostil(n);
     if (n.quest && !(n.heal && (INV.quests || {})[n.quest.id])) { if (n.heal && P.hp < maxHp(lvlOf(P.xp)) * .5) {} else return questTalk(n); }
     if (n.shop && !n.heal) return openShop(n);
+    if (!n.quest && /^pablo/.test(n.k || '') && npcTrade(n)) return;
     if (!n.heal && !n.brz && n.act !== 'shop') return npcSay(n, n.line);
     if (n.brz && !n.heal) { if (me.faction !== n.brz) return hostil(n); if (!tryBrazalete(n)) npcSay(n, n.line + ' Necesito 3 pistas, tenés ' + (INV.items[PISTA()] || 0) + '.'); return; }
     if (n.act === 'shop') return openShop();
@@ -1687,10 +1696,20 @@
       if (!mine && (o.hurt || 0) > 0) { o.hurt -= 1 / 60; c.globalCompositeOperation = 'lighter'; c.globalAlpha = .6; blitChar(c, spr, sx, sy, S); c.globalCompositeOperation = 'source-over'; }
       c.globalAlpha = 1; c.imageSmoothingEnabled = true;
       if (!mine && fac !== me.faction && o.hp != null && !o.dead) { const bw = 46 * zoom, by = sy - 27 * S - 24; c.fillStyle = 'rgba(0,0,0,.65)'; c.fillRect(sx - bw / 2, by, bw, 4); c.fillStyle = '#ff6a5c'; c.fillRect(sx - bw / 2, by, bw * Math.max(0, o.hp / 100), 4); }
-      if ((o.atk || 0) > 0) { const a = { d: Math.PI / 2, u: -Math.PI / 2, l: Math.PI, r: 0 }[dir]; const k = 1 - (o.atk / .3), wk = mine ? (P.wk || 'palo') : 'palo';
-        if (wk === 'pistola') { const mx = sx + Math.cos(a) * 50 * zoom, my = sy - 95 * zoom + Math.sin(a) * 30 * zoom; c.fillStyle = 'rgba(255,220,140,' + (1 - k) + ')'; c.beginPath(); c.arc(mx, my, 14 * zoom * (1 - k), 0, 7); c.fill(); }
-        else if (wk === 'lanza') { const r0 = 30 * zoom, r1 = (110 + 70 * Math.sin(k * Math.PI)) * zoom; c.strokeStyle = 'rgba(200,200,205,' + (1 - k * .6) + ')'; c.lineWidth = 4 * zoom; c.beginPath(); c.moveTo(sx + Math.cos(a) * r0, sy - 80 * zoom + Math.sin(a) * r0); c.lineTo(sx + Math.cos(a) * r1, sy - 80 * zoom + Math.sin(a) * r1); c.stroke(); }
-        else { const rad = (wk === 'cuchillo' ? 70 : wk === 'bate' ? 105 : 95) * zoom; c.strokeStyle = 'rgba(255,255,255,' + (.75 * (1 - k)) + ')'; c.lineWidth = (wk === 'bate' ? 8 : 5) * zoom; c.beginPath(); c.arc(sx, sy - 80 * zoom, rad, a - 1.1 + k * .6, a + .2 + k * .9); c.stroke(); } }
+      if ((o.atk || 0) > 0) { const a = { d: Math.PI / 2, u: -Math.PI / 2, l: Math.PI, r: 0 }[dir]; const k = 1 - (o.atk / .3), wk = baseOf(mine ? (P.wk || 'palo') : (o.wk || 'palo')), cy0 = sy - 80 * zoom, al = 1 - k;
+        const rc = mine && ITEMS[P.wk] && ITEMS[P.wk].r && ITEMS[P.wk].r !== 'g' && ITEMS[P.wk].r !== 'v' ? RAR[ITEMS[P.wk].r][1] : null;
+        const tint = (c0, A) => rc ? rc + Math.round(A * 255).toString(16).padStart(2, '0') : 'rgba(' + c0 + ',' + A + ')';
+        const arc_ = (rad, w, col, a0, a1) => { c.strokeStyle = col; c.lineWidth = w * zoom; c.lineCap = 'round'; c.beginPath(); c.arc(sx, cy0, rad * zoom, a + a0, a + a1); c.stroke(); };
+        if (WEAP[mine ? P.wk : wk] && WEAP[mine ? P.wk : wk].gun || ['pistola', 'escopeta', 'metralleta', 'ballesta', 'lanzallamas'].includes(wk)) { const mx = sx + Math.cos(a) * 50 * zoom, my = sy - 95 * zoom + Math.sin(a) * 30 * zoom; c.fillStyle = wk === 'ballesta' ? 'rgba(220,200,160,' + al + ')' : wk === 'lanzallamas' ? 'rgba(255,140,40,' + al + ')' : 'rgba(255,220,140,' + al + ')'; c.beginPath(); c.arc(mx, my, (wk === 'escopeta' ? 20 : 13) * zoom * al, 0, 7); c.fill(); }
+        else if (wk === 'lanza' || wk === 'baston') { /* estocada: línea recta que sale y vuelve */ const r0 = 30 * zoom, r1 = (110 + 80 * Math.sin(k * Math.PI)) * zoom; c.strokeStyle = tint('210,210,215', al); c.lineWidth = 4 * zoom; c.beginPath(); c.moveTo(sx + Math.cos(a) * r0, cy0 + Math.sin(a) * r0); c.lineTo(sx + Math.cos(a) * r1, cy0 + Math.sin(a) * r1); c.stroke(); c.fillStyle = tint('255,255,255', al); c.beginPath(); c.arc(sx + Math.cos(a) * r1, cy0 + Math.sin(a) * r1, 5 * zoom, 0, 7); c.fill(); }
+        else if (wk === 'cuchillo' || wk === 'daga_demonio') { /* dos tajos cortos y rápidos */ arc_(62, 3, tint('235,240,255', .85 * al), -.9 + k * .4, -.1 + k * .6); arc_(76, 2, tint('235,240,255', .6 * al), .1 - k * .3, .8 - k * .3); }
+        else if (wk === 'katana' || wk === 'machete' || wk === 'espada_lamentos') { /* tajo largo y fino, con brillo */ arc_(112, 3, tint('220,235,255', .9 * al), -1.4 + k * .5, .5 + k * 1.1); arc_(104, 7, tint('150,190,255', .25 * al), -1.2 + k * .5, .4 + k * 1.1); }
+        else if (wk === 'cadena') { /* barrido amplio, eslabones */ c.setLineDash([6 * zoom, 5 * zoom]); arc_(135, 5, tint('190,170,140', .9 * al), -1.7 + k * .8, 1.2 + k * .8); c.setLineDash([]); }
+        else if (wk === 'hacha') { arc_(98, 9, tint('255,230,200', .75 * al), -1 + k * .7, .2 + k * .9); }
+        else { /* golpe contundente (palo, barra, bate, martillo, tubo, bastones): arco grueso y onda de impacto */
+          const heavy = wk === 'martillo' || wk === 'bate' || wk === 'baston_oscuro', rad = wk === 'barra' ? 115 : heavy ? 102 : 92;
+          arc_(rad, heavy ? 10 : 6, tint('255,255,255', .7 * al), -1.1 + k * .6, .2 + k * .9);
+          if (k > .45) { const ix = sx + Math.cos(a) * rad * zoom * .9, iy = cy0 + Math.sin(a) * rad * zoom * .6 + 60 * zoom, R = (heavy ? 60 : 36) * zoom * (k - .45) * 2; c.strokeStyle = tint('255,230,180', (1 - k) * 1.4); c.lineWidth = (heavy ? 4 : 2) * zoom; c.beginPath(); c.ellipse(ix, iy, R, R * .4, 0, 0, 7); c.stroke(); } } }
       if (!mine && !o.gh) { c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; const nm = (o.lvl >= lvlOf(P.xp) + 10 && fac !== me.faction ? '☠ ' : '') + nick + (fac !== me.faction ? ' ✕' : ''); const w = c.measureText(nm).width + 10; const ny = sy - 27 * S - 6; c.fillStyle = 'rgba(0,0,0,.6)'; c.fillRect(sx - w / 2, ny - 12, w, 15); c.fillStyle = fac === 'ork' ? '#ff7a70' : '#eeeeee'; c.fillText(nm, sx, ny); }
       if (o.sayT > 0 && o.say) bubble(sx, sy - 27 * S - (mine ? 6 : 24), o.say); }
     function drawMob(o) { const T = o.T; const [sx, sy] = W2S(o.x, o.y); if (sx < -300 || sx > VW + 300 || sy < -50 || sy > VH + 400) return; if (T.eyes) return;

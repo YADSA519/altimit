@@ -70,8 +70,10 @@
       const r = await (await fetch('https://api.github.com/repos/YADSA519/altimit/releases/latest', { cache: 'no-store' })).json(); const n = +String(r.tag_name || '').replace(/\D/g, ''); if (!(n > mine)) return;
       const a = (r.assets || []).find(x => /\.apk$/.test(x.name)); if (!a) return; if (document.getElementById('upd')) return;
       const d = document.createElement('div'); d.id = 'upd'; d.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);top:max(10px,env(safe-area-inset-top));z-index:9999;background:#15130f;border:1px solid #e8c070;border-radius:8px;padding:10px 14px;color:#f1efe9;font:13px TechMono,monospace;display:flex;gap:10px;align-items:center;box-shadow:0 4px 20px #000;max-width:92vw';
-      d.innerHTML = '<span>Hay una versión nueva de THE O|F.</span><a href="' + a.browser_download_url + '" style="color:#000;background:#e8c070;border-radius:6px;padding:6px 10px;text-decoration:none;font-weight:bold">ACTUALIZAR</a><span id="upd-x" style="cursor:pointer;opacity:.6">✕</span>';
-      document.body.appendChild(d); document.getElementById('upd-x').onclick = () => d.remove(); } catch (e) {} }
+      /* actualización obligatoria: la pantalla queda tapada hasta instalar la versión nueva */
+      d.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(2,8,9,.96);display:flex;flex-direction:column;gap:16px;align-items:center;justify-content:center;text-align:center;padding:24px;color:#f1efe9;font:15px TechMono,monospace';
+      d.innerHTML = '<b style="font:32px Bebas,sans-serif;letter-spacing:.16em;color:#45f0ea">THE O|F</b><span>Salió una versión nueva.<br>Para seguir jugando tenés que instalarla.</span><a href="' + a.browser_download_url + '" style="color:#000;background:#e8c070;border-radius:6px;padding:12px 22px;text-decoration:none;font-weight:bold;font-size:17px">DESCARGAR Y ACTUALIZAR</a><small style="opacity:.6;max-width:320px">Bajá el archivo, abrilo e instalalo encima. No perdés tu personaje.</small>';
+      document.body.appendChild(d); } catch (e) {} }
   setTimeout(checkUpdate, 2500);
   async function start() {
     if (!navigator.onLine) { showAuth(); say('#li-msg', 'Sin conexión. Podés jugar el MODO HISTORIA OFFLINE.'); return; }
