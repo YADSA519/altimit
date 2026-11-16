@@ -755,7 +755,7 @@
     P.hp -= d; P.hurtT = .3; SND.hurt(); buzz(knock ? [60, 30, 60] : 40); shake = Math.max(shake, knock ? .35 : .15);
     floats.push({ x: P.x, y: P.y - 190, t: .9, txt: '-' + d, c: '#ff6a5c' });
     if (knock && knockFrom) { const dx = P.x - knockFrom.x, dy = P.y - knockFrom.y, l = Math.hypot(dx, dy) || 1; for (let i = 0; i < 6; i++) { const nx = P.x + dx / l * knock / 6, ny = P.y + dy / l * knock / 6; if (walkable(nx, ny)) { P.x = nx; P.y = ny; } } }
-    if (P.hp <= 0) { P.hp = 0; P.dead = true; buzz([80, 60, 160]);
+    if (P.hp <= 0) { P.hp = 0; P.dead = true; buzz([80, 60, 160]); cleanse(true);
       /* MUNDO: si te mata un jugador o un jefe no perdés nivel; si te mata un Oscuro volvés al 1 */
       const byBoss = !byId && mk && MOB[mk] && MOB[mk].boss, rescued = me.faction === 'ork' ? 'ORK te rescató y te curaron.' : 'Los rebeldes te ayudaron y te volvieron a curar.';
       /* 2.1: en la HISTORIA no se pierde nivel, salvo 3 muertes seguidas (-1 nivel). En PvP nunca. */
@@ -1018,7 +1018,10 @@
     persist(); setTimeout(() => mvpBack(), 11000); }
   function revive(id) { if (!hasItem('suero') && !hasItem('kit')) return toast('Para revivir necesitás un maletín de curación total o un kit de curación.'); const k = hasItem('suero') ? 'suero' : 'kit'; INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; if (k === 'suero') sueroTaken();
     net('revive', { to: id, by: me.nick }); SND.level(); toast('Lo reviviste.'); persist(); quickBtns(); }
-  function gotRevived(by) { if (!P.dead) return; P.dead = false; P.hp = Math.round(maxHp(lvlOf(P.xp)) * .5); P.inv = 3; $('#ov-dead').hidden = true; SND.level(); banner('TE REVIVIERON', by, 1800, '#9fe0b0'); hud(); sendPos(true); }
+  /* al morir quedás limpio: sin veneno, fuego, lentitud, aturdimiento ni habilidades */
+  function cleanse(lostAb) { P.poison = 0; P.poisonK = 0; P.burn = 0; P.slow = 0; P.stunT = 0; P.goo = 0; P.regen = null; P.fast = 0; P.potion = 0; P.furia = 0; P.jefe = 0; P.smoke = 0; P.gorro = 0; P.ghost = 0; P.clone = null;
+    if (lostAb && INV && INV.ab && INV.ab.length) { const had = INV.ab.map(a => AB[a] ? AB[a].n : a).join(', '); INV.ab = []; try { abButtons(); } catch (e) {} setTimeout(() => toast('Perdiste tus habilidades: ' + had + '.'), 1200); } }
+  function gotRevived(by) { cleanse(false); if (!P.dead) return; P.dead = false; P.hp = Math.round(maxHp(lvlOf(P.xp)) * .5); P.inv = 3; $('#ov-dead').hidden = true; SND.level(); banner('TE REVIVIERON', by, 1800, '#9fe0b0'); hud(); sendPos(true); }
   function mvpDraw(c, W2S, zoom, t) { if (!MAP || !MAP.mvp) return;
     mvpObjs.forEach(o => { const [x, y] = W2S(o.x, o.y);
       if (o.t === 'galera') { const im = iconOf('gorro_desap'), w = 70 * zoom; c.globalAlpha = .95; c.save(); c.shadowColor = '#b080ff'; c.shadowBlur = 18; try { c.drawImage(im, x - w / 2, y - w * .9 + Math.sin(t * 3 + o.id) * 4, w, w); } catch (e) {} c.restore(); c.globalAlpha = 1; for (let i = 0; i < (o.hp || 1); i++) { c.fillStyle = '#d8c8ff'; c.fillRect(x - 10 + i * 12, y + 6, 8, 4); } }
@@ -1465,7 +1468,7 @@
     const { error } = await sb.rpc('game_reset_faction'); if (error) { b.disabled = false; b.textContent = 'ELEGIR BANDO DE NUEVO'; return toast('No se pudo: falta correr 05_reglas.sql en Supabase.'); }
     leaveRoom(); try { if (PL.ScreenOrientation) await PL.ScreenOrientation.lock({ orientation: 'portrait' }); } catch (e) {} location.replace('/index.html'); };
   $('#d-ok').onclick = () => { $('#ov-dead').hidden = true; $('#fade').classList.add('on');
-    setTimeout(() => { P.hp = maxHp(lvlOf(P.xp)); P.dead = false; hud(); const [hz, hp_] = home(); if (mapKey !== hz) enterMap(hz, hp_[0] * WS, hp_[1] * WS); else { P.x = hp_[0] * WS; P.y = hp_[1] * WS; P.inv = 4; } hud(); sendPos(true); persist(); $('#fade').classList.remove('on'); }, 600); };
+    setTimeout(() => { cleanse(false); P.hp = maxHp(lvlOf(P.xp)); P.dead = false; hud(); const [hz, hp_] = home(); if (mapKey !== hz) enterMap(hz, hp_[0] * WS, hp_[1] * WS); else { P.x = hp_[0] * WS; P.y = hp_[1] * WS; P.inv = 4; } hud(); sendPos(true); persist(); $('#fade').classList.remove('on'); }, 600); };
 
   /* =================== API para el modo historia (cenizas-story.js) =================== */
   const API = { useItem, get CAS() { return CAS; }, get ptraps() { return ptraps; }, get guide() { return guide; }, get suero() { return suero; }, get P() { return P; }, get look() { return look; }, get INV() { return INV; }, get me() { return me; }, get mapKey() { return mapKey; }, get MAP() { return MAP; }, MAPS, ITEMS, MOB, WS, toast, buzz, SND, hud, persist, addItem, hasItem, spawnPickup, warpTo, iconOf, img, ok, quickBtns,
