@@ -1048,8 +1048,8 @@
   function fxDraw(c, W2S, zoom) { fxs.forEach(f => { const k = f.t / f.T, [x, y] = W2S(f.x, f.y); drawFxImg(c, f.k, x, y, f.w * zoom * (1 + f.grow * k), f.ang, k < .25 ? .6 + k * 1.6 : (1 - k) / .75, f.flip); }); }
   /* golpe cuerpo a cuerpo según el arma */
   const SWING = { cuchillo: ['tajo_corto', 110, 70], daga_demonio: ['tajo_corto', 110, 70], katana: ['tajo_largo', 175, 85], machete: ['tajo_largo', 160, 80], espada_lamentos: ['tajo_largo', 185, 90],
-    lanza: ['estocada', 190, 105], baston: ['estocada', 170, 95], cadena: ['cadena', 200, 85], hacha: ['impacto_pesado', 150, 95], martillo: ['impacto_pesado', 170, 95], bate: ['impacto', 140, 95], baston_oscuro: ['impacto_pesado', 160, 95] };
-  function swingFx(wk) { const b = baseOf(wk), [k, w, d] = SWING[b] || ['impacto', 125, 90], v = { d: [0, 1], u: [0, -1], l: [-1, 0], r: [1, 0] }[P.dir], ang = Math.atan2(v[1], v[0]);
+    lanza: ['estocada', 190, 105], baston: ['estocada', 170, 95], cadena: ['cadena', 200, 85], hacha: ['tajo_largo', 170, 90], martillo: ['tajo_largo', 175, 90], bate: ['tajo_largo', 165, 90], baston_oscuro: ['tajo_largo', 170, 90], barra: ['tajo_largo', 170, 95], tubo: ['tajo_largo', 160, 90] };
+  function swingFx(wk) { const b = baseOf(wk), [k, w, d] = SWING[b] || ['tajo_corto', 130, 85], v = { d: [0, 1], u: [0, -1], l: [-1, 0], r: [1, 0] }[P.dir], ang = Math.atan2(v[1], v[0]);
     const ground = k === 'impacto' || k === 'impacto_pesado'; fx(k, P.x + v[0] * d, P.y - (ground ? 40 : 95) + v[1] * d * .7, { w, ang: ground ? 0 : ang, flip: !ground && P.dir === 'l', T: ground ? .32 : .24, grow: ground ? .35 : .15 }); }
   function slot_is_weapon(k) { return !!WEAP[k]; }
   $('#inv-b').onclick = openInv; $('#inv-close').onclick = closeInv; $('#lib-close').onclick = closeLib; $('#inv-x').onclick = closeInv; $('#map-b').onclick = openMapa; $('#map-close').onclick = () => { $('#ov-map').hidden = true; paused = false; };
@@ -1212,7 +1212,7 @@
     for (let i = clouds.length - 1; i >= 0; i--) { const c0 = clouds[i]; c0.ttl -= dt; if (c0.ttl <= 0) { clouds.splice(i, 1); continue; }
       if (!P.dead && Math.hypot(P.x - c0.x, (P.y - c0.y) * 1.4) < c0.r) { c0.tick -= dt; if (c0.tick <= 0) { c0.tick = .5; hitPlayer(6, null, 0, null, 'sofia'); } } } }
   /* ataque de un Oscuro sobre un jugador: si soy yo me pega acá; si es otro, le aviso */
-  function strikeOn(pl, d, from, knock) { d = Math.round(d * (from.lvK || 1)); if (pl.me) hitPlayer(d, from, knock, null, from.kind); else net('mstrike', { to: pl.id, d, x: Math.round(from.x), y: Math.round(from.y), k: knock || 0, mk: from.kind }); }
+  function strikeOn(pl, d, from, knock) { if (from && from.kind === 'mole') fx('impacto_pesado', pl.x, pl.y - 30, { w: 210, T: .45, grow: .3 }); d = Math.round(d * (from.lvK || 1)); if (pl.me) hitPlayer(d, from, knock, null, from.kind); else net('mstrike', { to: pl.id, d, x: Math.round(from.x), y: Math.round(from.y), k: knock || 0, mk: from.kind }); }
   /* desbloqueos de jefes: los calcula Supabase con el mejor nivel de cada uno */
   let unlockT = 0;
   async function checkUnlocks() { if (EXP) return; try { await persist(); const { data, error } = await sb.rpc('game_unlocks'); if (error || !data) return; const before = Object.assign({}, unlocks); unlocks = data;
@@ -1253,7 +1253,7 @@
       revive: p => { if (p.to === me.id) gotRevived(p.by); },
       mfx: p => { if (!isHost) return; const o = mobs.find(m => m.id === p.id); if (o) applyMobFx(o, p.fx, p.by); },
       mdie: p => onMobDie(p),
-      mstrike: p => { if (p.to === me.id) hitPlayer(p.d, { x: p.x, y: p.y }, p.k, null, p.mk || 'oscuro'); },
+      mstrike: p => { if (p.mk === 'mole') fx('impacto_pesado', p.to === me.id ? P.x : p.x, (p.to === me.id ? P.y : p.y) - 30, { w: 210, T: .45, grow: .3 }); if (p.to === me.id) hitPlayer(p.d, { x: p.x, y: p.y }, p.k, null, p.mk || 'oscuro'); },
       mfire: p => { mshots.push({ x: p.x, y: p.y, vx: p.vx, vy: p.vy, k: p.k, d: p.d, life: 2.2, mk: p.mk }); SND.fireball(p.k); },
       mcloud: p => clouds.push({ x: p.x, y: p.y, r: 150, ttl: 4.5, tick: 0 }),
       mslow: p => { if (p.to === me.id) stun(p.t || 3); },
