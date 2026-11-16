@@ -198,6 +198,8 @@
     lucas: ['lab', 'terminal_once'], noster: ['urbanoBA', 'oficina', 'arena_final'], ani: ['rivadavia', 'lezama', 'subte_arena'], nacho: ['estOnce', 'bunker', 'muelle'] };
   Object.keys(BOSS_POOL).concat(['chica', 'chico']).forEach(k => { MOB[k].respawn = 99999999; MOB[k].world = true; });
   ['chica_b', 'chica_c', 'chico_b', 'chico_c'].forEach(k => { MOB[k].respawn = 99999999; MOB[k].world = true; });
+  /* mientras le das plata no es jefe: recién la bestia (_c) cuenta como jefe */
+  ['chica', 'chica_b', 'chico', 'chico_b'].forEach(k => { MOB[k].boss = false; MOB[k].name = MOB[k].name.replace(' · BESTIA', ''); });
   /* balance: los Oscuros pegan menos (que no te maten de dos golpes) */
   Object.values(MOB).forEach(T => { const f = T.boss ? .45 : .8; T.dmg = Math.round(T.dmg * f); if (T.fdmg) T.fdmg = Math.round(T.fdmg * f); if (T.big) T.big = Math.round(T.big * f); if (!T.boss) T.sight = Math.round(T.sight * .85); });
   Object.values(MOB).forEach(T => { T.h = T.ph * PXS; });
@@ -1049,7 +1051,7 @@
     if (ph === 0) { if (INV.coins < 100) return talk([[sk, ask], ['VOS', 'No tengo tanta plata.'], [sk, 'Entonces volvé cuando tengas, bombón.']]); return talk([[sk, ask], ['VOS', 'Tomá.'], [sk, after]], () => { INV.coins -= 100; hud(); persist(); go(); }); }
     const pay = INV.coins >= 100; talk([[sk, ask], ['VOS', pay ? 'Bueno... tomá.' : 'No me queda nada.'], [sk, after]], () => { if (pay) { INV.coins -= 100; hud(); persist(); } go(); }); }
   function damaNext(id, by) { const o = mobs.find(m => m.id === id); if (!o || !o.T.passive) return; const nk = /_b$/.test(o.kind) ? o.kind.replace(/_b$/, '_c') : o.kind + '_b'; const x = o.x, y = o.y;
-    const i = mobs.indexOf(o); if (i >= 0) mobs.splice(i, 1); const id0 = me.id.slice(0, 4) + '-' + (mobSeq++) + '-' + ((Math.random() * 1e4) | 0); const n = newMob(nk, id0 + '~' + (mobLevel(id0, nk) || 0), x, y); mobs.push(n);
+    const fam = o.kind.replace(/_[bc]$/, ''); for (let j = mobs.length - 1; j >= 0; j--) if (mobs[j].kind.replace(/_[bc]$/, '') === fam) mobs.splice(j, 1); const id0 = me.id.slice(0, 4) + '-' + (mobSeq++) + '-' + ((Math.random() * 1e4) | 0); const n = newMob(nk, id0 + '~' + (mobLevel(id0, nk) || 0), x, y); mobs.push(n);
     if (/_c$/.test(nk)) { n.chasing = true; shake = .6; SND.mob('roar', 1); for (let k = 0; k < 40; k++) parts.push({ x, y: y - 90, vx: rnd(-220, 220), vy: rnd(-200, 40), life: .8, s: 5, c: 200, fire: 1 }); net('boss', { k: nk }); } }
   function stun(t) { if (!(P.slow > 0)) toast('¡Aturdido! Te movés más lento.'); P.slow = Math.max(P.slow || 0, t); P.stunT = t; }
   const AB = { invis: { n: 'INVISIBLE', d: 'Botón HUIR: 3 segundos invisible para escapar.' }, rapido: { n: 'GOLPE RÁPIDO', d: 'Pegás 30% más rápido.' }, cuchillos: { n: 'CUCHILLOS', d: 'Cada golpe también tira un cuchillo hacia adelante.' } };
@@ -1077,12 +1079,14 @@
     if (d % 2) { if (MAPS.bar_humo) v.bar_humo = 'chica'; } else if (MAPS.bar_rojo) v.bar_rojo = 'chico';
     bossesToday.d = d; bossesToday.v = v; return v; }
   const dayStart = () => (dayN() * 864e5) + 3 * 3600e3;
-  const bossAlive = k => (hourlyDead[k] || 0) < dayStart();
+  const bossAlive = k => (hourlyDead[k] || 0) < dayStart() && (!/^chic[ao]$/.test(k) || (hourlyDead[k + '_c'] || 0) < dayStart());
   function loadHourly(k) { const b = bossesToday()[k]; if (!b) return; try { sb.from('game_state').select('v').eq('k', 'jefe_' + b).maybeSingle().then(r => { const v = r && r.data && r.data.v; if (v && v.t) hourlyDead[b] = Math.max(hourlyDead[b] || 0, v.t); }, () => {}); } catch (e) {} }
   /* Yuki en PvP: 20 minutos de cada hora, a una hora distinta cada día */
   const yukiPvp = () => { const m = (minOfDay() + hashStr('yuki' + dayN()) % 60) % 60; return m < 20; };
   const bossOn = k => { const b = BOSS_AT[k]; if (!b || EXP) return false; const m = (minOfDay() + hashStr(b) % 120) % 120; return m < 20; };
-  function wantMobs() { const w = Object.assign({}, MAP.mobs || {}); if (hordeOn(mapKey)) Object.keys(w).forEach(k => w[k] *= 2); if (!EXP && !MAP.base && !MAP.mvp && (MAP.dark || 0) >= .45 && !INV.eq.luz) w.ojos = 2; if (EXP) { if (mapKey === 'pvp_centro' && yukiPvp()) w.yuki = 1; return w; } Object.keys(EXTRA).forEach(k => { if (EXTRA[k][mapKey]) w[k] = (w[k] || 0) + EXTRA[k][mapKey]; }); const hb = bossesToday()[mapKey]; if (hb && bossAlive(hb)) { const ph = mobs.find(o => o.kind === hb + '_b' || o.kind === hb + '_c'); if (ph) w[ph.kind] = 1; else w[hb] = 1; }
+  function wantMobs() { const w = Object.assign({}, MAP.mobs || {}); if (hordeOn(mapKey)) Object.keys(w).forEach(k => w[k] *= 2); if (!EXP && !MAP.base && !MAP.mvp && (MAP.dark || 0) >= .45 && !INV.eq.luz) w.ojos = 2; if (EXP) { if (mapKey === 'pvp_centro' && yukiPvp()) w.yuki = 1; return w; } Object.keys(EXTRA).forEach(k => { if (EXTRA[k][mapKey]) w[k] = (w[k] || 0) + EXTRA[k][mapKey]; }); const hb = bossesToday()[mapKey]; if (hb && bossAlive(hb)) { const ph = mobs.find(o => o.kind === hb + '_c') || mobs.find(o => o.kind === hb + '_b'); if (ph) { w[ph.kind] = 1; delete w[hb]; } else w[hb] = 1; }
+    /* nunca dos de la misma dama/galán a la vez */
+    ['chica', 'chico'].forEach(f => { const here = mobs.filter(o => o.kind.replace(/_[bc]$/, '') === f); if (here.length > 1) { const keep = here.find(o => /_c$/.test(o.kind)) || here.find(o => /_b$/.test(o.kind)) || here[0]; here.forEach(o => { if (o !== keep) { const i = mobs.indexOf(o); if (i >= 0) mobs.splice(i, 1); } }); } });
     /* nunca dos jefes juntos: queda el que ya está en el mapa, si no el primero */
     const bk = Object.keys(w).filter(k => MOB[k] && MOB[k].boss && w[k] > 0); if (bk.length > 1) { const here = bk.find(k => mobs.some(o => o.kind === k)) || bk[0]; bk.forEach(k => { if (k !== here) delete w[k]; }); }
     return w; }
