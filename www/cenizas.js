@@ -111,7 +111,7 @@
     return lk && lk.npc && NPC && NPC.C[lk.npc] ? NPC.draw(lk.npc, dir, frame) : sprite(lk, dir, frame, atk); }
   /* dibuja un personaje (pixel 18×26 o planilla HD) con los pies en (sx, sy) */
   function blitChar(ctx, spr, sx, sy, S, k) { if (spr.hd) return HD.blit(ctx, spr, sx, sy + S, 25 * S * (k == null ? HD_K : k)); ctx.imageSmoothingEnabled = false; ctx.drawImage(spr, Math.round(sx - 9 * S), Math.round(sy - 25 * S), Math.round(18 * S), Math.round(26 * S)); }
-  const SKIN_NAMES = { pablo: 'Pablo 1', pablo2: 'Pablo 2', pablo3: 'Pablo 3', pol: 'Pol del futuro', polAlter: 'Pol alter', renzo: 'Renzo', sam: 'Sam', eze: 'Eze', esteban: 'Esteban', giuliana: 'Giuliana', lean: 'Lean', luis: 'Luis', norbert: 'Norbert', toby: 'Tobías', tomy: 'Tomy' };
+  const SKIN_NAMES = { pablo4: 'Pablo casual', pabloFuturo: 'Pablo futuro', pablo: 'Pablo 1', pablo2: 'Pablo 2', pablo3: 'Pablo 3', pol: 'Pol del futuro', polAlter: 'Pol alter', renzo: 'Renzo', sam: 'Sam', eze: 'Eze', esteban: 'Esteban', giuliana: 'Giuliana', lean: 'Lean', luis: 'Luis', norbert: 'Norbert', toby: 'Tobías', tomy: 'Tomy' };
   const skinName = k => { const n = SKIN_NAMES[k]; if (n) return n; const H = window.CZ_SHEETS; if (H && H.ALL.includes(H.NPC_SHEET[k] || k)) return (k.charAt(0).toUpperCase() + k.slice(1)).replace(/_/g, ' '); return null; };
   /* tipos de Oscuro: h = altura en mundo; las imágenes laterales miran a la derecha */
   /* Oscuros en pixel: PXS = tamaño de cada pixel en el mundo (igual que los avatares) */
@@ -386,7 +386,7 @@
       addItem(k); INV.dur[k] = it.mag; return k; }
     addItem(k); return k; }
   /* botín: fichas genéricas que se convierten en un objeto del color que toque */
-  const DROPW = { mapa: { v: 70, a: 22, p: 7, n: 1 }, alto: { v: 45, a: 34, p: 17, n: 4 }, jefe: { v: 8, a: 32, p: 38, n: 22 }, mvp: { v: 0, a: 20, p: 45, n: 35 } };
+  const DROPW = { mapa: { v: 70, a: 22, p: 7, n: 1 }, alto: { v: 45, a: 34, p: 17, n: 4 }, jefe: { v: 8, a: 32, p: 38, n: 22 }, mvp: { v: 0, a: 20, p: 45, n: 35 }, evento: { v: 65, a: 30, p: 5 } };
   const pickT = w => pickW(Object.entries(DROPW[w] || DROPW.mapa));
   function resolveLoot(k, w) { if (!k || k.length > 2 || !/^[A-Z]$/.test(k)) return k; const t = pickT(w || (MAP && (MAP.lv || [1, 3])[1] > 30 ? 'alto' : 'mapa'));
     if (k === 'W') return TKEY(pickW([['barra', 2], ['cuchillo', 2], ['bate', 2], ['lanza', 1], ['katana', 1], ['hacha', 1.4], ['machete', 1.6], ['martillo', 1], ['cadena', 1.2], ['tubo', 1.3]]), t);
@@ -568,7 +568,7 @@
   }
   /* skins: Pablo y Pol son de una cuenta; Renzo y Sam se ganan matando a Mercedes */
   let mySkins = [];
-  async function loadSkins(uid, gc) { const set = new Set((gc && gc.inv && gc.inv.skins) || []);
+  async function loadSkins(uid, gc) { const set = new Set((gc && gc.inv && gc.inv.skins) || []); if (me && ['xhiang', 'pablo'].includes(String(me.nick || '').toLowerCase())) { set.add('pablo4'); set.add('pabloFuturo'); }
     try { const { data } = await sb.from('game_skins').select('skin').eq('user_id', uid); (data || []).forEach(r => set.add(r.skin)); } catch (e) {}
     return [...set].filter(k => skinName(k)); }
   /* EXPERIMENTAL: nivel, mochila y lugar guardados aparte (game_exp, o el teléfono si falta la tabla) */
@@ -583,29 +583,34 @@
   function perkText() { if (!me || me.faction !== 'ork') return 'Rebeldes: corren más rápido y encuentran más cosas al matar Oscuros.'; return 'ORK: los Oscuros te sacan 15% menos. ' + ['Militar: los Perros te sacan 40% menos.', 'Científico: los Corredores te sacan 40% menos.', 'Espía: los Errantes te sacan 40% menos.'][(look && look.cls) || 0]; }
   function creator(prev) {
     const pl = prev && prev.look && prev.look.body != null ? prev.look : {};
-    look = Object.assign({ body: 0, skin: 1, hair: 0, hcol: 1, top: 0, acc: 0 }, pl, { fac: me.faction }); delete look.char;
+    look = Object.assign({ body: 0 }, pl, { fac: me.faction }); delete look.char;
     const cre = $('#cre'); cre.hidden = false; let rot = 0; const dirs = ['d', 'l', 'u', 'r'];
     if (me.faction === 'ork' && look.cls == null) look.cls = 0;
     const box = $('#opts');
     function rows() { box.querySelectorAll('.opt,.perk').forEach(e => e.remove());
-      const opts = [['CUERPO', 'body', () => BODY], ['PIEL', 'skin', () => ['Tono 1', 'Tono 2', 'Tono 3', 'Tono 4']], ['PELO', 'hair', () => HAIR], ['COLOR', 'hcol', () => HCOL.map(h => h[0])],
-        ['ROPA', 'top', () => me.faction === 'ork' ? OTOPS[look.cls].map(t => t[0]) : TOPS.rebel.map(t => t[0])], ['ACCESORIO', 'acc', () => ACC]];
-      if (HD) { for (let i = opts.length - 1; i >= 0; i--) if (opts[i][1] === 'hair' || opts[i][1] === 'acc') opts.splice(i, 1); opts.push(['PANTALÓN', 'pant', () => PANTC.map(p => p[0])]); opts.splice(opts.findIndex(o => o[1] === 'body') + 1, 0, ['MODELO', 'model', () => ['Modelo 1', 'Modelo 2']]); }
-      if (me.faction === 'ork') opts.unshift(['CLASE', 'cls', () => OCLS]);
-      const SELL_ = (HD && HD.SEL) || []; if (SELL_.length) { opts.unshift(['ASPECTO', 'pjI', () => ['Armable'].concat(SELL_.map((k, i) => 'Sobreviviente ' + (i + 1)))]); look.pjI = look.pj ? SELL_.indexOf(look.pj) + 1 : 0; }
-      if (mySkins.length) opts.unshift(['PERSONAJE', 'npcI', () => ['Propio'].concat(mySkins.map(k => skinName(k)))]);
+      const ork = me.faction === 'ork', list = HD ? HD.roster(look.body === 1, ork) : [];
+      if (HD) { let ix = HD.rosterIdx(list, look); if (look.pj && !list.some(r => r.k === look.pj)) ix = 0; HD.pickPj(look, list[ix]); look.pjI = ix; }
+      const cur = HD ? list[look.pjI] : null, fixed = cur && cur.cls != null;
+      const opts = [['CUERPO', 'body', () => BODY], ['PERSONAJE', 'pjI', () => list.map(r => r.nm)]];
+      if (ork) opts.push(['CLASE', 'cls', () => OCLS, fixed]);
+      if (mySkins.length) opts.unshift(['ESPECIAL', 'npcI', () => ['Ninguno'].concat(mySkins.map(k => skinName(k)))]);
       look.npcI = look.npc ? mySkins.indexOf(look.npc) + 1 : 0;
       const first = box.firstChild;
-      opts.forEach(([lab, k, lf]) => { const list = lf(); const r = document.createElement('div'); r.className = 'opt';
+      opts.forEach(([lab, k, lf, lock]) => { const L = lf(); const r = document.createElement('div'); r.className = 'opt';
         r.innerHTML = '<span>' + lab + '</span><button aria-label="anterior">‹</button><b></b><button aria-label="siguiente">›</button>';
-        const bb = r.querySelector('b'); const upd = () => bb.textContent = list[look[k] || 0] || list[0];
-        const ch_ = dv => { look[k] = ((look[k] || 0) + dv + list.length) % list.length; if (k === 'npcI') { if (look.npcI) look.npc = mySkins[look.npcI - 1]; else delete look.npc; } if (k === 'pjI') { if (look.pjI) look.pj = HD.SEL[look.pjI - 1]; else delete look.pj; } if (k === 'cls') { look.top = 0; rows(); } else upd(); draw(); };
-        r.children[1].onclick = () => ch_(-1); r.children[3].onclick = () => ch_(1); upd(); box.insertBefore(r, first); });
+        const bb = r.querySelector('b'); bb.textContent = L[look[k] || 0] || L[0];
+        if (lock) { r.children[1].disabled = r.children[3].disabled = true; r.classList.add('lock'); bb.textContent += ' · fija'; }
+        const ch_ = dv => { look[k] = ((look[k] || 0) + dv + L.length) % L.length;
+          if (k === 'npcI') { if (look.npcI) look.npc = mySkins[look.npcI - 1]; else delete look.npc; }
+          if (k === 'body') { delete look.pj; delete look.model; }
+          if (k === 'pjI') { HD.pickPj(look, list[look.pjI]); if (list[look.pjI].cls == null && cur && cur.cls != null) look.cls = 0; }
+          rows(); draw(); };
+        r.children[1].onclick = () => ch_(-1); r.children[3].onclick = () => ch_(1); box.insertBefore(r, first); });
       const pk = document.createElement('p'); pk.className = 'perk'; pk.textContent = perkText(); box.insertBefore(pk, first); }
     box.innerHTML = '';
     const go = document.createElement('button'); go.className = 'btn solid go'; go.textContent = 'ENTRAR'; box.appendChild(go); rows();
     const pv = $('#pv'), pg = pv.getContext('2d'); pg.imageSmoothingEnabled = false;
-    let f = 0; draw = function () { pg.clearRect(0, 0, 48, 64); blitChar(pg, charSprite(look, dirs[rot], f, false), 24, 44, 1, 1); }
+    let f = 0; draw = function () { pg.clearRect(0, 0, 240, 320); const sp = charSprite(look, dirs[rot], f, false); pg.imageSmoothingEnabled = !!sp.hd; blitChar(pg, sp, 120, 220, 5, 1.6); }
     const iv = setInterval(() => { f = (f + 1) % 3; draw(); }, 260); draw();
     $('#pv-rot').onclick = () => { rot = (rot + 1) % 4; draw(); };
     go.onclick = async () => { go.disabled = true; clearInterval(iv); delete look.npcI; delete look.pjI;
@@ -696,7 +701,8 @@
     warping = true; $('#fade').classList.add('on'); persist();
     setTimeout(() => { enterMap(e.to, e.at[0] * WS, e.at[1] * WS); sendPos(true); persist(); $('#fade').classList.remove('on'); warping = false; }, 650); }
   function warpTo(k, x, y) { if (!MAPS[k]) return; warping = true; $('#fade').classList.add('on'); setTimeout(() => { enterMap(k, x != null ? x * WS : null, y != null ? y * WS : null); sendPos(true); persist(); $('#fade').classList.remove('on'); warping = false; }, 650); }
-  function drawAv() { const cv = $('#h-av'); if (!cv || !look) return; const g = cv.getContext('2d'); g.clearRect(0, 0, 96, 128); let spr = null; try { spr = charSprite(look, 'd', 0, false); } catch (e) {} if (!spr) return; if (spr.hd) { g.imageSmoothingEnabled = true; g.drawImage(spr, 58, 22, 140, 186, 0, 0, 96, 128); } else { g.imageSmoothingEnabled = false; g.drawImage(spr, 0, 0, spr.width, spr.height * .7, 6, 6, 84, 116 * .9); } drawAv.ok = spr.hd ? 2 : 1; }
+  function drawAv() { const cv = $('#h-av'); if (!cv || !look) return; const g = cv.getContext('2d'); g.clearRect(0, 0, 96, 128); let spr = null; try { spr = charSprite(look, 'd', 0, false); } catch (e) {} if (!spr) return; if (spr.hd) { g.imageSmoothingEnabled = true; g.drawImage(spr, 58, 22, 140, 186, 0, 0, 96, 128); } else { g.imageSmoothingEnabled = false; g.drawImage(spr, 0, 0, spr.width, spr.height * .7, 6, 6, 84, 116 * .9); } drawAv.ok = spr.hd ? 2 : 1; drawAv.key = JSON.stringify(look); }
+  setInterval(() => { if (look && ((drawAv.ok || 0) < 2 || drawAv.key !== JSON.stringify(look))) drawAv(); }, 600); /* el retrato espera a que cargue la planilla */
   function hud() { if ((drawAv.ok || 0) < 2 && (drawAv.n = (drawAv.n || 0) + 1) < 60 && drawAv.n % 6 === 0) drawAv(); { const nk = $('#h-nick'), t_ = me.nick + '|' + lvlOf(P.xp); if (nk && nk.dataset.v !== t_) { nk.dataset.v = t_; nk.textContent = me.nick; const e_ = document.createElement('em'); e_.textContent = 'NV ' + lvlOf(P.xp); nk.appendChild(e_); } } const lv = lvlOf(P.xp), a = xpFor(lv), b = xpFor(lv + 1); $('#h-hp').style.width = Math.max(0, P.hp / maxHp(lv) * 100) + '%'; $('#h-xp').style.width = (lv >= 100 ? 100 : Math.min(100, (P.xp - a) / (b - a) * 100)) + '%';
     $('#h-lv').textContent = 'NV ' + lv + ' · ' + (INV ? weaponLabel() : 'PALO') + ' · ' + Math.ceil(P.hp) + '/' + maxHp(lv) + (INV && INV.eq.luz ? ' · LUZ ' + Math.ceil(INV.bat) + '%' : '') + (INV && INV.eq.ropa ? ' · ESCUDO ' + (INV.dur[INV.eq.ropa] != null ? INV.dur[INV.eq.ropa] : ITEMS[INV.eq.ropa].shield) : '') + ' · ' + (INV ? INV.coins : 0) + ' monedas' + (INV && INV.ab.length ? ' · ' + INV.ab.map(a => AB[a].n).join(' · ') : '') + (suero.map ? ' · MALETÍN: ' + MAPS[suero.map].name : ''); }
   async function persist() { if (!P || !me || !look) return; if (EXP) return persistExp(); store.set('cz-inv-' + me.id, JSON.stringify(INV));
@@ -776,7 +782,7 @@
   /* PvP: al morir a manos de otro jugador se te cae un objeto común */
   function pvpDrop() { const k = ['suero', 'pilas', 'campera', 'chaleco'].find(k => hasItem(k) && INV.eq.ropa !== k && k !== 'vendas'); if (!k) return; INV.items[k]--; if (!INV.items[k]) delete INV.items[k];
     const pid = me.id.slice(0, 6) + Date.now(); pickups.push({ k, x: P.x, y: P.y, t: 0, pid }); net('drop', { pid, k, x: Math.round(P.x), y: Math.round(P.y) }); persist(); }
-  const enemy = o => o && o.fac && o.fac !== me.faction && !o.dead && !o.iv;
+  const enemy = o => o && o.fac && o.fac !== me.faction && !o.dead && !o.iv && !(MAP && MAP.mvp); /* en el evento de MVP nadie se pega con nadie */
 
   /* mochila */
   let invSel = null;
@@ -1015,12 +1021,21 @@
     INV.mvpDay = dayN(); INV.mvpWon = INV.mvpWon || {}; INV.mvpWon[mk] = (INV.mvpWon[mk] || 0) + 1;
     banner('¡VENCIERON!', M.n + ' cayó', 3500, '#ffd860'); SND.level(); buzz([60, 40, 120]);
     if (P.dead) { P.dead = false; P.hp = maxHp(lvlOf(P.xp)) * .5; $('#ov-dead').hidden = true; }
-    const got = []; M.drops.forEach(([k, ch]) => { if (Math.random() < ch) { addItem(k); got.push(ITEMS[k].n); } });
-    for (let i = 0; i < 2; i++) { const k = resolveLoot(pickW([['W', 2], ['C', 2], ['A', 2], ['G', 1], ['V', 2], ['P', 1]]), 'mvp'); const g = takeItem(k); if (g) got.push(ITEMS[g].n); }
+    /* premio para todos los que estén: oro + 2 cosas comunes */
+    const ORO = 200; INV.coins += ORO; const got = [ORO + ' monedas'];
+    for (let i = 0; i < 2; i++) { const k = resolveLoot(pickW([['W', 2], ['C', 2], ['A', 2], ['V', 3], ['P', 2], ['M', 2]]), 'evento'); const g = takeItem(k); if (g) got.push(ITEMS[g].n); }
+    hud(); quickBtns();
+    /* ítem único: lo tira una sola vez el host. 10%: si sale, le toca a uno de los presentes al azar; si no, a nadie */
+    if (isHost) { const ids = [me.id].concat([...others.keys()]); if (Math.random() < MVP_UNICO) { const k = M.drops[(Math.random() * M.drops.length) | 0][0], to = ids[(Math.random() * ids.length) | 0];
+        const nick = to === me.id ? me.nick : (others.get(to) || {}).nick || 'alguien'; net('mvploot', { to, k, nick }); mvpLoot({ to, k, nick }); } else net('mvploot', { none: 1 }), mvpLoot({ none: 1 }); }
     if (M.pista) { INV.mvpPistas = INV.mvpPistas || []; if (!INV.mvpPistas.includes(M.pista)) INV.mvpPistas.push(M.pista); }
     setTimeout(() => { toast('Ganaste: ' + got.join(' · ') + (M.pista ? ' · PISTA: "' + M.pista + '"' : '')); }, 1500);
-    if (M.pista) setTimeout(() => banner('PISTA', '"' + M.pista + '"', 4000, '#e8c070'), 4200);
+    if (M.pista) setTimeout(() => banner('PISTA', '"' + M.pista + '"', 4000, '#e8c070'), 7200);
     persist(); setTimeout(() => mvpBack(), 11000); }
+  const MVP_UNICO = .10;
+  function mvpLoot(p) { if (p.none) return setTimeout(() => toast('Esta vez no cayó ningún objeto único.'), 2600);
+    const it = ITEMS[p.k]; if (!it) return; if (p.to === me.id) { addItem(p.k); persist(); quickBtns(); SND.level(); buzz([80, 40, 160]); }
+    setTimeout(() => banner(p.to === me.id ? '¡OBJETO ÚNICO!' : 'OBJETO ÚNICO', (p.to === me.id ? 'Te tocó: ' : p.nick + ' se llevó: ') + it.n, 4200, '#ff3b5c'), 2600); }
   function revive(id) { if (!hasItem('suero') && !hasItem('kit')) return toast('Para revivir necesitás un maletín de curación total o un kit de curación.'); const k = hasItem('suero') ? 'suero' : 'kit'; INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; if (k === 'suero') sueroTaken();
     net('revive', { to: id, by: me.nick }); SND.level(); toast('Lo reviviste.'); persist(); quickBtns(); }
   /* al morir quedás limpio: sin veneno, fuego, lentitud, aturdimiento ni habilidades */
@@ -1251,13 +1266,14 @@
       enemies: p => applyEnemies(p),
       req: () => { if (netMode === 'MULTI_HOST') needFull = true; lastPlayerSent = null; },
       say: p => { const o = others.get(p.id); if (o) { o.say = p.t; o.sayT = 6; } },
-      hit: p => { const a = others.get(p.id); if (p.to === me.id) { if (!a || a.fac === me.faction) return; if (hitPlayer(p.d, { x: p.ax, y: p.ay }, 40, p.id)) floats.push({ x: P.x, y: P.y - 215, t: 1, txt: a.nick, c: '#ff7a70' }); } else { const v = others.get(p.to); if (v) v.hurt = .2; } },
+      hit: p => { const a = others.get(p.id); if (p.to === me.id) { if (!a || a.fac === me.faction || MAP.mvp) return; if (hitPlayer(p.d, { x: p.ax, y: p.ay }, 40, p.id)) floats.push({ x: P.x, y: P.y - 215, t: 1, txt: a.nick, c: '#ff7a70' }); } else { const v = others.get(p.to); if (v) v.hurt = .2; } },
       died: p => { const v = others.get(p.id); if (v) { v.dead = true; v.hp = 0; }
         if (p.by === me.id) { const lvB = lvlOf(P.xp); P.xp += 40; P.pvp = (P.pvp || 0) + 1; SND.level(); buzz([40, 40, 90]); toast('Derribaste a ' + (v ? v.nick : 'un enemigo') + ' · +40 XP'); if (lvlOf(P.xp) > lvB) P.hp += maxHp(lvlOf(P.xp)) - maxHp(lvB); hud(); persist(); }
         else if (v) toast(v.nick + ' cayó.'); },
       mhit: p => { if (netMode !== 'MULTI_HOST') return; const o = mobs.find(m => m.id === p.id); if (o) { mobHit(o, p.d, p.kx, p.ky, p.by); if (p.fx) applyMobFx(o, p.fx, p.by); } },
       throw: p => { throws.push({ k: p.k, x0: p.x0, y0: p.y0, x1: p.x1, y1: p.y1, t: 0, T: .75, dmg: 0, remote: 1 }); },
       mvpgo: p => { if (p.from === mapKey) goMvp(p.mk, p.by); },
+      mvploot: p => { if (MAP.mvp) mvpLoot(p); },
       pfx: p => { if (p.to === me.id) applyPfx(p.fx); },
       mvpo: p => { if (isHost) return; mvpObjs = p.o.map(([id, t, x, y, hp]) => ({ id, t, x, y, hp })); },
       mvpx: p => { if (isHost) breakObj(p.id); },
@@ -1744,7 +1760,9 @@
           const heavy = wk === 'martillo' || wk === 'bate' || wk === 'baston_oscuro', rad = wk === 'barra' ? 115 : heavy ? 102 : 92;
           arc_(rad, heavy ? 10 : 6, tint('255,255,255', .7 * al), -1.1 + k * .6, .2 + k * .9);
           if (k > .45) { const ix = sx + Math.cos(a) * rad * zoom * .9, iy = cy0 + Math.sin(a) * rad * zoom * .6 + 60 * zoom, R = (heavy ? 60 : 36) * zoom * (k - .45) * 2; c.strokeStyle = tint('255,230,180', (1 - k) * 1.4); c.lineWidth = (heavy ? 4 : 2) * zoom; c.beginPath(); c.ellipse(ix, iy, R, R * .4, 0, 0, 7); c.stroke(); } } }
-      if (!mine && !o.gh) { c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; const nm = (o.lvl >= lvlOf(P.xp) + 10 && fac !== me.faction ? '☠ ' : '') + nick + (fac !== me.faction ? ' ✕' : ''); const w = c.measureText(nm).width + 10; const ny = sy - 27 * S - 6; c.fillStyle = 'rgba(0,0,0,.6)'; c.fillRect(sx - w / 2, ny - 12, w, 15); c.fillStyle = fac === 'ork' ? '#ff7a70' : '#eeeeee'; c.fillText(nm, sx, ny); }
+      if (!mine && !o.gh) { c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; const nm = (o.lvl >= lvlOf(P.xp) + 10 && fac !== me.faction ? '☠ ' : '') + nick; const ic = img(fac === 'ork' ? '/a/ui/fac_ork.webp' : '/a/ui/fac_rebel.webp'), isz = 18 * Math.max(.85, zoom), tw = c.measureText(nm).width, w = tw + isz + 14; const ny = sy - 27 * S - 6, x0 = sx - w / 2;
+        c.fillStyle = 'rgba(0,0,0,.62)'; c.fillRect(x0, ny - isz + 2, w, isz + 2); c.fillStyle = fac === 'ork' ? '#c9302a' : '#2f7fe0'; c.fillRect(x0, ny + 2, w, 2); /* bando: azul rebeldes · rojo ORK */
+        if (ok(ic)) c.drawImage(ic, x0 + 4, ny - isz + 2, isz, isz); c.textAlign = 'left'; c.fillStyle = fac === 'ork' ? '#ff7a70' : '#8fc4ff'; c.fillText(nm, x0 + isz + 9, ny - 2); c.textAlign = 'center'; }
       if (o.sayT > 0 && o.say) bubble(sx, sy - 27 * S - (mine ? 6 : 24), o.say); }
     function drawMob(o) { const T = o.T; const [sx, sy] = W2S(o.x, o.y); if (sx < -300 || sx > VW + 300 || sy < -50 || sy > VH + 400) return; if (T.eyes) return;
       let vis = o.vis; if (T.ai === 'blink' && (INV.eq.brazo === 'b_resonancia' || INV.eq.luz)) vis = Math.max(vis, .55);
@@ -1767,7 +1785,8 @@
       if (T.ai === 'mole' && o.wind > 0 && o.combo % 3 === 2) { const k = 1 - o.wind / (T.wind * 1.5); c.strokeStyle = 'rgba(255,60,40,' + (.4 + k * .5) + ')'; c.lineWidth = 3; c.beginPath(); c.ellipse(sx + o.face * 50 * zoom, sy, 120 * zoom * k, 40 * zoom * k, 0, 0, 7); c.stroke(); }
       if (T.ai === 'ranged' || T.boss) { const ar = (T.aura ? 110 : 60) * zoom * (1 + Math.sin(t * 4) * .06); c.globalCompositeOperation = 'lighter'; const gr = c.createRadialGradient(sx, sy - H * .55, 0, sx, sy - H * .55, ar); gr.addColorStop(0, T.aura ? 'rgba(' + T.aura + ',.32)' : 'rgba(255,120,40,.22)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = gr; c.fillRect(sx - ar, sy - H * .55 - ar, ar * 2, ar * 2); c.globalCompositeOperation = 'source-over'; }
       if (T.ai === 'slam' && o.wind > 0) { const k = 1 - o.wind / T.wind; c.strokeStyle = 'rgba(255,90,70,' + (.25 + k * .5) + ')'; c.lineWidth = 2; c.beginPath(); c.ellipse(sx, sy, T.aoe * zoom * k, T.aoe * .35 * zoom * k, 0, 0, 7); c.stroke(); } }
-    function drawNpc(n) { if (n.obj) { const [ox, oy] = W2S(n.x * WS, n.y * WS); if (n.lib) { const im = img(LIBS[n.lib].img), h = 70 * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, 26); c.save(); c.shadowColor = n.lib === 'pablo' ? '#ff4060' : '#ff9ad0'; c.shadowBlur = 16 + Math.sin(t * 3) * 8; c.drawImage(im, ox - w / 2, oy - h - 10 + Math.sin(t * 2) * 3, w, h); c.restore(); } } if (n.cas) { const im = img('/a/ob/casillero.png'), h = 150 * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, 30); if (INV.cas && INV.cas[n.id] === dayN()) c.globalAlpha = .55; c.drawImage(im, ox - w / 2, oy - h, w, h); c.globalAlpha = 1; } }
+    function drawNpc(n) { if (n.dama) return; /* el mob ya se dibuja: el NPC de la chica/el chico es solo para hablarle */
+      if (n.obj) { const [ox, oy] = W2S(n.x * WS, n.y * WS); if (n.lib) { const im = img(LIBS[n.lib].img), h = 70 * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, 26); c.save(); c.shadowColor = n.lib === 'pablo' ? '#ff4060' : '#ff9ad0'; c.shadowBlur = 16 + Math.sin(t * 3) * 8; c.drawImage(im, ox - w / 2, oy - h - 10 + Math.sin(t * 2) * 3, w, h); c.restore(); } } if (n.cas) { const im = img('/a/ob/casillero.png'), h = 150 * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, 30); if (INV.cas && INV.cas[n.id] === dayN()) c.globalAlpha = .55; c.drawImage(im, ox - w / 2, oy - h, w, h); c.globalAlpha = 1; } }
         if (!n.cas && !n.lib && n.k) { const im = img('/a/ob/' + n.k + '.png'), h = 170 * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, 40); if (n.quest && (INV.quests || {})[n.quest.id]) c.globalAlpha = .6; c.drawImage(im, ox - w / 2, oy - h, w, h); c.globalAlpha = 1; } }
         if (nearNpc() === n) { c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; c.fillStyle = '#e8c070'; c.fillText(n.nm + ' · A', ox, oy - 40 * zoom); } return; } const [sx, sy] = W2S(n.x * WS, n.y * WS); if (sx < -200 || sx > VW + 200 || sy < -50 || sy > VH + 300) return; const S = 6.4 * zoom; shadow(sx, sy, 28);
       const dir = Math.abs(P.x - n.x * WS) > 120 ? (P.x < n.x * WS ? 'l' : 'r') : 'd'; blitChar(c, charSprite({ npc: n.k }, dir, 0, false), sx, sy, S, n.sc ? HD_K * n.sc : undefined); c.imageSmoothingEnabled = true;
