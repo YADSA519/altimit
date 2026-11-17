@@ -11,8 +11,9 @@
   #fin canvas{position:absolute;inset:0;width:100%;height:100%}
   #fin .cr{position:absolute;inset:0;opacity:0;transition:opacity 1.6s}
   #fin .cr.on{opacity:1}
-  #fin .cr .bg{position:absolute;inset:-30px;background:url(/a/final/creditos.jpg) center/cover;filter:brightness(.5) saturate(.9)}
-  #fin .cr .sh{position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.15),rgba(0,0,0,.75) 55%,rgba(0,0,0,.85))}
+  #fin .cr .bg{position:absolute;inset:-40px;background:url(/a/final/creditos.jpg) center/cover;filter:blur(24px) brightness(.3)}
+  #fin .cr .art{position:absolute;left:3%;top:3vh;height:94vh;max-width:47%;object-fit:contain;object-position:center;border-radius:4px;box-shadow:0 0 50px rgba(0,0,0,.9);filter:brightness(.9)}
+  #fin .cr .sh{position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,0) 48%,rgba(0,0,0,.7) 53%,rgba(0,0,0,.85))}
   #fin .cr .roll{position:absolute;left:52%;right:4%;top:100%;text-align:center;will-change:transform}
   #fin .cr .roll p{margin:0 0 18px;font:15px/1.5 'TechMono',monospace;color:#d8cdb8;letter-spacing:.04em}
   #fin .cr .roll h1{margin:0 0 6px;font-size:54px;letter-spacing:.08em;color:#fff}
@@ -52,7 +53,7 @@
     /* 3 · créditos sobre la tapa del libro, con la música */
     function credits() { root.querySelectorAll('.pn').forEach(e => e.remove()); fadeOut(sting, 1500); music = audio('/a/final/creditos.mp3', .95);
       const c = document.createElement('div'); c.className = 'cr';
-      c.innerHTML = '<div class="bg"></div><div class="sh"></div><div class="roll"><h1>THE O|F</h1><p>Basado en el libro</p><h3>CENIZAS DE UN FUTURO INCIERTO</h3>'
+      c.innerHTML = '<div class="bg"></div><img class="art" src="/a/final/creditos.jpg" alt=""><div class="sh"></div><div class="roll"><h1>THE O|F</h1><p>Basado en el libro</p><h3>CENIZAS DE UN FUTURO INCIERTO</h3>'
         + '<p style="margin-top:34px">Gracias por compartir de nuevo<br>un nuevo desafío:<br>hacer este mini juego con una base del libro<br><i>Cenizas de un futuro incierto</i>.</p>'
         + '<h2>CREADO POR</h2><h3>PABLO M. FLORES</h3><h2>PROGRAMADO POR</h2><h3>LOU</h3><h2>CON LA AYUDA DE</h2><h3>POL</h3><h2>Y TODO EL EQUIPO DE</h2><h3>YAD</h3>'
         + '<p style="margin-top:46px;font-size:20px;color:#fff">Gracias a todos.</p></div>';
