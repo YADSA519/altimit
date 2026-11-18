@@ -69,3 +69,12 @@ body.ork .hud .pf{background-image:url(/a/ui/h_perfil_ork.webp)}
 #map-cv{display:block;margin:0 auto;border:1px solid #2a6b6a;max-width:100%}
 .mapley{font-size:10px;color:#9fbab8;margin:5px 0}
 #st-obj{max-width:min(24vw,230px)!important}
+
+/* barra de contagio de los Oscuros */
+.hud .cbar{position:relative;width:min(250px,28vw);aspect-ratio:900/143;margin-top:2px;opacity:.55;transition:opacity .3s}
+.hud .cbar.on{opacity:1}
+.hud .cbar::after{content:'';position:absolute;inset:0;background:url(/a/ui/contagio_bar.webp) center/100% 100% no-repeat;pointer-events:none}
+.hud .cbar i{position:absolute;left:15.6%;top:41%;height:28.5%;max-width:67.8%;border-radius:20px;background:linear-gradient(90deg,#4cd96b,#c8d940 40%,#e0782a 70%,#b81fd0);box-shadow:0 0 8px rgba(180,60,255,.6);transition:width .4s}
+.hud .cbar b{position:absolute;left:15.6%;width:67.8%;top:36%;text-align:center;font:9px 'TechMono',monospace;color:#fff;text-shadow:0 0 3px #000,0 0 3px #000;letter-spacing:.1em}
+.hud .cbar.grave i{animation:cpul 1s infinite}@keyframes cpul{50%{filter:brightness(1.6)}}
+.hud .cbar.inm b{color:#7ff6f2}

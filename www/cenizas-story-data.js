@@ -41,7 +41,7 @@ window.CZ_STORY_DATA = {
         { get: 'expediente', n: 1, map: 'complejo8c', txt: 'Encontrá el expediente' },
         { use: 'consola', ob: 'consola', nm: 'TERMINAL', map: 'complejo8c', at: [-300, -120], txt: 'Copiá los datos de la terminal', lines: [['VOS', 'Vacuna modificada. Nanopartículas. Códigos de instalaciones… y una alarma.']] },
         { survive: 30, map: 'complejo8c', kinds: 'HUM', txt: 'Resistí hasta que se corte la alarma' },
-        { talk: 'cin', map: 'congreso', txt: 'Llevale el expediente a Cinthia', lines: [['cin', 'Esto no es una cura. Es otra cosa.'], ['VOS', 'No está todo. Faltan páginas.'], ['cin', 'Siempre faltan. Por eso seguimos.']] }],
+        { talk: 'cin', map: 'teatro_int', at: [-130, -545], txt: 'Llevale el expediente a Cinthia (escenario del teatro)', lines: [['cin', 'Esto no es una cura. Es otra cosa.'], ['VOS', 'No está todo. Faltan páginas.'], ['cin', 'Siempre faltan. Por eso seguimos.']] }],
       reward: { xp: 8750, coins: 40, items: { kit: 1 } } },
     { id: 'r05', t: 'SOFÍA: LO QUE QUEDA DE UNA PÉRDIDA', intro: [['rosa', 'Sofía protegía a unos chicos cerca del Obelisco. Ya no está con ellos. Fijate qué quedó.']],
       steps: [
@@ -66,11 +66,11 @@ window.CZ_STORY_DATA = {
       reward: { xp: 19800, coins: 55, items: { vendas: 5 } } },
     { id: 'r08', t: 'EL CAMINO HACIA LOS VERDADEROS REBELDES', intro: [['mariano', 'Hay dos grupos que no se tienen confianza. Uno tiene la lista de sobrevivientes y está en el bar de humo.']],
       steps: [
-        { talk: 'mariano', map: 'congreso', txt: 'Hablá con Mariano en Congreso', lines: [['mariano', 'Conseguí la lista y no te metas en peleas que no sean tuyas.']] },
+        { talk: 'mariano', map: 'teatro_int', at: [-10, -555], txt: 'Hablá con Mariano en el escenario del teatro', lines: [['mariano', 'Conseguí la lista y no te metas en peleas que no sean tuyas.']] },
         { pz: 'search', map: 'bar_humo', spots: ['BARRA', 'MESA DEL FONDO', 'CAJÓN'], obs: ['mesa', 'mesa', 'caja'], txt: 'En el Bar de Humo (desde el Puente sobre el Canal): buscá dónde esconden la lista', lines: [['VOS', 'Acá está la lista... y vienen los que la cuidan.']] },
         { kill: 'HUM', n: 4, map: 'bar_humo', spawn: true, txt: 'Sacá a los que custodian la lista' },
         { get: 'expediente', n: 1, map: 'bar_humo', txt: 'Encontrá la lista de sobrevivientes' },
-        { talk: 'romina', map: 'congreso', txt: 'Llevale la lista a Romina', lines: [['romina', 'Nombres, refugios, rutas. Con esto llegamos al este.'], ['VOS', '¿Y los que no están en la lista?'], ['romina', 'Los buscamos igual.']] }],
+        { talk: 'romina', map: 'teatro_int', at: [110, -545], txt: 'Llevale la lista a Romina (escenario del teatro)', lines: [['romina', 'Nombres, refugios, rutas. Con esto llegamos al este.'], ['VOS', '¿Y los que no están en la lista?'], ['romina', 'Los buscamos igual.']] }],
       reward: { xp: 19250, coins: 60, items: { pistola: 1 } } },
     { id: 'r09', t: 'EL TEATRO COLÓN', intro: [['ruben', 'Se viene algo grande en el teatro. Ignacio y su grupo. Nosotros sostenemos la retirada.']],
       steps: [
