@@ -119,14 +119,14 @@
   const MOB = {
     errante: { coins: 1, name: 'Errante', art: 'errante', pw: 18, ph: 30, hp: 6, sp: 88, wsp: 30, dmg: 13, reach: 58, sight: 360, wind: .4, cd: 1.0, xp: 15, ai: 'chase', snd: 'growl' },
     corredor: { coins: 2, name: 'Corredor', art: 'corredor', pw: 26, ph: 24, hp: 5, sp: 125, dash: 400, wsp: 0, dmg: 16, reach: 62, sight: 500, wind: .45, cd: 1.3, xp: 26, ai: 'dash', snd: 'shriek' },
-    perro: { coins: 1, name: 'Sabueso', art: 'perro', pw: 27, ph: 17, hp: 4, sp: 235, wsp: 60, dmg: 10, reach: 52, sight: 540, wind: .18, cd: .55, xp: 14, ai: 'flank', snd: 'bark' },
+    perro: { coins: 1, name: 'Sabueso', art: 'perro', pw: 30, ph: 22, hp: 4, sp: 235, wsp: 60, dmg: 10, reach: 52, sight: 540, wind: .18, cd: .55, xp: 14, ai: 'flank', snd: 'bark' },
     denso: { coins: 4, name: 'Denso', art: 'denso', pw: 26, ph: 34, hp: 24, sp: 58, wsp: 22, dmg: 32, reach: 96, aoe: 140, sight: 320, wind: .85, cd: 1.7, xp: 80, ai: 'slam', snd: 'roar', heavy: true },
     sombra: { coins: 2, name: 'Sombra', art: 'sombra', pw: 16, ph: 32, hp: 5, sp: 70, wsp: 25, dmg: 18, reach: 64, sight: 440, wind: .32, cd: .9, xp: 32, ai: 'blink', snd: 'whisper' },
     incinerario: { name: 'Incinerario', art: 'incinerario', pw: 20, ph: 30, hp: 12, sp: 75, wsp: 25, dmg: 16, reach: 430, keep: 270, pspeed: 380, sight: 520, wind: .7, cd: 2.0, xp: 50, coins: 3, ai: 'ranged', snd: 'roar' },
     mole: { name: 'La Mole', art: 'mole', pw: 36, ph: 40, hp: 90, sp: 58, wsp: 22, dmg: 22, big: 52, bigKnock: 340, reach: 100, sight: 360, wind: .7, cd: 1.15, xp: 240, coins: 10, ai: 'mole', snd: 'roar', heavy: true, respawn: 90000 },
     jefe: { name: 'MERCEDES', art: 'jefe', npc: 'mercedesMala', aura: '170,60,255', pw: 25, ph: 36, hp: 650, sp: 270, wsp: 60, dmg: 13, reach: 66, pspeed: 430, fdmg: 18, sight: 900, wind: .18, cd: .35, xp: 1800, coins: 25, ai: 'boss', snd: 'roar', heavy: true, boss: true, respawn: 480000 },
     sofia: { name: 'SOFÍA', art: 'sofia', npc: 'sofia', aura: '220,30,30', pw: 25, ph: 36, hp: 1100, sp: 255, wsp: 60, dmg: 15, reach: 64, pspeed: 720, fdmg: 14, sight: 900, wind: .2, cd: .4, xp: 6000, coins: 40, ai: 'sofia', snd: 'whisper', heavy: true, boss: true, respawn: 900000 },
-    rastrero: { coins: 1, name: 'Gato Oscuro', art: 'rastrero', pw: 25, ph: 15, hp: 4, sp: 195, wsp: 45, dmg: 11, reach: 56, sight: 420, wind: .22, cd: .8, xp: 18, ai: 'zigzag', snd: 'hiss' }
+    rastrero: { coins: 1, name: 'Gato Oscuro', art: 'rastrero', pw: 28, ph: 20, hp: 4, sp: 195, wsp: 45, dmg: 11, reach: 56, sight: 420, wind: .22, cd: .8, xp: 18, ai: 'zigzag', snd: 'hiss' }
   };
   MOB.ignacio = Object.assign({}, MOB.jefe, { name: 'IGNACIO', npc: 'ignacio', aura: '255,170,40', hp: 520, dmg: 12, xp: 1500, coins: 22 });
   MOB.maxi = Object.assign({}, MOB.jefe, { name: 'MAXI', npc: 'maxi', aura: '60,200,255', hp: 800, dmg: 14, xp: 2600, coins: 30 });
@@ -151,7 +151,7 @@
   MOB.saqueador = nm_('errante', { name: 'Saqueador', sheet: 'ex23', hp: 11, sp: 100, dmg: 14, xp: 38, coins: 3, human: true });
   MOB.tirador = nm_('incinerario', { name: 'Tirador rebelde', sheet: 'ex21', hp: 12, xp: 50, coins: 4, human: true });
   MOB.pablo = nm_('jefe', { name: 'PABLO', sheet: 'pablo_1', aura: '120,200,255', hp: 700, dmg: 12, xp: 3000, coins: 40, respawn: 99999999 });
-  MOB.yuki = nm_('errante', { name: 'YUKI', sheet: 'yuki', aura: '255,200,90', ai: 'flee', hp: 26, sp: 215, wsp: 70, dmg: 0, reach: 0, sight: 620, xp: 400, coins: 15, respawn: 900000, lv1: true });
+  MOB.yuki = nm_('errante', { name: 'YUKI', sheet: 'yuki', pw: 11, ph: 17, aura: '255,200,90', ai: 'flee', hp: 26, sp: 215, wsp: 70, dmg: 0, reach: 0, sight: 620, xp: 400, coins: 15, respawn: 900000, lv1: true });
   MOB.incinerario.burn = true; MOB.insecto.poison = true; MOB.babosa.poison = true; MOB.lodo.poison = true;
   MOB.soldado.fac = 'ork'; MOB.patrulla.fac = 'ork'; MOB.saqueador.fac = 'rebel'; MOB.tirador.fac = 'rebel';
   const HOURLY_AT = { patio: 'electrico', nueveJulio: 'garras', muelle: 'serpiente', teatroAv: 'pantallas' };
@@ -187,10 +187,10 @@
   MOB.lava_oscura = nm_('denso', { name: 'Criatura de Lava', sheet: 'lava_oscura', hp: 22, xp: 75, burn: true });
   MOB.ojo = nm_('incinerario', { name: 'El Ojo', sheet: 'ojo', shot: 'orbe', burn: false, hp: 14, sp: 60, wsp: 20, pspeed: 420, xp: 55, coins: 3 });
   /* de bando: palomas y perros policía (atacan a ORK) · drones y perros robot (atacan a los rebeldes) */
-  MOB.paloma = nm_('cuervo', { name: 'Paloma', sheet: 'paloma', hp: 2, dmg: 6, xp: 8, coins: 1, fac: 'rebel' });
-  MOB.paloma_zombi = nm_('cuervo', { name: 'Paloma Zombi', sheet: 'paloma_zombi', hp: 4, dmg: 9, xp: 14, coins: 1, fac: 'rebel' });
-  MOB.paloma_cohete = nm_('kamikaze', { name: 'Paloma Cohete', sheet: 'paloma_cohete', hp: 3, sp: 240, dmg: 22, aoe: 120, xp: 20, coins: 2, fac: 'rebel' });
-  MOB.perro_policia = nm_('perro', { name: 'Perro Policía', sheet: 'perro_policia', hp: 9, dmg: 14, xp: 30, coins: 2, fac: 'rebel' });
+  MOB.paloma = nm_('cuervo', { name: 'Paloma', sheet: 'paloma', ph: 32, pw: 24, hp: 2, dmg: 6, xp: 8, coins: 1, fac: 'rebel' });
+  MOB.paloma_zombi = nm_('cuervo', { name: 'Paloma Zombi', sheet: 'paloma_zombi', ph: 30, pw: 24, hp: 4, dmg: 9, xp: 14, coins: 1, fac: 'rebel' });
+  MOB.paloma_cohete = nm_('kamikaze', { name: 'Paloma Cohete', sheet: 'paloma_cohete', ph: 29, pw: 24, hp: 3, sp: 240, dmg: 22, aoe: 120, xp: 20, coins: 2, fac: 'rebel' });
+  MOB.perro_policia = nm_('perro', { name: 'Perro Policía', sheet: 'perro_policia', ph: 34, pw: 32, hp: 9, dmg: 14, xp: 30, coins: 2, fac: 'rebel' });
   MOB.drone = nm_('incinerario', { name: 'Drone ORK', sheet: 'drone', shot: 'rayo', burn: false, hp: 8, sp: 110, pspeed: 700, xp: 40, coins: 3, fac: 'ork' });
   MOB.perro_robot = nm_('perro', { name: 'Perro Robot IA', sheet: 'perro_robot', hp: 14, dmg: 16, sp: 250, xp: 42, coins: 3, fac: 'ork' });
   /* jefes de mapa: cada día salen 3 al azar, cada uno en un mapa; si lo matan no vuelve hasta el día siguiente */
@@ -662,7 +662,7 @@
     if (STORY && window.CZ_STORY) CZ_STORY.init(API);
   }
   let yuki = null; const hordeSeen = {}, yukiSaid = {};
-  function yukiPlan() { const d = dayN(), r = seeded(d * 7919 + 13), ks = Object.keys(MAPS).filter(k => !MAPS[k].safeAll && !MAPS[k].base); return { day: d, map: ks[(r() * ks.length) | 0], start: (r() * (1440 - 120)) | 0 }; }
+  function yukiPlan() { const sl = (minOfDay() / 360) | 0, d = dayN() * 4 + sl, r = seeded(d * 7919 + 13), ks = Object.keys(MAPS).filter(k => !MAPS[k].safeAll && !MAPS[k].base && !MAPS[k].mvp); return { day: d, map: ks[(r() * ks.length) | 0], start: sl * 360 + ((r() * (360 - 120)) | 0) }; } /* Yuki: 4 veces por día, 2 horas cada vez */
   function worldTick() { if (!running || !MAP) return; if (EXP) return;
     const hk = mapKey + dayN() + (minOfDay() / 6 | 0); if (hordeOn(mapKey) && !hordeSeen[hk]) { hordeSeen[hk] = 1; toast('¡HORDA DE OSCUROS en ' + MAP.name.toLowerCase() + '!'); SND.zone(); }
     const y = yukiPlan(), now = minOfDay(), active = now >= y.start && now < y.start + 120;
@@ -1155,9 +1155,9 @@
   const bossAlive = k => (hourlyDead[k] || 0) < dayStart() && (!/^chic[ao]$/.test(k) || (hourlyDead[k + '_c'] || 0) < dayStart());
   function loadHourly(k) { const b = bossesToday()[k]; if (!b) return; try { sb.from('game_state').select('v').eq('k', 'jefe_' + b).maybeSingle().then(r => { const v = r && r.data && r.data.v; if (v && v.t) hourlyDead[b] = Math.max(hourlyDead[b] || 0, v.t); }, () => {}); } catch (e) {} }
   /* Yuki en PvP: 20 minutos de cada hora, a una hora distinta cada día */
-  const yukiPvp = () => { const m = (minOfDay() + hashStr('yuki' + dayN()) % 60) % 60; return m < 20; };
+  const yukiPvp = () => { const m = (minOfDay() + hashStr('yuki' + dayN()) % 60) % 60; return m < 35; };
   const bossOn = k => { const b = BOSS_AT[k]; if (!b || EXP) return false; const m = (minOfDay() + hashStr(b) % 120) % 120; return m < 20; };
-  function wantMobs() { const w = Object.assign({}, MAP.mobs || {}); if (hordeOn(mapKey)) Object.keys(w).forEach(k => w[k] *= 2); if (!EXP && !MAP.base && !MAP.mvp && (MAP.dark || 0) >= .45 && !INV.eq.luz) w.ojos = 2; if (EXP) { if (mapKey === 'pvp_centro' && yukiPvp()) w.yuki = 1; return w; } Object.keys(EXTRA).forEach(k => { if (EXTRA[k][mapKey]) w[k] = (w[k] || 0) + EXTRA[k][mapKey]; }); const hb = bossesToday()[mapKey]; if (hb && bossAlive(hb)) { const ph = mobs.find(o => o.kind === hb + '_c') || mobs.find(o => o.kind === hb + '_b'); if (ph) { w[ph.kind] = 1; delete w[hb]; } else w[hb] = 1; }
+  function wantMobs() { const w = Object.assign({}, MAP.mobs || {}); if (hordeOn(mapKey)) Object.keys(w).forEach(k => w[k] *= 2); if (!EXP && !MAP.base && !MAP.mvp && (MAP.dark || 0) >= .45 && !INV.eq.luz) w.ojo = (w.ojo || 0) + 2; if (EXP) { if (mapKey === 'pvp_centro' && yukiPvp()) w.yuki = 1; return w; } Object.keys(EXTRA).forEach(k => { if (EXTRA[k][mapKey]) w[k] = (w[k] || 0) + EXTRA[k][mapKey]; }); const hb = bossesToday()[mapKey]; if (hb && bossAlive(hb)) { const ph = mobs.find(o => o.kind === hb + '_c') || mobs.find(o => o.kind === hb + '_b'); if (ph) { w[ph.kind] = 1; delete w[hb]; } else w[hb] = 1; }
     /* nunca dos de la misma dama/galán a la vez */
     ['chica', 'chico'].forEach(f => { const here = mobs.filter(o => o.kind.replace(/_[bc]$/, '') === f); if (here.length > 1) { const keep = here.find(o => /_c$/.test(o.kind)) || here.find(o => /_b$/.test(o.kind)) || here[0]; here.forEach(o => { if (o !== keep) { const i = mobs.indexOf(o); if (i >= 0) mobs.splice(i, 1); } }); } });
     /* nunca dos jefes juntos: queda el que ya está en el mapa, si no el primero */
@@ -1372,6 +1372,9 @@
     if (g.ab) { const can = Object.keys(AB).filter(a => !INV.ab.includes(a)); if (can.length) { INV.ab.push(can[(Math.random() * can.length) | 0]); abButtons(); } }
     INV.quests[q.id] = 1; SND.level(); buzz([30, 40, 60]); toast('MISIÓN CUMPLIDA · ' + n.nm + ': "' + q.done + '"'); hud(); persist(); }
   /* lo que dicen los personajes: en la caja de diálogo con su retrato (como en las misiones) */
+  /* algunos personajes te hablan solos cuando te acercás (n.near), como mucho cada 90 s */
+  const nearSaid = {}; let nearT = 0;
+  function nearTalk(dt) { if ((nearT += dt) < .5 || P.dead) return; nearT = 0; const n = nearNpc(); if (!n || !n.near) return; const now = Date.now(); if (nearSaid[n.k] && now - nearSaid[n.k] < 90000) return; nearSaid[n.k] = now; npcSay(n, n.near); }
   function npcSay(n, txt) { if (window.CZ_STORY && CZ_STORY.say && !EXP) CZ_STORY.say([[n.k, String(txt), n.nm]]); else toast(n.nm + ': "' + txt + '"'); }
   function talkNpc(n) { SND.pick();
     if (n.dama) return damaTalk(n);
@@ -1563,7 +1566,7 @@
     if (P.poison > 0 && !P.dead) { P.poison -= dt; P.dotT = (P.dotT || 0) + dt; if (Math.random() < dt * 4) parts.push({ x: P.x + rnd(-14, 14), y: P.y - rnd(40, 150), vx: 0, vy: -30, life: .7, s: 3, c: 120 }); }
     if ((P.burn > 0 || P.poison > 0) && P.dotT >= 1 && !P.dead) { P.dotT = 0; const dd = (P.burn > 0 ? 3 : 0) + (P.poison > 0 ? (P.poisonK || 2) : 0); if (!(P.poison > 1)) P.poisonK = 0; P.hp -= dd; floats.push({ x: P.x, y: P.y - 200, t: .7, txt: (P.burn > 0 ? 'QUEMADO ' : '') + (P.poison > 0 ? 'VENENO ' : '') + '-' + dd, c: P.burn > 0 ? '#ff9a50' : '#9fe070' }); hud(); if (P.hp <= 0) { P.hp = 1; hitPlayer(999, null, 0, null, P.burn > 0 ? 'incinerario' : 'insecto'); } }
     { const fx = $('#fx-st'); if (fx) { const tx = (P.burn > 0 ? '🔥 QUEMADO · venda para quemaduras  ' : '') + (P.poison > 0 ? '☠ ENVENENADO · antiveneno' : '') + (P.smoke > 0 ? ' · sin aire' : '') + (P.fast > 0 ? ' · veloz' : '') + (P.goo > 0 ? ' · 🟢 EN EL MOCO: te pegan el doble' : P.stunT > 0 ? ' · 💫 ATURDIDO' : ''); if (fx.textContent !== tx) fx.textContent = tx; fx.hidden = !tx; } }
-    contTick(dt); if ((P.inmune > 0 || INV.cont > 0) && (t % .5) < dt) hudCont(); pvpTick(dt); if (STORY && window.CZ_STORY) CZ_STORY.tick(dt);
+    contTick(dt); nearTalk(dt); if ((P.inmune > 0 || INV.cont > 0) && (t % .5) < dt) hudCont(); pvpTick(dt); if (STORY && window.CZ_STORY) CZ_STORY.tick(dt);
     const fireD = MAP.fire ? Math.hypot(P.x - MAP.fire[0] * WS, P.y - MAP.fire[1] * WS) : 9999;
     SND.fire(Math.max(0, 1 - fireD / 700));
     const lv = lvlOf(P.xp);
@@ -1744,7 +1747,7 @@
     if (gotFull) mobs.forEach(o => ents.push({ y: o.y, draw: () => drawMob(o) }));
     pickups.forEach(q => ents.push({ y: q.y - 30, draw: () => drawPickup(q) }));
     npcsHere().forEach(n => ents.push({ y: n.y * WS, draw: () => drawNpc(n) }));
-    if (yuki) ents.push({ y: yuki.y, draw: () => { const [sx, sy] = W2S(yuki.x, yuki.y), S = 6.4 * zoom; const sp = HD && HD.sheet('yuki', Math.sin(yuki.t * 2) > 0 ? 'l' : 'r', (yuki.t * 6 | 0) % 3, false); shadow(sx, sy, 18); if (sp) blitChar(c, sp, sx, sy, S, HD_K * .6);
+    if (yuki) ents.push({ y: yuki.y, draw: () => { const [sx, sy] = W2S(yuki.x, yuki.y), S = 6.4 * zoom; const sp = HD && HD.sheet('yuki', Math.sin(yuki.t * 2) > 0 ? 'l' : 'r', (yuki.t * 6 | 0) % 3, false); shadow(sx, sy, 18); if (sp) blitChar(c, sp, sx, sy, S, HD_K * .36);
       c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; c.fillStyle = '#e8c070'; c.fillText('YUKI', sx, sy - 120 * zoom); } });
     ptraps.forEach(tp => { if (tp.m !== mapKey) return; const [tx, ty] = W2S(tp.x, tp.y); if (tx < -60 || tx > VW + 60 || ty < -60 || ty > VH + 60) return;
       if (tp.fac === me.faction) { const im = img('/a/it/peligro.png'), w = 44 * zoom; c.globalAlpha = .9; if (ok(im)) c.drawImage(im, tx - w / 2, ty - w * .8, w, w); c.globalAlpha = 1; c.strokeStyle = 'rgba(255,170,80,.7)'; c.lineWidth = 2; c.beginPath(); c.ellipse(tx, ty, 34 * zoom, 11 * zoom, 0, 0, 7); c.stroke(); }
