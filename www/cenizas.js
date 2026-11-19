@@ -135,6 +135,8 @@
   const nm_ = (base, o) => Object.assign({}, MOB[base], { npc: undefined, aura: undefined }, o);
   MOB.oscura = nm_('errante', { name: 'Oscura', sheet: 'oscura' });
   /* el clon que queda cuando morís contagiado: tiene tu cara (o.cl) y tu nombre (o.cn) */
+  /* el Contagiado: Oscuro común que contagia el doble */
+  MOB.contagiado = nm_('errante', { name: 'Contagiado', sheet: 'contagiado', hp: 8, dmg: 12, sp: 105, xp: 22, coins: 2, cont: 2 });
   MOB.clon = nm_('errante', { name: 'Contagiado', hp: 9, dmg: 14, sp: 100, xp: 30, coins: 3, aura: '150,60,255' });
   MOB.cuervo = nm_('perro', { name: 'Cuervo', sheet: 'cuervo', sp: 250, hp: 4 });
   MOB.reptante = nm_('rastrero', { name: 'Reptante', sheet: 'reptante', hp: 6, dmg: 13 });
@@ -767,7 +769,7 @@
     if ((c === 0 && mk === 'perro') || (c === 1 && mk === 'corredor') || (c === 2 && mk === 'errante')) m *= .6; return m; }
   /* ---------- contagio de los Oscuros: barra 0-100. +30 pierde vida, +70 más rápido. Al morir contagiado queda tu clon Oscuro ---------- */
   const CONT_MIN = 30;
-  function contagiar(d, fuerte) { if ((P.inmune || 0) > 0 || P.dead) return; const was = INV.cont || 0; INV.cont = Math.min(100, was + Math.min(14, 3 + d * .35) * (fuerte ? 1.5 : 1));
+  function contagiar(d, fuerte, x) { if ((P.inmune || 0) > 0 || P.dead) return; const was = INV.cont || 0; INV.cont = Math.min(100, was + Math.min(14, 3 + d * .35) * (fuerte ? 1.5 : 1) * (x || 1));
     if (was < CONT_MIN && INV.cont >= CONT_MIN) toast('☣ Te estás contagiando: perdés vida de a poco. Usá una jeringa.'); else if (was < 70 && INV.cont >= 70) toast('☣ Contagio grave: te estás convirtiendo en Oscuro.'); hud(); }
   function contTick(dt) { if (P.dead || !INV) return; if (P.inmune > 0) P.inmune -= dt; const cv = INV.cont || 0; if (cv <= 0) return; if (inSafe(P.x, P.y)) return; /* en zona segura el contagio se frena (no baja) */
     if (cv >= CONT_MIN && !(P.inmune > 0)) INV.cont = Math.min(100, cv + dt * .6); /* sin cura, sube solo hasta 100 */
@@ -783,7 +785,7 @@
   function spawnClon(p) { const o = spawnMob('clon', 0, [p.x, p.y]); if (!o) return; o.cl = p.cl; o.cn = p.cn; o.drop = p.drop; o.alpha = 1; needFull = true; }
   function hitPlayer(d, knockFrom, knock, byId, mk) { if (P.dead || P.inv > 0 || P.furia > 0 || (!byId && inSafe(P.x, P.y))) return false;
     if (!byId && mk && d < 999 && MOB[mk]) { if (MOB[mk].burn && !(P.burn > 0)) { P.burn = 5; toast('¡Te prendiste fuego! 5 segundos de quemadura (la venda para quemaduras lo corta).'); } if (MOB[mk].poison && !(P.poison > 0)) { P.poison = 25; toast('Te envenenaron. Usá antiveneno.'); } }
-    if (!byId && mk && d < 999 && MOB[mk] && !MOB[mk].passive && !MOB[mk].npc) contagiar(d, MOB[mk].boss || MOB[mk].mvp);
+    if (!byId && mk && d < 999 && MOB[mk] && !MOB[mk].passive && !MOB[mk].npc) contagiar(d, MOB[mk].boss || MOB[mk].mvp, MOB[mk].cont);
     if (P.goo > 0) d *= 2; if (P.stunT > 0 && mk && MOB[mk] && MOB[mk].mvp) d *= 2.5;
     if (mk && MOB[mk] && MOB[mk].pois5 && d < 999) { P.poison = Math.max(P.poison || 0, 5); P.poisonK = MOB[mk].pois5; }
     d = Math.max(1, Math.round(d * dmgMult() * classMult(mk || (knockFrom && knockFrom.kind) || (byId ? null : 'oscuro'))));
@@ -1157,7 +1159,8 @@
   /* Yuki en PvP: 20 minutos de cada hora, a una hora distinta cada día */
   const yukiPvp = () => { const m = (minOfDay() + hashStr('yuki' + dayN()) % 60) % 60; return m < 35; };
   const bossOn = k => { const b = BOSS_AT[k]; if (!b || EXP) return false; const m = (minOfDay() + hashStr(b) % 120) % 120; return m < 20; };
-  function wantMobs() { const w = Object.assign({}, MAP.mobs || {}); if (hordeOn(mapKey)) Object.keys(w).forEach(k => w[k] *= 2); if (!EXP && !MAP.base && !MAP.mvp && (MAP.dark || 0) >= .45 && !INV.eq.luz) w.ojo = (w.ojo || 0) + 2; if (EXP) { if (mapKey === 'pvp_centro' && yukiPvp()) w.yuki = 1; return w; } Object.keys(EXTRA).forEach(k => { if (EXTRA[k][mapKey]) w[k] = (w[k] || 0) + EXTRA[k][mapKey]; }); const hb = bossesToday()[mapKey]; if (hb && bossAlive(hb)) { const ph = mobs.find(o => o.kind === hb + '_c') || mobs.find(o => o.kind === hb + '_b'); if (ph) { w[ph.kind] = 1; delete w[hb]; } else w[hb] = 1; }
+  function wantMobs() { const w = Object.assign({}, MAP.mobs || {}); if (hordeOn(mapKey)) Object.keys(w).forEach(k => w[k] *= 2); if (!EXP && !MAP.base && !MAP.mvp && (MAP.dark || 0) >= .45 && !INV.eq.luz) w.ojo = (w.ojo || 0) + 2;
+    if (!MAP.base && !MAP.mvp && !MAP.safeAll && w.errante) w.contagiado = Math.max(1, Math.round(w.errante / 2)); /* donde hay Errantes, también Contagiados */ if (EXP) { if (mapKey === 'pvp_centro' && yukiPvp()) w.yuki = 1; return w; } Object.keys(EXTRA).forEach(k => { if (EXTRA[k][mapKey]) w[k] = (w[k] || 0) + EXTRA[k][mapKey]; }); const hb = bossesToday()[mapKey]; if (hb && bossAlive(hb)) { const ph = mobs.find(o => o.kind === hb + '_c') || mobs.find(o => o.kind === hb + '_b'); if (ph) { w[ph.kind] = 1; delete w[hb]; } else w[hb] = 1; }
     /* nunca dos de la misma dama/galán a la vez */
     ['chica', 'chico'].forEach(f => { const here = mobs.filter(o => o.kind.replace(/_[bc]$/, '') === f); if (here.length > 1) { const keep = here.find(o => /_c$/.test(o.kind)) || here.find(o => /_b$/.test(o.kind)) || here[0]; here.forEach(o => { if (o !== keep) { const i = mobs.indexOf(o); if (i >= 0) mobs.splice(i, 1); } }); } });
     /* nunca dos jefes juntos: queda el que ya está en el mapa, si no el primero */
