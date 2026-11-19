@@ -105,6 +105,7 @@
   function charSprite(lk, dir, frame, atk) {
     if (HD && lk) { let s = null;
       if (lk.npc) s = HD.sheet(HD.NPC_SHEET[lk.npc] || lk.npc, dir, frame, atk);
+      else if (lk.cu && HD.custom) s = HD.custom(lk, dir, frame, atk);
       else if (lk.pj) s = HD.sheet(lk.pj, dir, frame, atk);
       else if (lk.body != null) s = HD.base(lk.body === 1, lk.model || 0, baseColors(lk), dir, frame, atk);
       if (s) return s; }
@@ -261,8 +262,8 @@
     lanzallamas: { n: 'Lanzallamas', t: 'Arma de fuego · muy rara', d: 'Escupe fuego de cerca: quema todo lo que tenga adelante. 30 segundos de fuego.', eq: 'arma', uses: 250 },
     metralleta: { n: 'Metralleta', t: 'Arma de fuego · rara', d: 'Ráfaga rápida a distancia. 60 tiros.', eq: 'arma', uses: 60 },
     trampa: { n: 'Trampa', t: 'Objeto · se coloca', d: 'La dejás en el piso. El otro bando no la ve (sólo una marquita). Al pisarla queda frenado y lastimado; a los Oscuros los aturde. Dura 4 minutos.', use: 'trampa' },
-    jeringa: { n: 'Jeringa de nanocura', t: 'Consumible · contagio', d: 'Baja el contagio de los Oscuros a la mitad (-50) y lo frena 45 segundos.', use: 'jeringa', v: 50, imm: 45 },
-    jeringa_max: { n: 'Jeringa de nanomoléculas', t: 'Consumible · contagio · rara', d: 'Te limpia el contagio por completo, te devuelve 30 de vida y no te contagiás por 2 minutos.', use: 'jeringa', v: 100, imm: 120, hp: 30 },
+    jeringa: { n: 'Jeringa de nanocura', t: 'Consumible · contagio', d: 'Te cura el contagio de los Oscuros por completo. Se vende en la tienda de Rosa (Plaza de Mayo).', use: 'jeringa', v: 100, imm: 8 },
+    jeringa_max: { n: 'Jeringa de nanomoléculas', t: 'Consumible · contagio · rara', d: 'Te cura el contagio por completo, te devuelve 30 de vida y no te contagiás por 2 minutos.', use: 'jeringa', v: 100, imm: 120, hp: 30 },
     antiveneno: { n: 'Antiveneno', t: 'Consumible', d: 'Cura el envenenamiento (insectos y babosas te envenenan).', use: 'antiveneno' },
     venda_q: { n: 'Venda para quemaduras', t: 'Consumible', d: 'Cura el estado QUEMADO (el Incinerario te prende fuego) y te da 15 de vida.', use: 'vendaq' },
     brz_jefe: { n: 'Brazalete de Yuki', t: 'Brazalete · único · PvP', d: 'Lo deja Yuki cuando la derrotás. Al activarlo tenés poder de jefe por 60 segundos: el doble de vida, recibís la mitad de daño y pegás 60% más.', use: 'jefe' },
@@ -597,11 +598,13 @@
     const cre = $('#cre'); cre.hidden = false; let rot = 0; const dirs = ['d', 'l', 'u', 'r'];
     if (me.faction === 'ork' && look.cls == null) look.cls = 0;
     const box = $('#opts');
+    const orig = Object.assign({}, look);
     function rows() { box.querySelectorAll('.opt,.perk').forEach(e => e.remove());
-      const ork = me.faction === 'ork', list = HD ? HD.roster(look.body === 1, ork) : [];
-      if (HD) { let ix = HD.rosterIdx(list, look); if (look.pj && !list.some(r => r.k === look.pj)) ix = 0; HD.pickPj(look, list[ix]); look.pjI = ix; }
-      const cur = HD ? list[look.pjI] : null, fixed = cur && cur.cls != null;
+      const ork = me.faction === 'ork', list = HD ? HD.roster(look.body === 1, ork, orig) : [];
+      if (HD) { const ix = HD.rosterIdx(list, look); HD.pickPj(look, list[ix]); look.pjI = ix; }
+      const cur = HD ? list[look.pjI] : null, fixed = cur && cur.cls != null, P_ = HD && HD.CPAL, nm = a => a.map(x => x[0]);
       const opts = [['CUERPO', 'body', () => BODY], ['PERSONAJE', 'pjI', () => list.map(r => r.nm)]];
+      if (look.cu && P_) opts.push(['PIEL', 'cs', () => nm(P_.piel)], ['PELO', 'ch', () => nm(P_.pelo)], ['ROPA', 'ct', () => nm(P_.ropa)], ['PANTALÓN', 'cp', () => nm(P_.pant)]);
       if (ork) opts.push(['CLASE', 'cls', () => OCLS, fixed]);
       if (mySkins.length) opts.unshift(['ESPECIAL', 'npcI', () => ['Ninguno'].concat(mySkins.map(k => skinName(k)))]);
       look.npcI = look.npc ? mySkins.indexOf(look.npc) + 1 : 0;
@@ -609,10 +612,11 @@
       opts.forEach(([lab, k, lf, lock]) => { const L = lf(); const r = document.createElement('div'); r.className = 'opt';
         r.innerHTML = '<span>' + lab + '</span><button aria-label="anterior">‹</button><b></b><button aria-label="siguiente">›</button>';
         const bb = r.querySelector('b'); bb.textContent = L[look[k] || 0] || L[0];
+        if (P_ && ['cs', 'ch', 'ct', 'cp'].includes(k)) { const pal = { cs: P_.piel, ch: P_.pelo, ct: P_.ropa, cp: P_.pant }[k]; bb.style.borderLeft = '14px solid ' + (pal[look[k] || 0] || pal[0])[1]; bb.style.paddingLeft = '6px'; }
         if (lock) { r.children[1].disabled = r.children[3].disabled = true; r.classList.add('lock'); bb.textContent += ' · fija'; }
         const ch_ = dv => { look[k] = ((look[k] || 0) + dv + L.length) % L.length;
           if (k === 'npcI') { if (look.npcI) look.npc = mySkins[look.npcI - 1]; else delete look.npc; }
-          if (k === 'body') { delete look.pj; delete look.model; }
+          if (k === 'body') { delete look.pj; delete look.model; delete look.cu; }
           if (k === 'pjI') { HD.pickPj(look, list[look.pjI]); if (list[look.pjI].cls == null && cur && cur.cls != null) look.cls = 0; }
           rows(); draw(); };
         r.children[1].onclick = () => ch_(-1); r.children[3].onclick = () => ch_(1); box.insertBefore(r, first); });
@@ -714,7 +718,7 @@
   function drawAv() { const cv = $('#h-av'); if (!cv || !look) return; const g = cv.getContext('2d'); g.clearRect(0, 0, 96, 128); let spr = null; try { spr = charSprite(look, 'd', 0, false); } catch (e) {} if (!spr) return; if (spr.hd) { g.imageSmoothingEnabled = true; g.drawImage(spr, 58, 22, 140, 186, 0, 0, 96, 128); } else { g.imageSmoothingEnabled = false; g.drawImage(spr, 0, 0, spr.width, spr.height * .7, 6, 6, 84, 116 * .9); } drawAv.ok = spr.hd ? 2 : 1; drawAv.key = JSON.stringify(look); }
   setInterval(() => { if (look && ((drawAv.ok || 0) < 2 || drawAv.key !== JSON.stringify(look))) drawAv(); }, 600); /* el retrato espera a que cargue la planilla */
   function hudCont() { const cb = $('#h-cb'); if (!cb || !INV) return; const v = Math.round(INV.cont || 0), im = (P.inmune || 0) > 0; $('#h-ct').style.width = (v * .678) + '%';
-    const tx = im ? 'INMUNE ' + Math.ceil(P.inmune) + 's' : v ? 'CONTAGIO ' + v + '%' : ''; if ($('#h-ctn').textContent !== tx) $('#h-ctn').textContent = tx;
+    const left = Math.max(0, Math.ceil(120 * (1 - (INV.cont || 0) / 100))), tx = im ? 'INMUNE ' + Math.ceil(P.inmune) + 's' : v ? (P.contFin > 0 ? '☣ TE ESTÁS CONVIRTIENDO' : '☣ CONTAGIADO ' + ((left / 60) | 0) + ':' + String(left % 60).padStart(2, '0')) : ''; if ($('#h-ctn').textContent !== tx) $('#h-ctn').textContent = tx;
     cb.classList.toggle('on', v > 0 || im); cb.classList.toggle('grave', v >= 70); cb.classList.toggle('inm', im); }
   function hud() { hudCont(); if ((drawAv.ok || 0) < 2 && (drawAv.n = (drawAv.n || 0) + 1) < 60 && drawAv.n % 6 === 0) drawAv(); { const nk = $('#h-nick'), t_ = me.nick + '|' + lvlOf(P.xp); if (nk && nk.dataset.v !== t_) { nk.dataset.v = t_; nk.textContent = me.nick; const e_ = document.createElement('em'); e_.textContent = 'NV ' + lvlOf(P.xp); nk.appendChild(e_); } } const lv = lvlOf(P.xp), a = xpFor(lv), b = xpFor(lv + 1); $('#h-hp').style.width = Math.max(0, P.hp / maxHp(lv) * 100) + '%'; $('#h-xp').style.width = (lv >= 100 ? 100 : Math.min(100, (P.xp - a) / (b - a) * 100)) + '%';
     $('#h-lv').textContent = 'NV ' + lv + ' · ' + (INV ? weaponLabel() : 'PALO') + ' · ' + Math.ceil(P.hp) + '/' + maxHp(lv) + (INV && INV.eq.luz ? ' · LUZ ' + Math.ceil(INV.bat) + '%' : '') + (INV && INV.eq.ropa ? ' · ESCUDO ' + (INV.dur[INV.eq.ropa] != null ? INV.dur[INV.eq.ropa] : ITEMS[INV.eq.ropa].shield) : '') + ' · ' + (INV ? INV.coins : 0) + ' monedas' + (INV && INV.ab.length ? ' · ' + INV.ab.map(a => AB[a].n).join(' · ') : '') + (suero.map ? ' · MALETÍN: ' + MAPS[suero.map].name : ''); }
@@ -768,16 +772,19 @@
   function classMult(mk) { if (!mk || me.faction !== 'ork') return 1; let m = .85; const c = (look && look.cls) || 0;
     if ((c === 0 && mk === 'perro') || (c === 1 && mk === 'corredor') || (c === 2 && mk === 'errante')) m *= .6; return m; }
   /* ---------- contagio de los Oscuros: barra 0-100. +30 pierde vida, +70 más rápido. Al morir contagiado queda tu clon Oscuro ---------- */
-  const CONT_MIN = 30;
-  function contagiar(d, fuerte, x) { if ((P.inmune || 0) > 0 || P.dead) return; const was = INV.cont || 0; INV.cont = Math.min(100, was + Math.min(14, 3 + d * .35) * (fuerte ? 1.5 : 1) * (x || 1));
-    if (was < CONT_MIN && INV.cont >= CONT_MIN) toast('☣ Te estás contagiando: perdés vida de a poco. Usá una jeringa.'); else if (was < 70 && INV.cont >= 70) toast('☣ Contagio grave: te estás convirtiendo en Oscuro.'); hud(); }
-  function contTick(dt) { if (P.dead || !INV) return; if (P.inmune > 0) P.inmune -= dt; const cv = INV.cont || 0; if (cv <= 0) return; if (inSafe(P.x, P.y)) return; /* en zona segura el contagio se frena (no baja) */
-    if (cv >= CONT_MIN && !(P.inmune > 0)) INV.cont = Math.min(100, cv + dt * .6); /* sin cura, sube solo hasta 100 */
-    if (cv < CONT_MIN || P.inmune > 0) return; P.contT = (P.contT || 0) + dt; if (cv >= 70) P.slow = Math.max(P.slow || 0, .5);
-    /* contagiado: sin cura te mata en ~2 minutos (le saca 1/120 de la vida máxima por segundo) */
-    if (P.contT >= 1) { P.contT = 0; const dd = Math.max(1, Math.round(maxHp(lvlOf(P.xp)) / 120)); P.hp -= dd; floats.push({ x: P.x, y: P.y - 200, t: .7, txt: '☣ -' + dd, c: '#c070ff' });
-      if (Math.random() < .5) parts.push({ x: P.x + rnd(-16, 16), y: P.y - rnd(40, 160), vx: 0, vy: -26, life: .8, s: 3, c: 270 }); hud(); if (P.hp <= 0) { P.hp = 1; hitPlayer(999, null, 0, null, 'contagio'); } } }
-  function dejarClon() { const lk = {}; ['pj', 'npc', 'body', 'model', 'cls'].forEach(k => { if (look && look[k] != null) lk[k] = look[k]; });
+  /* contagio: un toque de un Oscuro y quedás contagiado (INV.cont = % de los 2 minutos que pasaron). Más golpes no lo aceleran.
+     A los 2 minutos sin jeringa: si tenés más de la mitad de la vida te baja a la mitad y a los segundos morís; si ya tenías la mitad o menos, morís en el acto. */
+  const CONT_MIN = 0.01, CONT_SEG = 120, CONT_FIN = 4;
+  function contagiar(fuerte) { if ((P.inmune || 0) > 0 || P.dead || (INV.cont || 0) > 0) return; INV.cont = fuerte ? 50 : 0.5; P.contFin = 0; toast(fuerte ? '☣ Te contagió un Contagiado: tenés 1 minuto para usar una jeringa.' : '☣ Te contagiaste. Tenés 2 minutos para usar una jeringa.'); buzz([60, 40, 60]); hud(); }
+  function contTick(dt) { if (P.dead || !INV) return; if (P.inmune > 0) P.inmune -= dt; const cv = INV.cont || 0; if (cv <= 0) return;
+    if (inSafe(P.x, P.y) && !(P.contFin > 0)) return; /* en zona segura la cuenta se frena */
+    if (P.contFin > 0) { P.contFin -= dt; if (Math.random() < dt * 6) parts.push({ x: P.x + rnd(-16, 16), y: P.y - rnd(40, 160), vx: 0, vy: -26, life: .8, s: 3, c: 270 }); if (P.contFin <= 0) { P.hp = 1; hitPlayer(999, null, 0, null, 'contagio'); } return; }
+    const was = cv; INV.cont = Math.min(100, cv + dt * 100 / CONT_SEG);
+    if (was < 50 && INV.cont >= 50) toast('☣ Te queda 1 minuto de contagio.'); else if (was < 84 && INV.cont >= 84) toast('☣ ¡20 segundos! Usá una jeringa.');
+    if (INV.cont >= 100) { const mx = maxHp(lvlOf(P.xp)); P.slow = Math.max(P.slow || 0, 1);
+      if (P.hp > mx / 2) { P.hp = Math.floor(mx / 2); P.contFin = CONT_FIN; floats.push({ x: P.x, y: P.y - 200, t: 1.2, txt: '☣ EL CONTAGIO TE CONSUME', c: '#c070ff' }); buzz([200, 80, 200]); hud(); }
+      else { P.hp = 1; hitPlayer(999, null, 0, null, 'contagio'); } } }
+  function dejarClon() { const lk = {}; ['pj', 'npc', 'body', 'model', 'cls', 'cu', 'cs', 'ch', 'ct', 'cp', 'skin', 'hair', 'hcol', 'top', 'pant', 'fac'].forEach(k => { if (look && look[k] != null) lk[k] = look[k]; });
     /* el clon se lleva una cosa de tu mochila (no lo equipado) y la suelta si lo matan */
     const bag = Object.keys(INV.items || {}).filter(k => INV.items[k] > 0 && ITEMS[k] && !ITEMS[k].epic && k !== 'suero' && !Object.values(INV.eq).includes(k)); let drop = null;
     if (bag.length) { drop = bag[(Math.random() * bag.length) | 0]; INV.items[drop]--; if (!INV.items[drop]) delete INV.items[drop]; }
@@ -785,7 +792,7 @@
   function spawnClon(p) { const o = spawnMob('clon', 0, [p.x, p.y]); if (!o) return; o.cl = p.cl; o.cn = p.cn; o.drop = p.drop; o.alpha = 1; needFull = true; }
   function hitPlayer(d, knockFrom, knock, byId, mk) { if (P.dead || P.inv > 0 || P.furia > 0 || (!byId && inSafe(P.x, P.y))) return false;
     if (!byId && mk && d < 999 && MOB[mk]) { if (MOB[mk].burn && !(P.burn > 0)) { P.burn = 5; toast('¡Te prendiste fuego! 5 segundos de quemadura (la venda para quemaduras lo corta).'); } if (MOB[mk].poison && !(P.poison > 0)) { P.poison = 25; toast('Te envenenaron. Usá antiveneno.'); } }
-    if (!byId && mk && d < 999 && MOB[mk] && !MOB[mk].passive && !MOB[mk].npc) contagiar(d, MOB[mk].boss || MOB[mk].mvp, MOB[mk].cont);
+    if (!byId && mk && d < 999 && MOB[mk] && !MOB[mk].passive && !MOB[mk].npc) contagiar(MOB[mk].cont);
     if (P.goo > 0) d *= 2; if (P.stunT > 0 && mk && MOB[mk] && MOB[mk].mvp) d *= 2.5;
     if (mk && MOB[mk] && MOB[mk].pois5 && d < 999) { P.poison = Math.max(P.poison || 0, 5); P.poisonK = MOB[mk].pois5; }
     d = Math.max(1, Math.round(d * dmgMult() * classMult(mk || (knockFrom && knockFrom.kind) || (byId ? null : 'oscuro'))));
@@ -864,8 +871,8 @@
     if (a === 'use' && it.use === 'descuento') { INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; INV.descT = Date.now() + 600000; toast('Credencial mostrada: 10 minutos con 30% de descuento en las tiendas.'); renderInv(); persist(); return; }
     if (a === 'use' && it.use === 'volver') { INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; closeInv(); const [hz, hp_] = home(); toast('El fragmento se parte. Todo se dobla…'); warpTo(hz, hp_[0], hp_[1]); persist(); return; }
     if (a === 'use' && it.use === 'trampa') { if (EXP && MAP.safeAll || inSafe(P.x, P.y)) return toast('Acá no se pueden poner trampas.'); INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; const tp = { m: mapKey, id: me.id.slice(0, 4) + Date.now().toString(36), x: Math.round(P.x), y: Math.round(P.y), fac: me.faction, by: me.id, t: Date.now() }; ptraps.push(tp); net('trap', tp); SND.pick(); toast('Trampa puesta. El otro bando sólo ve una marquita.'); closeInv(); persist(); return; }
-    if (a === 'use' && it.use === 'jeringa') { if (!(INV.cont > 0) && !it.hp) return toast('No estás contagiado. Guardala.'); INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; INV.cont = Math.max(0, (INV.cont || 0) - it.v); P.inmune = Math.max(P.inmune || 0, it.imm); if (it.hp) P.hp = Math.min(maxHp(lvlOf(P.xp)), P.hp + it.hp); SND.pick(); buzz(30);
-      toast(INV.cont > 0 ? 'El contagio bajó al ' + Math.round(INV.cont) + '%. Frenado por ' + it.imm + ' s.' : 'Contagio limpio. No te contagiás por ' + (it.imm >= 120 ? '2 minutos' : it.imm + ' segundos') + '.'); hud(); renderInv(); quickBtns(); persist(); return; }
+    if (a === 'use' && it.use === 'jeringa') { if (!(INV.cont > 0) && !it.hp) return toast('No estás contagiado. Guardala.'); INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; INV.cont = 0; P.contFin = 0; P.inmune = Math.max(P.inmune || 0, it.imm); if (it.hp) P.hp = Math.min(maxHp(lvlOf(P.xp)), P.hp + it.hp); SND.pick(); buzz(30);
+      toast('Contagio curado.' + (it.imm >= 120 ? ' No te contagiás por 2 minutos.' : '')); hud(); renderInv(); quickBtns(); persist(); return; }
     if (a === 'use' && it.use === 'antiveneno') { if (!(P.poison > 0)) return toast('No estás envenenado. Guardalo.'); INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; P.poison = 0; SND.pick(); toast('El veneno se cortó.'); hud(); renderInv(); quickBtns(); persist(); return; }
     if (a === 'use' && it.use === 'vendaq') { if (!(P.burn > 0) && P.hp >= maxHp(lv)) return toast('No estás quemado. Guardala.'); INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; P.burn = 0; P.hp = Math.min(maxHp(lv), P.hp + 15); SND.pick(); toast('Venda para quemaduras: se apagó el ardor.'); hud(); renderInv(); quickBtns(); persist(); return; }
     if (a === 'use' && it.use === 'forzar') { const cz = nearCasillero(); if (!cz) return toast('Usalas al lado de un CASILLERO (hay en algunos mapas, bien escondidos).'); if (cz.open) return toast('Ese casillero ya lo abriste hoy.'); INV.cas = INV.cas || {}; INV.cas[cz.id] = dayN(); INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; addItem('vendas', 3); const jx = Math.random() < .25 ? 'jeringa_max' : 'jeringa'; addItem(jx); const x_ = pickW([['chaleco_t', 1.4], ['armadura', 1.2], ['katana', 1], ['escopeta', 1], ['metralleta', .8], ['lanzallamas', .4]]); addItem(x_); SND.pick(); toast('¡Casillero forzado! 3 vendas, ' + ITEMS[jx].n + ' y ' + ITEMS[x_].n + '.'); renderInv(); quickBtns(); persist(); return; }
@@ -1071,7 +1078,7 @@
   function revive(id) { if (!hasItem('suero') && !hasItem('kit')) return toast('Para revivir necesitás un maletín de curación total o un kit de curación.'); const k = hasItem('suero') ? 'suero' : 'kit'; INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; if (k === 'suero') sueroTaken();
     net('revive', { to: id, by: me.nick }); SND.level(); toast('Lo reviviste.'); persist(); quickBtns(); }
   /* al morir quedás limpio: sin veneno, fuego, lentitud, aturdimiento ni habilidades */
-  function cleanse(lostAb) { if (INV) INV.cont = 0; P.inmune = 0; P.poison = 0; P.poisonK = 0; P.burn = 0; P.slow = 0; P.stunT = 0; P.goo = 0; P.regen = null; P.fast = 0; P.potion = 0; P.furia = 0; P.jefe = 0; P.smoke = 0; P.gorro = 0; P.ghost = 0; P.clone = null;
+  function cleanse(lostAb) { if (INV) INV.cont = 0; P.inmune = 0; P.contFin = 0; P.poison = 0; P.poisonK = 0; P.burn = 0; P.slow = 0; P.stunT = 0; P.goo = 0; P.regen = null; P.fast = 0; P.potion = 0; P.furia = 0; P.jefe = 0; P.smoke = 0; P.gorro = 0; P.ghost = 0; P.clone = null;
     if (lostAb && INV && INV.ab && INV.ab.length) { const had = INV.ab.map(a => AB[a] ? AB[a].n : a).join(', '); INV.ab = []; try { abButtons(); } catch (e) {} setTimeout(() => toast('Perdiste tus habilidades: ' + had + '.'), 1200); } }
   function gotRevived(by) { cleanse(false); if (!P.dead) return; P.dead = false; P.hp = Math.round(maxHp(lvlOf(P.xp)) * .5); P.inv = 3; $('#ov-dead').hidden = true; SND.level(); banner('TE REVIVIERON', by, 1800, '#9fe0b0'); hud(); sendPos(true); }
   function mvpDraw(c, W2S, zoom, t) { if (!MAP || !MAP.mvp) return;
@@ -1430,7 +1437,7 @@
   $('#btn-x').addEventListener('pointerdown', e => { e.preventDefault(); goGhost(); });
   /* tienda de Plaza de Mayo */
   const SHOP = [['kit', 100, 'Vida completa'], ['vendas', 3, 'Cura el 22% de tu vida (3 s)'], ['pilas', 2, 'Recargan la linterna'], ['lanza', 8, 'Llega lejos y atraviesa · 30 golpes'], ['kitsune', 10, 'Desaparecés 3 segundos · 2 usos'], ['ganzuas', 6, 'Abren un casillero · se gastan']];
-  let curShop = null; function openShop(n) { if (!n || !n.nm) n = npcsHere().find(x => x.act === 'shop' || x.shop); if (!n || P.dead) return; curShop = (n.shop ? n.shop.map(([k, p]) => [k, p, ITEMS[k].d]) : SHOP.slice()); [['venda_q', 6], ['antiveneno', 6], ['trampa', 12], ['fragmento', 45], ['balas', 6], ['cart_itaka', 9], ['cargador', 14], ['virotes', 8], ['molotov', 15], ['vendas_a', 8]].concat(n.shop && n.shop.some(([k]) => ITEMS[k] && ITEMS[k].eq === 'arma' && WEAP[k] && WEAP[k].gun) ? [['metralleta', 110]] : []).forEach(([k, p]) => { if (!curShop.some(r => r[0] === k)) curShop.push([k, p, ITEMS[k].d]); });
+  let curShop = null; function openShop(n) { if (!n || !n.nm) n = npcsHere().find(x => x.act === 'shop' || x.shop); if (!n || P.dead) return; curShop = (n.shop ? n.shop.map(([k, p]) => [k, p, ITEMS[k].d]) : SHOP.slice()); [['venda_q', 6], ['antiveneno', 6], ['trampa', 12], ['fragmento', 45], ['balas', 6], ['cart_itaka', 9], ['cargador', 14], ['virotes', 8], ['molotov', 15], ['vendas_a', 8]].concat(n.k === 'rosa' ? [['jeringa', 30]] : []).concat(n.shop && n.shop.some(([k]) => ITEMS[k] && ITEMS[k].eq === 'arma' && WEAP[k] && WEAP[k].gun) ? [['metralleta', 110]] : []).forEach(([k, p]) => { if (!curShop.some(r => r[0] === k)) curShop.push([k, p, ITEMS[k].d]); });
     $('#ov-shop h2').textContent = n.nm; $('#ov-shop p i').textContent = '"' + n.line + '"'; paused = true; $('#ov-shop').hidden = false; renderShop(); }
   const SELL = { metralleta: 20, trampa: 5, antiveneno: 3, venda_q: 3, pagina: 4, cigarrillo: 3, credencial: 6, receptor: 8, ganzuas: 6, filtro: 5, fragmento: 15, pista: 3, manzana: 2, pilas: 1, tarjeta: 10, expediente: 10, fusible: 4, radio: 6, cartucho: 10, canister: 10, contenedor: 8, energia: 8, mascara: 8, b_contencion: 12, b_resonancia: 12, campera: 5, chaleco: 10, armadura: 18, linterna: 4, cuchillo: 3, bate: 4, barra: 3, lanza: 6, pistola: 8, katana: 10, escopeta: 14, lanzallamas: 18, pista_ork: 4, pista_reb: 4 };
   const disc = () => (INV.descT || 0) > Date.now() ? .7 : 1;

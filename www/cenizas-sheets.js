@@ -44,18 +44,32 @@
   const ALL = ["agente_patrulla_ork", "ani", "anita", "anixa", "arshi", "azu", "bong", "carolina", "cin", "civil_anciano", "civil_hombre", "civil_m", "civil_mujer", "civil_nene", "civil_trabajador", "claudia", "corredor_final", "corredor_incinerario", "cyn", "dario", "ding", "doctor_ork", "el_sabio", "espectro", "ex01", "ex02", "ex03", "ex04", "ex05", "ex06", "ex07", "ex08", "ex09", "ex10", "ex11", "ex12", "ex13", "ex14", "ex15", "ex16", "ex17", "ex18", "ex19", "ex20", "ex21", "ex22", "ex23", "ex24", "ex25", "ex26", "ex27", "ex28", "ex29", "ex30", "ex31", "ex32", "ex33", "ex34", "ex35", "ex36", "ex37", "ex38", "ex39", "ex40", "ex41", "eze", "gato", "giuliana", "gusty", "ignacio", "instructor_ork", "irene", "jaqui", "jem", "joaco", "jota", "jota_viejo", "julieta", "kamikaze", "laura", "le_cape", "lean", "leti", "lilia", "lucas", "lucas_hermano", "luis", "mariano", "mariela", "marta", "mary_futuro", "maxi", "mercedes", "mole", "natsume", "norbert", "oficial_ork", "oscuro_hombre", "oscuro_mujer", "pablo_1", "pablo_2", "pablo_3", "pablo_4", "pablo_futuro", "f_aventurera", "f_mecanica", "f_rubia", "f_urbana", "f_cientifica", "f_medica", "f_medica2", "f_hacker", "f_hacker2", "f_oficinista", "h_barbudo", "h_periodista", "h_rockero", "h_picaro", "h_explorador", "h_panuelo", "h_poncho", "h_soldado", "h_mercenario", "h_guerrero", "h_cientifico", "h_espia", "pol_alter", "pol_futuro", "raul", "renzo", "rocio", "romina", "rosa", "ruben", "sabueso", "sam", "sasha", "sel01", "sel02", "sel03", "sel04", "sel05", "sel07", "sel08", "sel09", "sel11", "sel12", "sel13", "sel14", "sel15", "sel16", "sel17", "sel18", "sel20", "sel21", "sel22", "sel23", "sel24", "sel25", "sel26", "sel27", "sel29", "sel31", "sel34", "sel35", "sofia_buena", "sofia_mala", "teby", "tecnico_ork", "tincho", "toby", "tomy", "vanesa", "viajero", "yuki"];
   /* ROSTER: personajes para elegir. cls = clase ORK fija (0 militar · 1 científico · 2 espía) → esos son solo de ORK.
      model = personaje base (sin teñir a mano). */
-  const ROSTER = {
-    m: [['f_aventurera', 'Pelirroja'], ['f_mecanica', 'Mecánica'], ['f_rubia', 'Rubia'], ['f_urbana', 'Urbana'],
-      ['f_cientifica', 'Científica', 1], ['f_medica', 'Médica', 1], ['f_medica2', 'Enfermera', 1], ['f_hacker', 'Hacker', 2], ['f_hacker2', 'Hacker de radio', 2], ['f_oficinista', 'Oficinista', 2],
-      ['', 'Clásica 1', null, 0], ['', 'Clásica 2', null, 1]],
-    h: [['h_barbudo', 'Barbudo'], ['h_periodista', 'Periodista'], ['h_rockero', 'Rockero'], ['h_picaro', 'Pícaro'], ['h_explorador', 'Explorador'], ['h_panuelo', 'Pañuelo rojo'], ['h_poncho', 'Poncho'],
-      ['h_soldado', 'Soldado', 0], ['h_mercenario', 'Mercenario', 0], ['h_guerrero', 'Guerrero', 0], ['h_cientifico', 'Científico', 1], ['h_espia', 'Espía', 2]]
-      .concat(SEL.map((k, i) => [k, 'Sobreviviente ' + (i + 1)]), [['', 'Clásico 1', null, 0], ['', 'Clásico 2', null, 1]])
+  /* PERSONAJES CUSTOM: 6 hombres y 6 mujeres a los que se les cambia el color de piel, pelo, ropa y pantalón */
+  const CU = { h: [1, 2, 3, 4, 5, 6].map(i => 'cu_h' + i), m: [1, 2, 3, 4, 5, 6].map(i => 'cu_m' + i) };
+  const CPAL = {
+    piel: [['Clara', '#f2c9a4'], ['Trigueña', '#e0a878'], ['Morena', '#b9825a'], ['Oscura', '#8a5a3c'], ['Muy oscura', '#5e3c28'], ['Pálida', '#f6dccb']],
+    pelo: [['Castaño', '#6b4128'], ['Negro', '#2a2523'], ['Castaño claro', '#9a6a42'], ['Rubio', '#d9b25a'], ['Colorado', '#b5482a'], ['Gris', '#8e8a86'], ['Blanco', '#e2ded8'], ['Azul', '#3a62c8'], ['Verde', '#3f9a52'], ['Rosa', '#d86aa0'], ['Violeta', '#7a4ac0']],
+    ropa: [['Gris', '#5d5e58'], ['Negro', '#2b2c2e'], ['Blanco', '#d8d6d0'], ['Rojo', '#a8352e'], ['Azul', '#2f5aa0'], ['Verde', '#3f7a46'], ['Oliva', '#6a6a3c'], ['Bordó', '#6e2432'], ['Mostaza', '#c09a3a'], ['Celeste', '#6aa8d0'], ['Naranja', '#d0702e']],
+    pant: [['Jean', '#6a7e98'], ['Jean oscuro', '#3a4a66'], ['Negro', '#2a2a2c'], ['Gris', '#6e6e6e'], ['Beige', '#b9a47e'], ['Verde militar', '#4f5a3a'], ['Marrón', '#6a4a32'], ['Bordó', '#5e2430']]
   };
-  /* lista que ve cada uno: los de clase fija solo para ORK */
-  const roster = (fem, ork) => ROSTER[fem ? 'm' : 'h'].filter(r => ork || r[2] == null).map(([k, nm, cls, model]) => ({ k, nm, cls: cls == null ? null : cls, model: model == null ? null : model }));
-  const rosterIdx = (list, lk) => Math.max(0, list.findIndex(r => r.k ? r.k === lk.pj : (!lk.pj && lk.model != null && r.model === lk.model)));
-  /* aplica la elección al look: personaje, clase fija y limpia lo viejo de colores */
-  function pickPj(lk, r) { if (r.k) { lk.pj = r.k; delete lk.model; } else { delete lk.pj; lk.model = r.model; } if (r.cls != null) lk.cls = r.cls; ['skin', 'hair', 'hcol', 'top', 'acc', 'pant'].forEach(k => delete lk[k]); return lk; }
-  window.CZ_SHEETS = { ROSTER, roster, rosterIdx, pickPj, SEL, CELL, MODELS, ALL, NPC_SHEET, MOB_SHEET, sheet, base, blit, load };
+  /* colores del custom en el orden de las partes del _reg: pelo, piel, ropa, pantalón, calzado */
+  const cuColors = lk => [(CPAL.pelo[lk.ch || 0] || CPAL.pelo[0])[1], (CPAL.piel[lk.cs || 0] || CPAL.piel[0])[1], (CPAL.ropa[lk.ct || 0] || CPAL.ropa[0])[1], (CPAL.pant[lk.cp || 0] || CPAL.pant[0])[1], null];
+  const custom = (lk, dir, frame, atk) => { const l = CU[lk.body === 1 ? 'm' : 'h'], s = tinted(l[(lk.cu || 1) - 1] || l[0], cuColors(lk)); return s ? cut(s, dir || 'd', atk ? 3 : (frame || 0), s.key) : null; };
+  /* ROSTER: customs para todos + los de clase fija solo para ORK (0 militar · 1 científico · 2 espía) */
+  const ROSTER = {
+    m: [1, 2, 3, 4, 5, 6].map(i => ['', 'Custom ' + i, null, null, i]).concat([['f_cientifica', 'Científica', 1], ['f_medica', 'Médica', 1], ['f_medica2', 'Enfermera', 1], ['f_hacker', 'Hacker', 2], ['f_hacker2', 'Hacker de radio', 2], ['f_oficinista', 'Oficinista', 2]]),
+    h: [1, 2, 3, 4, 5, 6].map(i => ['', 'Custom ' + i, null, null, i]).concat([['h_soldado', 'Soldado', 0], ['h_mercenario', 'Mercenario', 0], ['h_guerrero', 'Guerrero', 0], ['h_cientifico', 'Científico', 1], ['h_espia', 'Espía', 2]])
+  };
+  /* lista que ve cada uno. Si ya tenía un personaje que salió de la lista, se le deja como "Tu personaje" */
+  const inRoster = (lk, ork) => lk.cu ? true : roster(lk.body === 1, ork).some(r => r.k && r.k === lk.pj);
+  const roster = (fem, ork, lk) => { const l = ROSTER[fem ? 'm' : 'h'].filter(r => ork || r[2] == null).map(([k, nm, cls, model, cu]) => ({ k, nm, cls: cls == null ? null : cls, model: model == null ? null : model, cu: cu || null }));
+    if (lk && (lk.body === 1) === fem && !lk.cu && (lk.pj || lk.model != null) && !l.some(r => r.k && r.k === lk.pj)) l.unshift({ keep: { pj: lk.pj, model: lk.model, skin: lk.skin, hair: lk.hair, hcol: lk.hcol, top: lk.top, acc: lk.acc, pant: lk.pant }, nm: 'Tu personaje', cls: null });
+    return l; };
+  const rosterIdx = (list, lk) => Math.max(0, list.findIndex(r => r.keep ? !lk.cu && (r.keep.pj ? r.keep.pj === lk.pj : lk.model === r.keep.model && !lk.pj) : r.cu ? lk.cu === r.cu : r.k === lk.pj));
+  function pickPj(lk, r) {
+    if (r.keep) { delete lk.cu; Object.entries(r.keep).forEach(([k, v]) => { if (v == null) delete lk[k]; else lk[k] = v; }); return lk; }
+    if (r.cu) { lk.cu = r.cu; delete lk.pj; delete lk.model; ['cs', 'ch', 'ct', 'cp'].forEach(k => { if (lk[k] == null) lk[k] = 0; }); }
+    else { lk.pj = r.k; delete lk.cu; delete lk.model; }
+    if (r.cls != null) lk.cls = r.cls; ['skin', 'hair', 'hcol', 'top', 'acc', 'pant'].forEach(k => delete lk[k]); return lk; }
+  window.CZ_SHEETS = { ROSTER, roster, rosterIdx, pickPj, inRoster, CU, CPAL, custom, cuColors, SEL, CELL, MODELS, ALL, NPC_SHEET, MOB_SHEET, sheet, base, blit, load };
 })();

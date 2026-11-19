@@ -640,7 +640,7 @@
     const lk = avLook || (gchar && gchar.look); if (!lk || lk.body == null) { g.fillStyle = '#3c3c3c'; g.fillRect(W * .37, H * .19, W * .25, H * .19); g.fillRect(W * .29, H * .4, W * .42, H * .47); return; }
     const npc = lk.npc && avSkins.includes(lk.npc), dir = AVD[avRot];
     if (HD) { const A = THEOF_AV, fac = me.faction === 'ork' ? 'ork' : 'rebel', cls = fac === 'ork' ? (lk.cls || 0) : -1, top = cls >= 0 ? (A.OTOPS[cls][lk.top] || A.OTOPS[cls][0]) : (A.TOPS[fac][lk.top] || A.TOPS[fac][0]);
-      const spr = npc ? HD.sheet(HD.NPC_SHEET[lk.npc] || lk.npc, dir, avFrame, false) : lk.pj ? HD.sheet(lk.pj, dir, avFrame, false) : HD.base(lk.body === 1, lk.model || 0, [(HCOL6[lk.hcol] || HCOL6[1])[1], A.SKIN[lk.skin] || A.SKIN[1], top[1], (PANTC[lk.pant] || PANTC[0])[1], null], dir, avFrame, false);
+      const spr = npc ? HD.sheet(HD.NPC_SHEET[lk.npc] || lk.npc, dir, avFrame, false) : (lk.cu && HD.custom) ? HD.custom(lk, dir, avFrame, false) : lk.pj ? HD.sheet(lk.pj, dir, avFrame, false) : HD.base(lk.body === 1, lk.model || 0, [(HCOL6[lk.hcol] || HCOL6[1])[1], A.SKIN[lk.skin] || A.SKIN[1], top[1], (PANTC[lk.pant] || PANTC[0])[1], null], dir, avFrame, false);
       if (spr) { HD.blit(g, spr, W / 2, H - 4, H * .86); return; } setTimeout(drawAv, 400); }
     g.imageSmoothingEnabled = false; g.drawImage(npc && window.CZ_NPC && CZ_NPC.C[lk.npc] ? CZ_NPC.draw(lk.npc, dir, avFrame) : THEOF_AV.sprite(Object.assign({}, lk, { fac: me.faction }), dir, avFrame, false), W * .125, H * .125, W * .75, H * .81); }
   /* skins: Pablo y Pol son de una cuenta; Renzo y Sam se ganan matando a Mercedes */
@@ -658,18 +658,21 @@
   $('#av-open').onclick = () => { const A = THEOF_AV; avLook = Object.assign({ body: 0 }, gchar && gchar.look && gchar.look.body != null ? gchar.look : {}, { fac: me.faction }); delete avLook.char;
     const ork = me.faction === 'ork'; if (ork && avLook.cls == null) avLook.cls = 0;
     const box = $('#av-opts');
-    const build = () => { box.innerHTML = ''; const H = window.CZ_SHEETS, list = H ? H.roster(avLook.body === 1, ork) : [];
-      if (H) { let ix = H.rosterIdx(list, avLook); if (avLook.pj && !list.some(r => r.k === avLook.pj)) ix = 0; H.pickPj(avLook, list[ix]); avLook.pjI = ix; }
-      const cur = H ? list[avLook.pjI] : null, fixed = cur && cur.cls != null;
+    const avOrig = Object.assign({}, avLook);
+    const build = () => { box.innerHTML = ''; const H = window.CZ_SHEETS, list = H ? H.roster(avLook.body === 1, ork, avOrig) : [];
+      if (H) { const ix = H.rosterIdx(list, avLook); H.pickPj(avLook, list[ix]); avLook.pjI = ix; }
+      const cur = H ? list[avLook.pjI] : null, fixed = cur && cur.cls != null, P_ = H && H.CPAL, nm = a => a.map(x => x[0]);
       const opts = [['CUERPO', 'body', A.BODY], ['PERSONAJE', 'pjI', list.map(r => r.nm)]];
+      if (avLook.cu && P_) opts.push(['PIEL', 'cs', nm(P_.piel)], ['PELO', 'ch', nm(P_.pelo)], ['ROPA', 'ct', nm(P_.ropa)], ['PANTALÓN', 'cp', nm(P_.pant)]);
       if (ork) opts.push(['CLASE', 'cls', A.OCLS, fixed]);
       if (avSkins.length) { opts.unshift(['ESPECIAL', 'npcI', ['Ninguno'].concat(avSkins.map(k => sknName(k)))]); avLook.npcI = avLook.npc ? avSkins.indexOf(avLook.npc) + 1 : 0; }
       opts.forEach(([lab, k, L, lock]) => { const r = document.createElement('div'); r.className = 'avopt'; r.innerHTML = '<span>' + lab + '</span><button type="button" aria-label="anterior">‹</button><b></b><button type="button" aria-label="siguiente">›</button>';
         const b = r.querySelector('b'); b.textContent = L[avLook[k] || 0] || L[0];
+        if (P_ && ['cs', 'ch', 'ct', 'cp'].includes(k)) { const pal = { cs: P_.piel, ch: P_.pelo, ct: P_.ropa, cp: P_.pant }[k]; b.style.borderLeft = '14px solid ' + (pal[avLook[k] || 0] || pal[0])[1]; b.style.paddingLeft = '6px'; }
         if (lock) { r.children[1].disabled = r.children[3].disabled = true; r.children[1].style.opacity = r.children[3].style.opacity = .25; b.textContent += ' · fija'; }
         const mv = dv => { avLook[k] = ((avLook[k] || 0) + dv + L.length) % L.length;
           if (k === 'npcI') { if (avLook.npcI) avLook.npc = avSkins[avLook.npcI - 1]; else delete avLook.npc; }
-          if (k === 'body') { delete avLook.pj; delete avLook.model; }
+          if (k === 'body') { delete avLook.pj; delete avLook.model; delete avLook.cu; }
           if (k === 'pjI') { H.pickPj(avLook, list[avLook.pjI]); if (list[avLook.pjI].cls == null && fixed) avLook.cls = 0; }
           build(); drawAv(); };
         r.children[1].onclick = () => mv(-1); r.children[3].onclick = () => mv(1); box.appendChild(r); });
