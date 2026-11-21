@@ -553,14 +553,14 @@
   /* BOTÍN: mochilas, maletines y cápsulas tirados por el mapa (cambian de lugar cada día, cada uno se abre una vez por día por jugador) */
   const BOT_IMG = {};
   const BOTIN = [['mochila', 'MOCHILA', 'mochila'], ['maletin', 'MALETÍN', 'maletin'], ['caps_azul', 'CÁPSULA MÉDICA', 'caps_azul'], ['caps_roja', 'CÁPSULA DE ARMAS', 'caps_roja'], ['caps_amarilla', 'CÁPSULA DE SUMINISTROS', 'caps_amarilla'], ['caps_violeta', 'CÁPSULA DE EQUIPO', 'caps_violeta']];
-  /* cápsulas de curación: fijas, en mapas cerca de los campamentos y en Puerto Madero. Curan toda la vida (no el contagio), cada 3 minutos por jugador */
+  /* cápsulas de curación: fijas, cerca de los campamentos y en Puerto Madero. Curan todo (vida, estados y contagio), sin límite, salvo en plena pelea */
   const POD_MAPS = ['calle', 'muelle', 'puente', 'esperanza', 'teatroAv', 'congreso', 'pvp_centro'];
   function placePods() { if (!grid || !POD_MAPS.includes(mapKey)) return; const r = seeded(hashStr(mapKey + ':pod')); let tries = 0;
     while (tries++ < 6000) { const c = (r() * grid.length) | 0; if (!grid[c]) continue; const x = (c % GW + .5) * CW, y = (((c / GW) | 0) + .5) * CW; if ([1, -1, GW, -GW, GW + 1, GW - 1].filter(dd => grid[c + dd]).length < 6) continue;
       const dsp = Math.hypot(x - MAP.spawn[0] * WS, y - MAP.spawn[1] * WS); if (dsp < 250 || dsp > 1400) continue; CAS.push({ obj: true, pod: true, k: 'capsula_cura', id: 'pod:' + mapKey, nm: 'CÁPSULA DE CURACIÓN', x: x / WS, y: y / WS }); return; } }
-  let podT = 0;
-  function usePod() { const now = Date.now(); if (now - podT < 180000) return toast('La cápsula se está recargando: ' + Math.ceil((180000 - (now - podT)) / 1000) + ' s.'); const mx = maxHp(lvlOf(P.xp)); if (P.hp >= mx) return toast('Tenés la vida completa.');
-    podT = now; P.hp = mx; P.poison = 0; P.burn = 0; SND.level(); buzz([40, 30, 80]); floats.push({ x: P.x, y: P.y - 200, t: 1.2, txt: '+ VIDA COMPLETA', c: '#7ff6f2' }); toast('La cápsula te curó por completo.' + ((INV.cont || 0) > 0 ? ' El contagio sigue: necesitás una jeringa.' : '')); hud(); }
+  function usePod() { if (Date.now() - (P.lastHitT || 0) < 3000) return toast('No funciona en plena pelea: alejate un momento.');
+    const mx = maxHp(lvlOf(P.xp)); P.hp = mx; P.poison = 0; P.burn = 0; P.slow = 0; P.stunT = 0; P.goo = 0; if (INV) INV.cont = 0; P.contFin = 0;
+    SND.level(); buzz([40, 30, 80]); floats.push({ x: P.x, y: P.y - 200, t: 1.2, txt: '+ CURACIÓN TOTAL', c: '#7ff6f2' }); toast('La cápsula te curó por completo: vida, estados y contagio.'); hud(); persist(); }
   function placeBotin() { if (!grid || EXP || MAP.base || MAP.safeAll || MAP.mvp) return; const d = dayN(), r = seeded(hashStr(mapKey + ':bot:' + d)); const n = 2 + ((r() * 2) | 0); let tries = 0, k = 0;
     while (k < n && tries++ < 6000) { const c = (r() * grid.length) | 0; if (!grid[c]) continue; const x = (c % GW + .5) * CW, y = (((c / GW) | 0) + .5) * CW; if ([1, -1, GW, -GW].filter(dd => grid[c + dd]).length < 4) continue;
       if (Math.hypot(x - MAP.spawn[0] * WS, y - MAP.spawn[1] * WS) < 300 || CAS.some(o => Math.hypot(o.x * WS - x, o.y * WS - y) < 500)) continue;
@@ -598,14 +598,17 @@
     $('#ov-load').hidden = true;
     if (!gc || !gc.look || gc.look.body == null || gc.look.fac !== me.faction) { mySkins = await loadSkins(uid, gc); creator(gc); return; }
     mySkins = await loadSkins(uid, gc);
+    if (gc.look && gc.look.npc && /^pablo/.test(gc.look.npc) && !pabloOk()) delete gc.look.npc; /* nadie más usa a Pablo */
     look = gc.look; if (look.npc && !mySkins.includes(look.npc)) delete look.npc;
     await begin(gc); checkUnlocks();
   }
   /* skins: Pablo y Pol son de una cuenta; Renzo y Sam se ganan matando a Mercedes */
   let mySkins = [];
-  async function loadSkins(uid, gc) { const set = new Set((gc && gc.inv && gc.inv.skins) || []); if (me && ['xhiang', 'pablo'].includes(String(me.nick || '').toLowerCase())) { set.add('pablo4'); set.add('pabloFuturo'); }
+  /* los skins de Pablo son solo de Thiriang: su cuenta admin y su cuenta xhiang */
+  const pabloOk = () => !!me && (me.role === 'admin' || String(me.nick || '').toLowerCase() === 'xhiang');
+  async function loadSkins(uid, gc) { const set = new Set((gc && gc.inv && gc.inv.skins) || []); if (pabloOk()) { set.add('pablo4'); set.add('pabloFuturo'); }
     try { const { data } = await sb.from('game_skins').select('skin').eq('user_id', uid); (data || []).forEach(r => set.add(r.skin)); } catch (e) {}
-    return [...set].filter(k => skinName(k)); }
+    return [...set].filter(k => skinName(k) && (!/^pablo/.test(k) || pabloOk())); } /* los skins de Pablo son solo de la cuenta admin */
   /* EXPERIMENTAL: nivel, mochila y lugar guardados aparte (game_exp, o el teléfono si falta la tabla) */
   let noExpTable = false;
   async function loadExp(uid) { let row = null;
@@ -713,7 +716,7 @@
     tileCd = Math.max(0, tileCd - dt); const T_ = MAP.tiles; if (T_ && tileCd <= 0) { const i = T_.findIndex(p => Math.hypot(p[0] * WS - P.x, (p[1] * WS - P.y) * 1.3) < 50); if (i >= 0) { const opts = T_.filter((_, j) => j !== i), d = opts[(Math.random() * opts.length) | 0]; tileCd = 4; SND.zone(); buzz(30);
         for (let k = 0; k < 18; k++) parts.push({ x: P.x + rnd(-20, 20), y: P.y - rnd(0, 160), vx: rnd(-40, 40), vy: rnd(-90, -20), life: .6, s: 3, c: 210 }); P.x = d[0] * WS; P.y = d[1] * WS + 40; if (!walkable(P.x, P.y)) P.y -= 80; P.inv = Math.max(P.inv, 1); sendPos(true); } } }
   function enterMap(k, x, y, first) { yuki = null; loadHourly(k); 
-    loadMap(k); placeCas();
+    loadMap(k); placeCas(); setTimeout(loadClones, 1500);
     const okPos = x && y && walkable(x, y);
     P.x = okPos ? x : MAP.spawn[0] * WS; P.y = okPos ? y : MAP.spawn[1] * WS; P.inv = 4; exitLock = true; P.exitT = 1.5;
     netMode = 'SOLO'; mobs.length = 0; parts.length = 0; floats.length = 0; pickups.length = 0;
@@ -808,13 +811,35 @@
     if (INV.cont >= 100) { const mx = maxHp(lvlOf(P.xp)); P.slow = Math.max(P.slow || 0, 1);
       if (P.hp > mx / 2) { P.hp = Math.floor(mx / 2); P.contFin = CONT_FIN; floats.push({ x: P.x, y: P.y - 200, t: 1.2, txt: '☣ EL CONTAGIO TE CONSUME', c: '#c070ff' }); buzz([200, 80, 200]); hud(); }
       else { P.hp = 1; hitPlayer(999, null, 0, null, 'contagio'); } } }
-  function dejarClon() { const lk = {}; ['pj', 'npc', 'body', 'model', 'cls', 'cu', 'cs', 'ch', 'ct', 'cp', 'skin', 'hair', 'hcol', 'top', 'pant', 'fac'].forEach(k => { if (look && look[k] != null) lk[k] = look[k]; });
-    /* el clon se lleva una cosa de tu mochila (no lo equipado) y la suelta si lo matan */
-    const bag = Object.keys(INV.items || {}).filter(k => INV.items[k] > 0 && ITEMS[k] && !ITEMS[k].epic && k !== 'suero' && !Object.values(INV.eq).includes(k)); let drop = null;
-    if (bag.length) { drop = bag[(Math.random() * bag.length) | 0]; INV.items[drop]--; if (!INV.items[drop]) delete INV.items[drop]; }
-    const p = { cl: lk, cn: me.nick, x: Math.round(P.x), y: Math.round(P.y), drop }; if (isHost) spawnClon(p); else net('clon', p); }
-  function spawnClon(p) { const o = spawnMob('clon', 0, [p.x, p.y]); if (!o) return; o.cl = p.cl; o.cn = p.cn; o.drop = p.drop; o.alpha = 1; needFull = true; }
-  function hitPlayer(d, knockFrom, knock, byId, mk, melee) { if (P.dead || P.inv > 0 || P.furia > 0 || (!byId && inSafe(P.x, P.y))) return false;
+  /* ---------- CLONES: cualquier muerte deja un clon Oscuro con todas tus cosas (no las de misión).
+     Queda guardado en el mapa hasta que alguien lo mata y se queda con todo (también vos).
+     Las cosas de misión te las guarda Mary (rebeldes) o Mercedes (ORK), que además te dan un kit. ---------- */
+  const isMision = k => { const it = ITEMS[k]; return !!it && (/^(Historia|Misiones|Pista)/.test(it.t || '') || k === 'pagina' || k === 'brz_ork' || k === 'brz_reb'); };
+  const MODE = () => STORY ? 'h' : 'x';
+  function cloneLook() { const lk = {}; ['pj', 'npc', 'body', 'model', 'cls', 'cu', 'cs', 'ch', 'ct', 'cp', 'skin', 'hair', 'hcol', 'top', 'pant', 'fac'].forEach(k => { if (look && look[k] != null) lk[k] = look[k]; }); return lk; }
+  async function dejarClon() { if (!INV || MAP.safeAll || MAP.mvp) return; const lk = cloneLook(), loot = {}, held = INV.held || {};
+    Object.entries(INV.items || {}).forEach(([k, n]) => { if (!(n > 0) || !ITEMS[k]) return; if (isMision(k)) held[k] = (held[k] || 0) + n; else loot[k] = n; });
+    const back = { items: INV.items, eq: INV.eq, q: INV.q, held: INV.held };
+    INV.held = held; INV.items = {}; INV.eq = { arma: 'palo', luz: null, cara: null, brazo: null, ropa: null }; if (INV.q) Object.keys(INV.q).forEach(sl => INV.q[sl] = null); INV.kitPend = true;
+    const p = { cl: lk, cn: me.nick, x: Math.round(P.x), y: Math.round(P.y), lvl: lvlOf(P.xp) };
+    if (Object.keys(loot).length) { try { const { data, error } = await sb.from('game_clones').insert({ owner: me.id, nick: me.nick, mode: MODE(), map: mapKey, x: p.x, y: p.y, lvl: p.lvl, look: lk, items: loot }).select('id').single(); if (error || !data) throw error || 0; p.cid = data.id; }
+      catch (e) { Object.assign(INV, back); INV.kitPend = false; } } /* si no se pudo guardar el clon, no perdés nada */
+    if (EXP && INV.kitPend) { const H = INV.held || {}; INV.held = {}; Object.entries(H).forEach(([k, c]) => addItem(k, c)); setTimeout(() => giveKit({ k: me.faction === 'ork' ? 'mercedes' : 'mary', nm: me.faction === 'ork' ? 'MERCEDES' : 'MARY' }), 1500); } /* en PvP no hay base con Mary/Mercedes: el kit llega solo */
+    persist(); quickBtns(); if (isHost) spawnClon(p); else net('clon', p); }
+  function spawnClon(p) { if (p.cid && mobs.some(o => o.cid === p.cid)) return; const o = spawnMob('clon', 0, [p.x, p.y]); if (!o) return; o.cl = p.cl; o.cn = p.cn; o.cid = p.cid || null; o.alpha = 1; needFull = true; }
+  async function loadClones() { if (!isHost || MAP.safeAll) return; const mk0 = mapKey; try { const { data } = await sb.from('game_clones').select('id,nick,x,y,lvl,look').eq('mode', MODE()).eq('map', mapKey).order('created_at', { ascending: false }).limit(8);
+      if (mapKey !== mk0) return; (data || []).forEach(r => spawnClon({ cid: r.id, cn: r.nick, cl: r.look || {}, x: r.x, y: r.y, lvl: r.lvl })); } catch (e) {} }
+  async function claimClone(cid, nick) { try { const { data, error } = await sb.rpc('claim_clone', { cid }); if (error || !data) return; const got = []; Object.entries(data).forEach(([k, n]) => { if (ITEMS[k] && n > 0) { addItem(k, n); got.push(ITEMS[k].n + (n > 1 ? ' x' + n : '')); } });
+      if (got.length) { SND.level(); buzz([40, 30, 80]); banner('BOTÍN DEL CLON', (nick ? 'De ' + nick + ': ' : '') + got.slice(0, 6).join(', ') + (got.length > 6 ? '…' : ''), 4200, '#c99bff'); quickBtns(); persist(); } } catch (e) {} }
+  /* kit de Mary / Mercedes al volver a la base después de morir */
+  const KIT_LINE = { mary: 'Por mi hijo haría lo mismo. Tomá, y volvé a levantarte.', mercedes: 'Quizás me esté equivocando… pero no nos rendiremos.' };
+  function giveKit(n) { if (!INV.kitPend) return false; INV.kitPend = false; const held = INV.held || {}; INV.held = {};
+    [['chaleco', 1], ['katana', 1], ['vendas', 3], ['antiveneno', 1], ['casco', 1], ['mascara', 1], ['jeringa', 1]].forEach(([k, c]) => addItem(k, c));
+    Object.entries(held).forEach(([k, c]) => addItem(k, c));
+    if (INV.eq.arma === 'palo') setWeapon('katana'); if (!INV.eq.ropa) { INV.eq.ropa = 'chaleco'; INV.dur.chaleco = ITEMS.chaleco.shield; } if (!INV.eq.cabeza) INV.eq.cabeza = 'casco'; if (!INV.eq.cara) INV.eq.cara = 'mascara';
+    npcSay(n, KIT_LINE[n.k] || 'Tomá. Seguí.'); setTimeout(() => toast('Kit de supervivencia: chaleco, katana, casco, máscara, vendas, antiveneno y nanocura' + (Object.keys(held).length ? '. Y te devolvieron tus cosas de misión.' : '.')), 1200);
+    SND.level(); quickBtns(); hud(); persist(); return true; }
+  function hitPlayer(d, knockFrom, knock, byId, mk, melee) { if (P.dead || P.inv > 0 || P.furia > 0 || (!byId && inSafe(P.x, P.y))) return false; if (d < 999) P.lastHitT = Date.now();
     if (!byId && mk && d < 999 && MOB[mk]) { if (MOB[mk].burn && !(P.burn > 0)) { P.burn = 5; toast('¡Te prendiste fuego! 5 segundos de quemadura (la venda para quemaduras lo corta).'); } if (MOB[mk].poison && !(P.poison > 0)) { P.poison = 25; toast('Te envenenaron. Usá antiveneno.'); } }
     if (melee && !byId && mk && d < 999 && MOB[mk] && !MOB[mk].passive && !MOB[mk].npc && !MOB[mk].fac) contagiar(MOB[mk].cont); /* solo contagian los Oscuros que pegan cuerpo a cuerpo */
     if (P.goo > 0) d *= 2; if (P.stunT > 0 && mk && MOB[mk] && MOB[mk].mvp) d *= 2.5;
@@ -827,15 +852,15 @@
     P.hp -= d; P.hurtT = .3; SND.hurt(); buzz(knock ? [60, 30, 60] : 40); shake = Math.max(shake, knock ? .35 : .15);
     floats.push({ x: P.x, y: P.y - 190, t: .9, txt: '-' + d, c: '#ff6a5c' });
     if (knock && knockFrom) { const dx = P.x - knockFrom.x, dy = P.y - knockFrom.y, l = Math.hypot(dx, dy) || 1; for (let i = 0; i < 6; i++) { const nx = P.x + dx / l * knock / 6, ny = P.y + dy / l * knock / 6; if (walkable(nx, ny)) { P.x = nx; P.y = ny; } } }
-    if (P.hp <= 0) { const wasC = !byId && ((INV.cont || 0) >= CONT_MIN || mk === 'contagio'); P.hp = 0; P.dead = true; buzz([80, 60, 160]); if (wasC) dejarClon(); cleanse(true);
+    if (P.hp <= 0) { const wasC = true; P.hp = 0; P.dead = true; buzz([80, 60, 160]); dejarClon(); cleanse(true);
       /* MUNDO: si te mata un jugador o un jefe no perdés nivel; si te mata un Oscuro volvés al 1 */
       const byBoss = !byId && mk && MOB[mk] && MOB[mk].boss, rescued = me.faction === 'ork' ? 'ORK te rescató y te curaron.' : 'Los rebeldes te ayudaron y te volvieron a curar.';
       /* 2.1: en la HISTORIA no se pierde nivel, salvo 3 muertes seguidas (-1 nivel). En PvP nunca. */
       let keep = true, minus = false; if (EXP) { const L0 = lvlOf(P.xp), nl = Math.max(1, L0 - (2 + ((Math.random() * 3) | 0))); if (nl < L0) { minus = true; keep = false; P.lostLv = L0; P.xp = xpFor(nl); } }
       if (STORY) { INV.racha = (INV.racha || 0) + 1; if (INV.racha >= 3 && lvlOf(P.xp) > 1) { INV.racha = 0; keep = false; minus = true; P.lostLv = lvlOf(P.xp); P.xp = xpFor(P.lostLv - 1); } }
       let lostAb = 0; P.jefe = 0; if (window.CZ_STORY && STORY) CZ_STORY.died();
-      if (byId) { const who = (others.get(byId) || {}).nick || 'alguien'; $('#ov-dead').querySelector('p').textContent = 'Te derribó ' + who + '. ' + (keep ? rescued : homeText()); pvpDrop(); net('died', { id: me.id, by: byId }); }
-      else $('#ov-dead').querySelector('p').textContent = (mk === 'contagio' ? 'El contagio te consumió. ' : byBoss ? MOB[mk].name + ' te derribó. ' : 'La ceniza te cubrió. ') + (wasC ? 'Te convertiste en Oscuro: tu clon quedó dando vueltas por ' + MAP.name.toLowerCase() + '. ' : '') + (byBoss || keep ? rescued : homeText());
+      if (byId) { const who = (others.get(byId) || {}).nick || 'alguien'; $('#ov-dead').querySelector('p').textContent = 'Te derribó ' + who + '. Tu clon quedó con tus cosas. ' + (keep ? rescued : homeText()); net('died', { id: me.id, by: byId }); }
+      else $('#ov-dead').querySelector('p').textContent = (mk === 'contagio' ? 'El contagio te consumió. ' : byBoss ? MOB[mk].name + ' te derribó. ' : 'La ceniza te cubrió. ') + (wasC ? 'Tu clon Oscuro quedó en ' + MAP.name.toLowerCase() + ' con tus cosas: el que lo mate se las queda. Hablá con ' + (me.faction === 'ork' ? 'Mercedes' : 'Mary') + ' en la base. ' : '') + (byBoss || keep ? rescued : homeText());
       $('#d-lv').textContent = minus ? (EXP ? 'Caíste en el PvP: bajás del nivel ' : 'Tercera caída seguida: bajás del nivel ') + P.lostLv + ' al ' + lvlOf(P.xp) + '.' : 'No perdiste nivel: seguís en el ' + lvlOf(P.xp) + '.' + (STORY && INV.racha ? ' (Caídas seguidas: ' + INV.racha + '/3)' : '');
       sendPos(true); persist(); if (MAP.mvp) banner('CAÍSTE', 'Esperá que alguien te reviva', 4000, '#ff5a6a'); else setTimeout(() => $('#ov-dead').hidden = false, 700); }
     hud(); return true; }
@@ -1201,7 +1226,7 @@
     Object.entries(w).forEach(([k, n]) => { let have = mobs.filter(o => o.kind === k).length; const wait = MOB[k].respawn || 12000;
       if (!lastDeath[k]) { while (have < n) { if (!spawnMob(k, 560)) break; have++; } lastDeath[k] = 1; }
       else if (have < n && now - lastDeath[k] > wait) spawnMob(k, 560); }); }
-  function mobHit(o, dmg, kx, ky, byId) { if (!o || o.hp <= 0 || o.T.passive) return; if (o.T.ai === 'angel' && o.st !== 'strike') return; o.hp -= dmg; o.hurt = .2; o.hitters.add(byId); o.chasing = true;
+  function mobHit(o, dmg, kx, ky, byId) { if (!o || o.hp <= 0 || o.T.passive) return; if (o.T.ai === 'angel' && o.st !== 'strike') return; o.hp -= dmg; o.hurt = .2; o.hitters.add(byId); o.lastBy = byId; o.chasing = true;
     if (!o.T.heavy) { o.wind = Math.max(0, o.wind - .12); const nx = o.x + kx, ny = o.y + ky; if (mobWalk(nx, ny)) { o.x = nx; o.y = ny; } }
     if (o.st === 'run') { o.st = 'rest'; o.stT = 1.1; } if (o.hp <= 0) killMob(o); }
   function hitMob(o, dmg, kx, ky, fx_) { if (o && o.T) { const hy = o.y - (o.T.h || 150) * .45; fxs.length < 60 && fxs.push({ k: 'chispa', x: o.x + rnd(-14, 14), y: hy, t: 0, T: .18, ang: rnd(0, 6), s: 1, grow: .4, w: 70 }); } const fx = fx_; if (o.T.passive) { floats.push({ x: o.x, y: o.y - o.T.h - 30, t: .7, txt: 'HABLALE', c: '#ffb0c8' }); return; } if (o.T.ai === 'angel' && o.st !== 'strike') { floats.push({ x: o.x, y: o.y - o.T.h - 30, t: .7, txt: 'NO SE DEJA', c: '#b8b2a8' }); return; } if (o.T.fac && o.T.fac === me.faction) { floats.push({ x: o.x, y: o.y - o.T.h - 30, t: .6, txt: 'ALIADO', c: '#8fd0ff' }); return; } if (INV.eq.luz && !o.T.human && Math.hypot(o.x - P.x, o.y - P.y) < 520) dmg = Math.round(dmg * 1.25); o.hurt = .2; floats.push({ x: o.x + rnd(-10, 10), y: o.y - o.T.h * .8, t: .8, txt: '-' + dmg, c: '#ffffff' });
@@ -1209,10 +1234,10 @@
     if (isHost) { mobHit(o, dmg, kx, ky, me.id); if (fx) applyMobFx(o, fx, me.id); } else net('mhit', { id: o.id, d: dmg, kx: Math.round(kx), ky: Math.round(ky), by: me.id, fx: fx || undefined }); }
   function killMob(o) { const i = mobs.indexOf(o); if (i >= 0) mobs.splice(i, 1); lastDeath[o.kind] = Date.now();
     if (o.T.world || o.T.hourly) { const bk = o.kind.replace(/_[bc]$/, ''); hourlyDead[bk] = Date.now(); try { sb.from('game_state').upsert({ k: 'jefe_' + bk, v: { t: Date.now() }, updated_at: new Date().toISOString() }).then(() => {}, () => {}); } catch (e) {} }
-    if (o.drop) spawnPickup(o.drop, [o.x, o.y + 20]); if (o.cn) toast('Cayó el clon de ' + o.cn + '.');
-    const pl = { id: o.id, kind: o.kind, x: Math.round(o.x), y: Math.round(o.y), f: o.face, by: [...o.hitters] };
+    if (o.drop) spawnPickup(o.drop, [o.x, o.y + 20]);
+    const pl = { id: o.id, kind: o.kind, x: Math.round(o.x), y: Math.round(o.y), f: o.face, by: [...o.hitters] }; if (o.cid) { pl.cid = o.cid; pl.kb = o.lastBy; pl.cn = o.cn; }
     net('mdie', pl); onMobDie(pl); }
-  function onMobDie(p) { const T = MOB[p.kind]; if (!T) return; const i = mobs.findIndex(o => o.id === p.id); if (i >= 0) mobs.splice(i, 1); SND.dissolve();
+  function onMobDie(p) { const T = MOB[p.kind]; if (!T) return; if (p.cid) { toast('Cayó el clon de ' + (p.cn || 'alguien') + '.'); if (p.kb === me.id) claimClone(p.cid, p.cn); } const i = mobs.findIndex(o => o.id === p.id); if (i >= 0) mobs.splice(i, 1); SND.dissolve();
     const art = artOf(T, 0, false), g = art.getContext('2d').getImageData(0, 0, art.width, art.height).data;
     /* ceniza corta y liviana: pocas partículas (máx. 45), se apagan rápido */
     const st = Math.max(1, Math.round(art.width / 14)), pts = []; for (let y = 0; y < art.height; y += st) for (let x = 0; x < art.width; x += st) if (g[(y * art.width + x) * 4 + 3] >= 10) pts.push([x, y]);
@@ -1257,7 +1282,7 @@
   const flagsOf = o => (o.moving ? 1 : 0) | (o.wind > 0 ? 2 : 0) | (o.lunge > .3 ? 4 : 0) | (o.chasing ? 8 : 0);
   /* anfitrión: un paquete por tick con los Oscuros que cambiaron; completo cada 2 s */
   function sendEnemies() { const now = Date.now(), full = needFull || now - lastFull >= NET.FULL_SNAPSHOT_INTERVAL_MS; const e = [];
-    mobs.forEach(o => { const row = [o.id, Math.round(o.x), Math.round(o.y), STC.indexOf(o.st), Math.ceil(o.hp), MKEYS.indexOf(o.kind), o.face, flagsOf(o), Math.round(o.vis * 10), o.combo % 3, Math.max(0, SKN.indexOf(o.sk)), o.cl ? JSON.stringify([o.cl, o.cn]) : 0];
+    mobs.forEach(o => { const row = [o.id, Math.round(o.x), Math.round(o.y), STC.indexOf(o.st), Math.ceil(o.hp), MKEYS.indexOf(o.kind), o.face, flagsOf(o), Math.round(o.vis * 10), o.combo % 3, Math.max(0, SKN.indexOf(o.sk)), o.cl ? JSON.stringify([o.cl, o.cn, o.cid || null]) : 0];
       const l = lastEnemy.get(o.id); if (full || !l || Math.abs(l[1] - row[1]) > NET.POS_EPSILON || Math.abs(l[2] - row[2]) > NET.POS_EPSILON || l.slice(3).join() !== row.slice(3).join()) { e.push(row); lastEnemy.set(o.id, row); } });
     if (!full && !e.length) return; if (full) { lastFull = now; needFull = false; [...lastEnemy.keys()].forEach(id => { if (!mobs.some(o => o.id === id)) lastEnemy.delete(id); }); }
     net('enemies', { t: now, full, e, pk: full ? pickups.filter(q => q.k !== 'suero').map(q => [q.pid, q.k, Math.round(q.x), Math.round(q.y)]) : undefined }); }
@@ -1269,7 +1294,7 @@
     if (p.pk) { const keep = pickups.filter(q => q.k === 'suero' || (q.cool > 0)); const have = new Set(keep.map(q => q.pid)); pickups.length = 0; keep.forEach(q => pickups.push(q)); p.pk.forEach(([pid, k, x, y]) => { if (!have.has(pid) && ITEMS[k]) pickups.push({ k, x, y, t: Math.random() * 6, pid }); }); } const seen = p.full ? new Set() : null;
     p.e.forEach(([id, x, y, sti, hp, ki, face, fl, vis, combo, ski, cli]) => { if (seen) seen.add(id); const kind = MKEYS[ki]; if (!kind) return; let o = mobs.find(m => m.id === id);
       if (!o) { o = newMob(kind, id, x, y); o.alpha = 1; mobs.push(o); } pushBuf(o, x, y);
-      const wasWind = o.wind > 0, wasChase = o.chasing; o.hp = hp; o.face = face; o.moving = !!(fl & 1); o.wind = fl & 2 ? Math.max(o.wind, .01) : 0; if (fl & 4) o.lunge = 1; o.chasing = !!(fl & 8); o.vis = vis / 10; o.st = STC[sti] || 'idle'; o.combo = combo; o.sk = SKN[ski || 0] || null; if (cli && !o.cl) { try { const q = JSON.parse(cli); o.cl = q[0]; o.cn = q[1]; } catch (e) {} }
+      const wasWind = o.wind > 0, wasChase = o.chasing; o.hp = hp; o.face = face; o.moving = !!(fl & 1); o.wind = fl & 2 ? Math.max(o.wind, .01) : 0; if (fl & 4) o.lunge = 1; o.chasing = !!(fl & 8); o.vis = vis / 10; o.st = STC[sti] || 'idle'; o.combo = combo; o.sk = SKN[ski || 0] || null; if (cli && !o.cl) { try { const q = JSON.parse(cli); o.cl = q[0]; o.cn = q[1]; o.cid = q[2] || null; } catch (e) {} }
       if (o.wind > 0 && !wasWind) { if (o.T.heavy) SND.mob('roar', .2); else SND.warn(); } if (o.chasing && !wasChase) SND.mob(o.T.snd, .2); });
     if (seen) { for (let i = mobs.length - 1; i >= 0; i--) if (!seen.has(mobs[i].id)) mobs.splice(i, 1); gotFull = true; } }
   /* interpolación con ~100 ms de atraso; si no llega nada, adivina hasta 200 ms y se congela */
@@ -1411,6 +1436,7 @@
   function nearTalk(dt) { if ((nearT += dt) < .5 || P.dead) return; nearT = 0; const n = nearNpc(); if (!n || !n.near) return; const now = Date.now(); if (nearSaid[n.k] && now - nearSaid[n.k] < 90000) return; nearSaid[n.k] = now; npcSay(n, n.near); }
   function npcSay(n, txt) { if (window.CZ_STORY && CZ_STORY.say && !EXP) CZ_STORY.say([[n.k, String(txt), n.nm]]); else toast(n.nm + ': "' + txt + '"'); }
   function talkNpc(n) { SND.pick();
+    if ((n.k === 'mary' && me.faction !== 'ork') || (n.k === 'mercedes' && me.faction === 'ork')) { if (giveKit(n)) return; }
     if (n.dama) return damaTalk(n);
     if (n.lib) return openLib(n.lib);
     if (n.bot) return openBotin(n);
