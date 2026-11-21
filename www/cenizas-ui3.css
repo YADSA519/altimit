@@ -65,3 +65,28 @@
 .gbox.inv>h2{margin-top:-42px!important}
 .loadbox #load-t{top:86%;font-size:10px;color:#9a8c74}
 .libn{bottom:6%}
+
+/* ===== MOCHILA y TIENDA más amplias: todo a la vista en el celu acostado ===== */
+#ov-inv,#ov-shop{padding:6px!important;align-items:center}
+.gbox.mochi{width:min(96vw,980px)!important;max-height:calc(100vh - 12px)!important;display:grid!important;grid-template-columns:minmax(0,1fr) minmax(220px,30%);grid-template-rows:auto auto minmax(0,1fr);column-gap:14px;row-gap:6px;border-width:26px 28px 24px!important;padding:8px 12px 6px!important}
+.gbox.mochi>h2{grid-column:1/-1;margin-top:-34px!important;padding:9px 0 6px;font-size:20px!important}
+.mochi .eq{grid-column:1;grid-row:2}
+.mochi .slots{grid-column:1;grid-row:3;overflow-y:auto;min-height:0;align-content:start}
+.mochi .det{grid-column:2;grid-row:2/4;border-top:0!important;border-left:1px solid rgba(255,170,90,.25);padding:4px 0 4px 12px!important;overflow-y:auto;min-height:0}
+.mochi .det b{font-size:19px}
+.mochi .det p{font-size:12.5px;line-height:1.4}
+.mochi .det .row{flex-direction:column;align-items:stretch;gap:6px}
+.mochi .det .btn{width:100%;min-width:0;font-size:16px;padding:8px 10px 6px}
+.mochi>.row{display:none!important} /* se cierra con la X */
+.gbox.shop{width:min(96vw,980px)!important;max-height:calc(100vh - 12px)!important;border-width:26px 28px 24px!important;padding:8px 12px 6px!important}
+.gbox.shop>h2{margin-top:-34px!important;padding:9px 0 6px;font-size:20px!important}
+.shop .shopsub{font-size:12px;padding:5px 14px 4px}
+#shop-l{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;align-content:start}
+.shop .shopr{display:flex!important;align-items:center;gap:8px;padding:5px 8px!important;margin:0!important;min-width:0}
+.shop .shopr canvas{width:34px!important;height:34px!important;padding:4px!important;flex:none}
+.shop .shopr b{font-size:15px!important;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.shop .shopr small{font-size:10.5px;display:block;line-height:1.25}
+.shop .shopr>div,.shop .shopr>span{min-width:0;flex:1}
+.shop .shopr .btn{min-width:62px!important;padding:7px 8px 5px!important;font-size:15px!important;flex:none}
+#shop-close{min-width:120px!important;padding:6px 18px 5px!important;font-size:16px!important}
+@media (max-height:340px){.mochi .slots canvas{width:28px;height:28px}.mochi .eq span u{display:none}}

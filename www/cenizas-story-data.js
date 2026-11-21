@@ -24,7 +24,7 @@ window.CZ_STORY_DATA = {
         { talk: 'civil_hombre', map: 'oficina_presente', at: [-2, -96], txt: 'Hablá con el empleado de la oficina', lines: [['civil_hombre', '¿Buscás a Pablo? No vino hoy. Dicen que se queda mirando la nada, como si escuchara algo.'], ['VOS', '¿Qué año es?'], ['civil_hombre', '¿Cómo qué año? ¿Estás bien? Tenés ceniza en la ropa.']] },
         { use: 'monitor', ob: 'monitor', nm: 'COMPUTADORA', map: 'oficina_presente', at: [-344, -258], txt: 'Revisá la computadora de Pablo', lines: [['VOS', 'Un correo sin enviar: "Si leen esto, no confíen en la vacuna nueva".'], ['RADIO', '…volvé… volvé…']], warp: ['plazaArbol'] },
         { kill: ['errante', 'perro', 'rastrero'], n: 4, map: 'interHaedo', spawn: true, txt: 'Abrí paso en la Intersección de Haedo' },
-        { talk: 'jaqui', map: 'estHaedo', txt: 'Encontrá a Jaqui en la estación', lines: [['jaqui', '¿Vos también lo viste? Una oficina limpia, gente normal… y después esto.'], ['VOS', 'Los saltos separan a la gente. Unos recuerdan, otros no.'], ['jaqui', 'Entonces no estoy loca. Gracias.']] }],
+        { talk: 'jaqui', map: 'express', txt: 'Encontrá a Jaqui en la Esquina Express', lines: [['jaqui', '¿Vos también lo viste? Una oficina limpia, gente normal… y después esto.'], ['VOS', 'Los saltos separan a la gente. Unos recuerdan, otros no.'], ['jaqui', 'Entonces no estoy loca. Gracias.']] }],
       reward: { xp: 3200, coins: 20, items: { manzana: 2 } } },
     { id: 'r03', t: 'LOS REFUGIOS NO SON SEGUROS', intro: [['laura', 'El refugio de Once se queda sin luz. Sin luz no hay radio, y sin radio no sabemos quién vuelve.']],
       steps: [
@@ -78,7 +78,7 @@ window.CZ_STORY_DATA = {
         { survive: 60, map: 'teatroAv', kinds: 'HUM', txt: 'Mantené abierta la ruta de evacuación' },
         { pz: 'search', map: 'teatro_int', spots: ['CAMARÍN', 'BAÚL DE UTILERÍA', 'CAMILLA'], obs: ['caja', 'caja', 'camilla'], txt: 'Adentro del teatro: revisá los camarines buscando el botiquín', give: { vendas: 2 }, lines: [['VOS', 'Vendas. Algo es algo. Ahora las medicinas.']] },
         { get: 'contenedor', n: 2, map: 'teatro_int', txt: 'Juntá medicinas para los heridos' },
-        { talk: 'ruben', map: 'colon', txt: 'Llevá todo al Refugio del Colón', lines: [['ruben', 'Ignacio cayó. Sus soldados tiraron las armas. Algunos Oscuros se desplomaron.'], ['VOS', '¿Y Sofía?'], ['ruben', 'No volvió.']] }],
+        { talk: 'ruben', map: 'muelle', txt: 'Llevá todo al Campamento del Muelle', lines: [['ruben', 'Ignacio cayó. Sus soldados tiraron las armas. Algunos Oscuros se desplomaron.'], ['VOS', '¿Y Sofía?'], ['ruben', 'No volvió.']] }],
       reward: { xp: 26400, coins: 70, items: { kit: 2 } } },
     { id: 'r10', t: 'DESPUÉS DEL SILENCIO', intro: [['el_sabio', 'Pablo encontró una nota. Refugio Norte tachado. Puerto Madero. Unos números.']],
       steps: [
@@ -110,7 +110,7 @@ window.CZ_STORY_DATA = {
         { use: 'gen3', ob: 'generador', nm: 'TABLERO DE ENERGÍA', map: 'complejo8c', at: [-420, -180], txt: 'Cortá la energía del sector', lines: [['VOS', 'Se apagó todo. Ahora se mueven a ciegas.']] },
         { kill: 'HUM', n: 5, map: 'complejo8c', spawn: true, txt: 'Limpiá el andén' },
         { use: 'comp3', ob: 'consola', nm: 'CONTROL DE COMPUERTAS', map: 'complejo8c', at: [322, -158], txt: 'Abrí las compuertas', lines: [['RADIO', 'Compuertas arriba. Sacamos a los cautivos.']] },
-        { talk: 'arshi', map: 'patio', txt: 'Avisale a Arshi', lines: [['arshi', 'Eso nos da la entrada. Lucas no se lo espera.']] }],
+        { talk: 'arshi', map: 'bunker', txt: 'Avisale a Arshi (Búnker de Puerto Madero)', lines: [['arshi', 'Eso nos da la entrada. Lucas no se lo espera.']] }],
       reward: { xp: 47250, coins: 110, items: { escopeta: 1 } } },
     { id: 'r14', t: 'LA NOCHE DE LA OFENSIVA', intro: [['jota', 'Esta noche entramos. Vos sostenés el flanco y la vía de salida.']],
       steps: [
