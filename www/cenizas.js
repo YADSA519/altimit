@@ -790,9 +790,9 @@
     if (bag.length) { drop = bag[(Math.random() * bag.length) | 0]; INV.items[drop]--; if (!INV.items[drop]) delete INV.items[drop]; }
     const p = { cl: lk, cn: me.nick, x: Math.round(P.x), y: Math.round(P.y), drop }; if (isHost) spawnClon(p); else net('clon', p); }
   function spawnClon(p) { const o = spawnMob('clon', 0, [p.x, p.y]); if (!o) return; o.cl = p.cl; o.cn = p.cn; o.drop = p.drop; o.alpha = 1; needFull = true; }
-  function hitPlayer(d, knockFrom, knock, byId, mk) { if (P.dead || P.inv > 0 || P.furia > 0 || (!byId && inSafe(P.x, P.y))) return false;
+  function hitPlayer(d, knockFrom, knock, byId, mk, melee) { if (P.dead || P.inv > 0 || P.furia > 0 || (!byId && inSafe(P.x, P.y))) return false;
     if (!byId && mk && d < 999 && MOB[mk]) { if (MOB[mk].burn && !(P.burn > 0)) { P.burn = 5; toast('¡Te prendiste fuego! 5 segundos de quemadura (la venda para quemaduras lo corta).'); } if (MOB[mk].poison && !(P.poison > 0)) { P.poison = 25; toast('Te envenenaron. Usá antiveneno.'); } }
-    if (!byId && mk && d < 999 && MOB[mk] && !MOB[mk].passive && !MOB[mk].npc) contagiar(MOB[mk].cont);
+    if (melee && !byId && mk && d < 999 && MOB[mk] && !MOB[mk].passive && !MOB[mk].npc && !MOB[mk].fac) contagiar(MOB[mk].cont); /* solo contagian los Oscuros que pegan cuerpo a cuerpo */
     if (P.goo > 0) d *= 2; if (P.stunT > 0 && mk && MOB[mk] && MOB[mk].mvp) d *= 2.5;
     if (mk && MOB[mk] && MOB[mk].pois5 && d < 999) { P.poison = Math.max(P.poison || 0, 5); P.poisonK = MOB[mk].pois5; }
     d = Math.max(1, Math.round(d * dmgMult() * classMult(mk || (knockFrom && knockFrom.kind) || (byId ? null : 'oscuro'))));
@@ -1281,7 +1281,7 @@
     for (let i = clouds.length - 1; i >= 0; i--) { const c0 = clouds[i]; c0.ttl -= dt; if (c0.ttl <= 0) { clouds.splice(i, 1); continue; }
       if (!P.dead && Math.hypot(P.x - c0.x, (P.y - c0.y) * 1.4) < c0.r) { c0.tick -= dt; if (c0.tick <= 0) { c0.tick = .5; hitPlayer(6, null, 0, null, 'sofia'); } } } }
   /* ataque de un Oscuro sobre un jugador: si soy yo me pega acá; si es otro, le aviso */
-  function strikeOn(pl, d, from, knock) { if (from && from.kind === 'mole') fx('impacto_pesado', pl.x, pl.y - 30, { w: 210, T: .45, grow: .3 }); d = Math.round(d * (from.lvK || 1)); if (pl.me) hitPlayer(d, from, knock, null, from.kind); else net('mstrike', { to: pl.id, d, x: Math.round(from.x), y: Math.round(from.y), k: knock || 0, mk: from.kind }); }
+  function strikeOn(pl, d, from, knock) { if (from && from.kind === 'mole') fx('impacto_pesado', pl.x, pl.y - 30, { w: 210, T: .45, grow: .3 }); d = Math.round(d * (from.lvK || 1)); if (pl.me) hitPlayer(d, from, knock, null, from.kind, true); else net('mstrike', { to: pl.id, d, x: Math.round(from.x), y: Math.round(from.y), k: knock || 0, mk: from.kind }); }
   /* desbloqueos de jefes: los calcula Supabase con el mejor nivel de cada uno */
   let unlockT = 0;
   async function checkUnlocks() { if (EXP) return; try { await persist(); const { data, error } = await sb.rpc('game_unlocks'); if (error || !data) return; const before = Object.assign({}, unlocks); unlocks = data;
@@ -1324,7 +1324,7 @@
       mfx: p => { if (!isHost) return; const o = mobs.find(m => m.id === p.id); if (o) applyMobFx(o, p.fx, p.by); },
       mdie: p => onMobDie(p),
       clon: p => { if (isHost) spawnClon(p); },
-      mstrike: p => { if (p.mk === 'mole') fx('impacto_pesado', p.to === me.id ? P.x : p.x, (p.to === me.id ? P.y : p.y) - 30, { w: 210, T: .45, grow: .3 }); if (p.to === me.id) hitPlayer(p.d, { x: p.x, y: p.y }, p.k, null, p.mk || 'oscuro'); },
+      mstrike: p => { if (p.mk === 'mole') fx('impacto_pesado', p.to === me.id ? P.x : p.x, (p.to === me.id ? P.y : p.y) - 30, { w: 210, T: .45, grow: .3 }); if (p.to === me.id) hitPlayer(p.d, { x: p.x, y: p.y }, p.k, null, p.mk || 'oscuro', true); },
       mfire: p => { mshots.push({ x: p.x, y: p.y, vx: p.vx, vy: p.vy, k: p.k, d: p.d, life: 2.2, mk: p.mk }); SND.fireball(p.k); },
       mcloud: p => clouds.push({ x: p.x, y: p.y, r: 150, ttl: 4.5, tick: 0 }),
       mslow: p => { if (p.to === me.id) stun(p.t || 3); },
