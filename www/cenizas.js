@@ -549,10 +549,18 @@
   const CAPS_MAPS = ['lab', 'lab_cuarentena', 'bunker', 'centro_ork', 'arena_final', 'lezama', 'libertador'];
   function placeCaps() { if (!grid || EXP || !CAPS_MAPS.includes(mapKey)) return; const r = seeded(hashStr(mapKey) * 17 + 3); let tries = 0, n = 0;
     while (n < 1 && tries++ < 4000) { const c = (r() * grid.length) | 0; if (!grid[c]) continue; const x = (c % GW + .5) * CW, y = (((c / GW) | 0) + .5) * CW; if ([1, -1, GW, -GW].filter(d => grid[c + d]).length < 4) continue;
-      if (Math.hypot(x - MAP.spawn[0] * WS, y - MAP.spawn[1] * WS) < 400) continue; CAS.push({ obj: true, caps: true, k: 'capsula', id: 'caps:' + mapKey, nm: 'CÁPSULA', x: x / WS, y: y / WS }); n++; } }
+      if (Math.hypot(x - MAP.spawn[0] * WS, y - MAP.spawn[1] * WS) < 400) continue; CAS.push({ obj: true, caps: true, k: 'capsula_chica', id: 'caps:' + mapKey, nm: 'CÁPSULA', x: x / WS, y: y / WS }); n++; } }
   /* BOTÍN: mochilas, maletines y cápsulas tirados por el mapa (cambian de lugar cada día, cada uno se abre una vez por día por jugador) */
-  const BOT_IMG = { mochila: 'mochila', maletin: 'maletin', capsula_b: 'capsula_chica' }; /* si existe la imagen propia la usa; si no, caja / cápsula */
-  const BOTIN = [['mochila', 'MOCHILA', 'caja'], ['maletin', 'MALETÍN', 'caja'], ['capsula_b', 'CÁPSULA', 'capsula']];
+  const BOT_IMG = {};
+  const BOTIN = [['mochila', 'MOCHILA', 'mochila'], ['maletin', 'MALETÍN', 'maletin'], ['caps_azul', 'CÁPSULA MÉDICA', 'caps_azul'], ['caps_roja', 'CÁPSULA DE ARMAS', 'caps_roja'], ['caps_amarilla', 'CÁPSULA DE SUMINISTROS', 'caps_amarilla'], ['caps_violeta', 'CÁPSULA DE EQUIPO', 'caps_violeta']];
+  /* cápsulas de curación: fijas, en mapas cerca de los campamentos y en Puerto Madero. Curan toda la vida (no el contagio), cada 3 minutos por jugador */
+  const POD_MAPS = ['calle', 'muelle', 'puente', 'esperanza', 'teatroAv', 'congreso', 'pvp_centro'];
+  function placePods() { if (!grid || !POD_MAPS.includes(mapKey)) return; const r = seeded(hashStr(mapKey + ':pod')); let tries = 0;
+    while (tries++ < 6000) { const c = (r() * grid.length) | 0; if (!grid[c]) continue; const x = (c % GW + .5) * CW, y = (((c / GW) | 0) + .5) * CW; if ([1, -1, GW, -GW, GW + 1, GW - 1].filter(dd => grid[c + dd]).length < 6) continue;
+      const dsp = Math.hypot(x - MAP.spawn[0] * WS, y - MAP.spawn[1] * WS); if (dsp < 250 || dsp > 1400) continue; CAS.push({ obj: true, pod: true, k: 'capsula_cura', id: 'pod:' + mapKey, nm: 'CÁPSULA DE CURACIÓN', x: x / WS, y: y / WS }); return; } }
+  let podT = 0;
+  function usePod() { const now = Date.now(); if (now - podT < 180000) return toast('La cápsula se está recargando: ' + Math.ceil((180000 - (now - podT)) / 1000) + ' s.'); const mx = maxHp(lvlOf(P.xp)); if (P.hp >= mx) return toast('Tenés la vida completa.');
+    podT = now; P.hp = mx; P.poison = 0; P.burn = 0; SND.level(); buzz([40, 30, 80]); floats.push({ x: P.x, y: P.y - 200, t: 1.2, txt: '+ VIDA COMPLETA', c: '#7ff6f2' }); toast('La cápsula te curó por completo.' + ((INV.cont || 0) > 0 ? ' El contagio sigue: necesitás una jeringa.' : '')); hud(); }
   function placeBotin() { if (!grid || EXP || MAP.base || MAP.safeAll || MAP.mvp) return; const d = dayN(), r = seeded(hashStr(mapKey + ':bot:' + d)); const n = 2 + ((r() * 2) | 0); let tries = 0, k = 0;
     while (k < n && tries++ < 6000) { const c = (r() * grid.length) | 0; if (!grid[c]) continue; const x = (c % GW + .5) * CW, y = (((c / GW) | 0) + .5) * CW; if ([1, -1, GW, -GW].filter(dd => grid[c + dd]).length < 4) continue;
       if (Math.hypot(x - MAP.spawn[0] * WS, y - MAP.spawn[1] * WS) < 300 || CAS.some(o => Math.hypot(o.x * WS - x, o.y * WS - y) < 500)) continue;
@@ -561,9 +569,12 @@
     INV.cas[n.id] = dayN(); const got = [], add = k => { const g = takeItem(k); if (g) got.push(ITEMS[g].n); };
     if (n.bot === 'mochila') { add(pickW([['vendas', 3], ['venda_q', 2], ['vendas_a', 1]])); if (Math.random() < .5) add(resolveLoot('W')); if (Math.random() < .3) add(pickW([['manzana', 2], ['cigarrillo', 1], ['pilas', 1]])); }
     else if (n.bot === 'maletin') { add(resolveLoot('W')); add(pickW([['vendas', 2], ['vendas_a', 1.2], ['antiveneno', 1]])); if (Math.random() < .35) add(pickW([['balas', 2], ['cargador', 1], ['cart_itaka', 1], ['molotov', 1], ['granada', .6]])); }
-    else { if (Math.random() < 2 / 3) add('jeringa'); else add(pickW([['vendas_a', 2], ['venda_q', 1]])); if (Math.random() < .25) add(pickW([['vendas', 2], ['antiveneno', 1]])); }
+    else if (n.bot === 'caps_azul') { if (Math.random() < 2 / 3) add('jeringa'); else add(pickW([['vendas_a', 2], ['venda_q', 1]])); if (Math.random() < .25) add(pickW([['vendas', 2], ['antiveneno', 1]])); }
+    else if (n.bot === 'caps_roja') { add(resolveLoot('W')); if (Math.random() < .6) add(pickW([['balas', 2], ['cargador', 1], ['cart_itaka', 1], ['virotes', .8]])); if (Math.random() < .3) add(pickW([['molotov', 1], ['granada', .7]])); }
+    else if (n.bot === 'caps_amarilla') { add(pickW([['vendas', 3], ['venda_q', 2], ['vendas_a', 1]])); add(pickW([['manzana', 2], ['pilas', 1.5], ['cigarrillo', 1]])); if (Math.random() < .3) add('antiveneno'); }
+    else { add(resolveLoot(pickW([['A', 2], ['C', 1.4]]))); if (Math.random() < .4) add(pickW([['vendas', 2], ['pilas', 1]])); }
     SND.pick(); buzz(30); toast(got.length ? n.nm.charAt(0) + n.nm.slice(1).toLowerCase() + ': ' + got.join(', ') + '.' : 'Estaba vacío.'); quickBtns(); persist(); }
-  function placeCas() { CAS = []; placeCaps(); placeBotin(); if (!grid || MAP.safeAll || MAP.base || EXP || hashStr(mapKey) % 2) return; const r = seeded(hashStr(mapKey) * 31 + 7); let tries = 0;
+  function placeCas() { CAS = []; placeCaps(); placeBotin(); placePods(); if (!grid || MAP.safeAll || MAP.base || EXP || hashStr(mapKey) % 2) return; const r = seeded(hashStr(mapKey) * 31 + 7); let tries = 0;
     while (CAS.length < 1 && tries++ < 4000) { const c = (r() * grid.length) | 0; if (!grid[c]) continue; const x = (c % GW + .5) * CW, y = (((c / GW) | 0) + .5) * CW; if (inSafe(x, y) || CAS.some(o => Math.hypot(o.x * WS - x, o.y * WS - y) < 900)) continue;
       const nb = [1, -1, GW, -GW].filter(d => grid[c + d]).length; if (nb < 4) continue; CAS.push({ obj: true, cas: true, k: 'cas_' + mapKey + CAS.length, id: mapKey + ':' + CAS.length, nm: 'CASILLERO', x: x / WS, y: y / WS }); } }
   function nearCasillero() { const o = CAS.find(o => Math.hypot(o.x * WS - P.x, (o.y * WS - P.y) * 1.2) < 170); if (!o) return null; return { id: o.id, open: !!(INV.cas && INV.cas[o.id] === dayN()) }; }
@@ -1403,6 +1414,7 @@
     if (n.dama) return damaTalk(n);
     if (n.lib) return openLib(n.lib);
     if (n.bot) return openBotin(n);
+    if (n.pod) return usePod();
     if (n.caps) { INV.cas = INV.cas || {}; if (INV.cas[n.id] === dayN()) return toast('La cápsula está vacía. Se vuelve a cargar mañana.'); INV.cas[n.id] = dayN(); const jk = mapKey === 'lab_cuarentena' && Math.random() < .3 ? 'jeringa_max' : 'jeringa'; addItem(jk); SND.pick(); buzz(30); toast('Abriste la cápsula: ' + ITEMS[jk].n + '.'); quickBtns(); persist(); return; }
     if (n.cas) { const op = INV.cas && INV.cas[n.id] === dayN(); if (op) return toast('Casillero abierto. Ya no queda nada (vuelve a llenarse mañana).'); if (!hasItem('ganzuas')) return toast('Casillero cerrado. Necesitás ganzúas para forzarlo.'); return useItem('ganzuas', 'use'); }
     if (n.story && window.CZ_STORY) return CZ_STORY.talk(n);
@@ -1858,7 +1870,7 @@
       c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; const nm = '☣ ' + (o.cn || 'Contagiado') + (o.lv ? ' · NV ' + o.lv : ''), w = c.measureText(nm).width + 10, ny = sy - 27 * S - 6; c.fillStyle = 'rgba(0,0,0,.65)'; c.fillRect(sx - w / 2, ny - 12, w, 15); c.fillStyle = '#c99bff'; c.fillText(nm, sx, ny); c.globalAlpha = 1; }
     function drawNpc(n) { if (n.dama) return; /* el mob ya se dibuja: el NPC de la chica/el chico es solo para hablarle */
       if (n.obj) { const [ox, oy] = W2S(n.x * WS, n.y * WS); if (n.lib) { const im = img(LIBS[n.lib].img), h = 70 * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, 26); c.save(); c.shadowColor = n.lib === 'pablo' ? '#ff4060' : '#ff9ad0'; c.shadowBlur = 16 + Math.sin(t * 3) * 8; c.drawImage(im, ox - w / 2, oy - h - 10 + Math.sin(t * 2) * 3, w, h); c.restore(); } } if (n.cas) { const im = img('/a/ob/casillero.png'), h = 150 * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, 30); if (INV.cas && INV.cas[n.id] === dayN()) c.globalAlpha = .55; c.drawImage(im, ox - w / 2, oy - h, w, h); c.globalAlpha = 1; } }
-        if (!n.cas && !n.lib && n.k) { const im = img('/a/ob/' + (n.bot && BOT_IMG[n.bot] && ok(img('/a/ob/' + BOT_IMG[n.bot] + '.png')) ? BOT_IMG[n.bot] : n.k) + '.png'), h = (n.bot ? 70 : 170) * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, n.bot ? 24 : 40); if ((n.quest && (INV.quests || {})[n.quest.id]) || (n.bot && INV.cas && INV.cas[n.id] === dayN())) c.globalAlpha = .45; c.drawImage(im, ox - w / 2, oy - h, w, h); c.globalAlpha = 1; } }
+        if (!n.cas && !n.lib && n.k) { const im = img('/a/ob/' + (n.bot && BOT_IMG[n.bot] && ok(img('/a/ob/' + BOT_IMG[n.bot] + '.png')) ? BOT_IMG[n.bot] : n.k) + '.png'), h = (n.bot || n.caps ? 66 : n.pod ? 150 : 170) * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, n.bot || n.caps ? 24 : 40); if ((n.quest && (INV.quests || {})[n.quest.id]) || ((n.bot || n.caps) && INV.cas && INV.cas[n.id] === dayN())) c.globalAlpha = .45; c.drawImage(im, ox - w / 2, oy - h, w, h); c.globalAlpha = 1; } }
         if (nearNpc() === n) { c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; c.fillStyle = '#e8c070'; c.fillText(n.nm + ' · A', ox, oy - 40 * zoom); } return; } const [sx, sy] = W2S(n.x * WS, n.y * WS); if (sx < -200 || sx > VW + 200 || sy < -50 || sy > VH + 300) return; const S = 6.4 * zoom; shadow(sx, sy, 28);
       const dir = Math.abs(P.x - n.x * WS) > 120 ? (P.x < n.x * WS ? 'l' : 'r') : 'd'; blitChar(c, charSprite({ npc: n.k }, dir, 0, false), sx, sy, S, n.sc ? HD_K * n.sc : undefined); c.imageSmoothingEnabled = true;
       const near = nearNpc() === n; c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; const nm = n.nm + (near ? ' · A' : ''); const w = c.measureText(nm).width + 10, ny = sy - 27 * S - 6;
