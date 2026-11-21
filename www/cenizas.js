@@ -731,12 +731,15 @@
   function pvpTick(dt) { ptrapTick(); if (!P || P.dead) return; traps.forEach(tp => { tp.cd = Math.max(0, tp.cd - dt); if (tp.cd <= 0 && Math.hypot(tp.x - P.x, (tp.y - P.y) * 1.3) < 46) { tp.cd = 20; P.slow = 3; P.hp = Math.max(1, P.hp - 6); P.hurtT = .3; SND.hurt(); buzz([40, 30, 40]); floats.push({ x: P.x, y: P.y - 190, t: .9, txt: 'TRAMPA', c: '#ffb070' }); hud(); } });
     tileCd = Math.max(0, tileCd - dt); const T_ = MAP.tiles; if (T_ && tileCd <= 0) { const i = T_.findIndex(p => Math.hypot(p[0] * WS - P.x, (p[1] * WS - P.y) * 1.3) < 50); if (i >= 0) { const opts = T_.filter((_, j) => j !== i), d = opts[(Math.random() * opts.length) | 0]; tileCd = 4; SND.zone(); buzz(30);
         for (let k = 0; k < 18; k++) parts.push({ x: P.x + rnd(-20, 20), y: P.y - rnd(0, 160), vx: rnd(-40, 40), vy: rnd(-90, -20), life: .6, s: 3, c: 210 }); P.x = d[0] * WS; P.y = d[1] * WS + 40; if (!walkable(P.x, P.y)) P.y -= 80; P.inv = Math.max(P.inv, 1); sendPos(true); } } }
-  function enterMap(k, x, y, first) { yuki = null; loadHourly(k); 
+  /* lo que quedó tirado en un mapa se guarda al irte y vuelve a estar si volvés (durante 20 minutos) */
+  const PKC = {};
+  function enterMap(k, x, y, first) { if (mapKey && mapKey !== k) { const l = pickups.filter(q => q.k !== 'suero'); if (l.length) PKC[mapKey] = { t: Date.now(), l: l.map(q => Object.assign({}, q)) }; else delete PKC[mapKey]; }
+    yuki = null; loadHourly(k); 
     loadMap(k); placeCas(); setTimeout(loadClones, 1500); (NPCS[k] || []).forEach(n => { n.ox = n.oy = 0; n.tgId = null; n.mv = false; n.face = null; });
     const okPos = x && y && walkable(x, y);
     P.x = okPos ? x : MAP.spawn[0] * WS; P.y = okPos ? y : MAP.spawn[1] * WS; P.inv = 4; exitLock = true; P.exitT = 1.5;
     netMode = 'SOLO'; mobs.length = 0; parts.length = 0; floats.length = 0; pickups.length = 0;
-    const nPick = MAP.safeAll ? 1 : 2; for (let i = 0; i < nPick; i++) spawnPickup();
+    const nPick = MAP.safeAll ? 1 : 2, pc = PKC[k]; delete PKC[k]; if (pc && Date.now() - pc.t < 20 * 60000) pc.l.forEach(q => pickups.push(q)); else for (let i = 0; i < nPick; i++) spawnPickup();
     sueroTick(true);
     Object.keys(INV.lost).forEach(w => { if (INV.lost[w] === k) { spawnPickup(w); delete INV.lost[w]; } }); shots.length = 0; mvpEnter();
     hud(); healBtn(); abButtons();
