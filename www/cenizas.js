@@ -716,7 +716,7 @@
     tileCd = Math.max(0, tileCd - dt); const T_ = MAP.tiles; if (T_ && tileCd <= 0) { const i = T_.findIndex(p => Math.hypot(p[0] * WS - P.x, (p[1] * WS - P.y) * 1.3) < 50); if (i >= 0) { const opts = T_.filter((_, j) => j !== i), d = opts[(Math.random() * opts.length) | 0]; tileCd = 4; SND.zone(); buzz(30);
         for (let k = 0; k < 18; k++) parts.push({ x: P.x + rnd(-20, 20), y: P.y - rnd(0, 160), vx: rnd(-40, 40), vy: rnd(-90, -20), life: .6, s: 3, c: 210 }); P.x = d[0] * WS; P.y = d[1] * WS + 40; if (!walkable(P.x, P.y)) P.y -= 80; P.inv = Math.max(P.inv, 1); sendPos(true); } } }
   function enterMap(k, x, y, first) { yuki = null; loadHourly(k); 
-    loadMap(k); placeCas(); setTimeout(loadClones, 1500);
+    loadMap(k); placeCas(); setTimeout(loadClones, 1500); (NPCS[k] || []).forEach(n => { n.ox = n.oy = 0; n.tgId = null; n.mv = false; n.face = null; });
     const okPos = x && y && walkable(x, y);
     P.x = okPos ? x : MAP.spawn[0] * WS; P.y = okPos ? y : MAP.spawn[1] * WS; P.inv = 4; exitLock = true; P.exitT = 1.5;
     netMode = 'SOLO'; mobs.length = 0; parts.length = 0; floats.length = 0; pickups.length = 0;
@@ -1433,13 +1433,22 @@
     INV.quests[q.id] = 1; SND.level(); buzz([30, 40, 60]); toast('MISIÓN CUMPLIDA · ' + n.nm + ': "' + q.done + '"'); hud(); persist(); }
   /* lo que dicen los personajes: en la caja de diálogo con su retrato (como en las misiones) */
   /* ALIADOS: los personajes de mapa con bando le pegan a los Oscuros y a los enemigos de su bando que tengan cerca */
-  let allyT = 0;
-  function allyTick(dt) { if (!isHost || (allyT += dt) < 1.1) return; allyT = 0;
-    npcsHere().forEach(n => { if (n.obj || n.dama || !n.fac) return; const nx = n.x * WS, ny = n.y * WS;
-      const o = mobs.filter(m => m.hp > 0 && !m.T.passive && !m.cl && !m.T.npc && (!m.T.fac || m.T.fac !== n.fac) && Math.hypot(m.x - nx, (m.y - ny) * 1.3) < 340).sort((a, b) => Math.hypot(a.x - nx, a.y - ny) - Math.hypot(b.x - nx, b.y - ny))[0];
-      if (!o) return; const lv = (MAP.lv || [1, 3])[1], dmg = Math.round((14 + lv * 2.2) * (o.T.boss ? .5 : 1));
-      fx(['tajo_corto', 'estocada', 'impacto'][(Math.random() * 3) | 0], o.x, o.y - 70, { w: 150, T: .3, flip: o.x < nx }); floats.push({ x: o.x, y: o.y - (o.T.h || 150) * .8, t: .7, txt: '-' + dmg, c: '#ffd27a' }); mobHit(o, dmg, o.x < nx ? -18 : 18, 0, 'npc:' + n.k);
-      if (Math.random() < .12) floats.push({ x: nx, y: ny - 230, t: .9, txt: n.nm, c: n.fac === 'ork' ? '#ff7a70' : '#8fc4ff' }); }); }
+  /* Si estás peleando cerca de un aliado (personaje de mapa con bando), se acerca, le pega al mismo monstruo y después vuelve a su lugar.
+     Cada celular mueve a los aliados por su cuenta (siguen a los monstruos, que son los mismos para todos); el daño lo pone solo el host. */
+  const ALLY_VE = 650, ALLY_SP = 230;
+  function allyTick(dt) { npcsHere().forEach(n => { if (n.obj || n.dama || !n.fac) return; const hx = n.x * WS, hy = n.y * WS; n.ox = n.ox || 0; n.oy = n.oy || 0; const ax = hx + n.ox, ay = hy + n.oy;
+      const fighters = [[P.x, P.y, !P.dead]].concat([...others.values()].map(o => [o.x, o.y, !o.dead]));
+      let tg = n.tgId && mobs.find(m => m.id === n.tgId && m.hp > 0);
+      if (!tg || Math.hypot(tg.x - hx, tg.y - hy) > ALLY_VE) { tg = mobs.filter(m => m.hp > 0 && !m.T.passive && !m.cl && !m.T.npc && (!m.T.fac || m.T.fac !== n.fac) && Math.hypot(m.x - hx, (m.y - hy) * 1.2) < ALLY_VE && fighters.some(([fx_, fy_, al]) => al && Math.hypot(m.x - fx_, m.y - fy_) < 320))
+          .sort((a, b) => Math.hypot(a.x - ax, a.y - ay) - Math.hypot(b.x - ax, b.y - ay))[0]; n.tgId = tg ? tg.id : null; }
+      let gx = hx, gy = hy; if (tg) { gx = tg.x + (ax < tg.x ? -85 : 85); gy = tg.y; }
+      const dx = gx - ax, dy = gy - ay, d = Math.hypot(dx, dy); n.mv = d > 14;
+      if (n.mv) { const st = Math.min(d, ALLY_SP * (tg ? 1 : .8) * dt), mx = dx / d * st, my = dy / d * st; if (walkable(ax + mx, ay + my)) { n.ox += mx; n.oy += my; } else if (walkable(ax + mx, ay)) n.ox += mx; else if (walkable(ax, ay + my)) n.oy += my; n.face = dx < 0 ? 'l' : 'r'; n.walkT = (n.walkT || 0) + dt; }
+      else if (!tg) { n.face = null; }
+      if (n.atkT > 0) n.atkT -= dt;
+      if (tg && Math.hypot(tg.x - (hx + n.ox), (tg.y - (hy + n.oy)) * 1.3) < 130) { n.face = tg.x < hx + n.ox ? 'l' : 'r'; n.cd = (n.cd || 0) - dt;
+        if (n.cd <= 0) { n.cd = 1; n.atkT = .3; fx(['tajo_corto', 'estocada', 'impacto'][(Math.random() * 3) | 0], tg.x, tg.y - 70, { w: 150, T: .3, flip: tg.x < hx + n.ox });
+          if (isHost) { const lv = (MAP.lv || [1, 3])[1], dmg = Math.round((14 + lv * 2.2) * (tg.T.boss ? .5 : 1)); floats.push({ x: tg.x, y: tg.y - (tg.T.h || 150) * .8, t: .7, txt: '-' + dmg, c: '#ffd27a' }); mobHit(tg, dmg, tg.x < hx + n.ox ? -18 : 18, 0, 'npc:' + n.k); } } } }); }
   /* algunos personajes te hablan solos cuando te acercás (n.near), como mucho cada 90 s */
   const nearSaid = {}; let nearT = 0;
   function nearTalk(dt) { if ((nearT += dt) < .5 || P.dead) return; nearT = 0; const n = nearNpc(); if (!n || !n.near) return; const now = Date.now(); if (nearSaid[n.k] && now - nearSaid[n.k] < 90000) return; nearSaid[n.k] = now; npcSay(n, n.near); }
@@ -1820,7 +1829,7 @@
     others.forEach(o => { if (o.look) ents.push({ y: o.y, draw: () => drawChar(o, o.look, o.nick, o.fac, false) }); });
     if (gotFull) mobs.forEach(o => ents.push({ y: o.y, draw: () => drawMob(o) }));
     pickups.forEach(q => ents.push({ y: q.y - 30, draw: () => drawPickup(q) }));
-    npcsHere().forEach(n => ents.push({ y: n.y * WS, draw: () => drawNpc(n) }));
+    npcsHere().forEach(n => ents.push({ y: n.y * WS + (n.oy || 0), draw: () => drawNpc(n) }));
     if (yuki) ents.push({ y: yuki.y, draw: () => { const [sx, sy] = W2S(yuki.x, yuki.y), S = 6.4 * zoom; const sp = HD && HD.sheet('yuki', Math.sin(yuki.t * 2) > 0 ? 'l' : 'r', (yuki.t * 6 | 0) % 3, false); shadow(sx, sy, 18); if (sp) blitChar(c, sp, sx, sy, S, HD_K * .36);
       c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; c.fillStyle = '#e8c070'; c.fillText('YUKI', sx, sy - 120 * zoom); } });
     ptraps.forEach(tp => { if (tp.m !== mapKey) return; const [tx, ty] = W2S(tp.x, tp.y); if (tx < -60 || tx > VW + 60 || ty < -60 || ty > VH + 60) return;
@@ -1909,8 +1918,8 @@
     function drawNpc(n) { if (n.dama) return; /* el mob ya se dibuja: el NPC de la chica/el chico es solo para hablarle */
       if (n.obj) { const [ox, oy] = W2S(n.x * WS, n.y * WS); if (n.lib) { const im = img(LIBS[n.lib].img), h = 70 * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, 26); c.save(); c.shadowColor = n.lib === 'pablo' ? '#ff4060' : '#ff9ad0'; c.shadowBlur = 16 + Math.sin(t * 3) * 8; c.drawImage(im, ox - w / 2, oy - h - 10 + Math.sin(t * 2) * 3, w, h); c.restore(); } } if (n.cas) { const im = img('/a/ob/casillero.png'), h = 150 * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, 30); if (INV.cas && INV.cas[n.id] === dayN()) c.globalAlpha = .55; c.drawImage(im, ox - w / 2, oy - h, w, h); c.globalAlpha = 1; } }
         if (!n.cas && !n.lib && n.k) { const im = img('/a/ob/' + (n.bot && BOT_IMG[n.bot] && ok(img('/a/ob/' + BOT_IMG[n.bot] + '.png')) ? BOT_IMG[n.bot] : n.k) + '.png'), h = (n.bot || n.caps ? 66 : n.pod ? 150 : 170) * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, n.bot || n.caps ? 24 : 40); if ((n.quest && (INV.quests || {})[n.quest.id]) || ((n.bot || n.caps) && INV.cas && INV.cas[n.id] === dayN())) c.globalAlpha = .45; c.drawImage(im, ox - w / 2, oy - h, w, h); c.globalAlpha = 1; } }
-        if (nearNpc() === n) { c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; c.fillStyle = '#e8c070'; c.fillText(n.nm + ' · A', ox, oy - 40 * zoom); } return; } const [sx, sy] = W2S(n.x * WS, n.y * WS); if (sx < -200 || sx > VW + 200 || sy < -50 || sy > VH + 300) return; const S = 6.4 * zoom; shadow(sx, sy, 28);
-      const dir = Math.abs(P.x - n.x * WS) > 120 ? (P.x < n.x * WS ? 'l' : 'r') : 'd'; blitChar(c, charSprite({ npc: n.k }, dir, 0, false), sx, sy, S, n.sc ? HD_K * n.sc : undefined); c.imageSmoothingEnabled = true;
+        if (nearNpc() === n) { c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; c.fillStyle = '#e8c070'; c.fillText(n.nm + ' · A', ox, oy - 40 * zoom); } return; } const [sx, sy] = W2S(n.x * WS + (n.ox || 0), n.y * WS + (n.oy || 0)); if (sx < -200 || sx > VW + 200 || sy < -50 || sy > VH + 300) return; const S = 6.4 * zoom; shadow(sx, sy, 28);
+      const dir = n.face || (Math.abs(P.x - n.x * WS) > 120 ? (P.x < n.x * WS ? 'l' : 'r') : 'd'), fr = n.mv ? ((n.walkT * 8 | 0) % 2 ? 1 : 2) : 0; blitChar(c, charSprite({ npc: n.k }, dir, fr, n.atkT > 0), sx, sy, S, n.sc ? HD_K * n.sc : undefined); c.imageSmoothingEnabled = true;
       const near = nearNpc() === n; LBL.push(() => { c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; const nm = n.nm + (near ? ' · A' : ''); const w = c.measureText(nm).width + 10, ny = sy - LBL_H * S;
       c.fillStyle = 'rgba(0,0,0,.6)'; c.fillRect(sx - w / 2, ny - 12, w, 15); c.fillStyle = '#e8c070'; c.fillText(nm, sx, ny); });
       }
