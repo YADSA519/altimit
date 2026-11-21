@@ -92,6 +92,9 @@ body.cine #st-dlg{display:block}
   function advance() { if (step && step.give && !step.pz) { Object.entries(step.give).forEach(([k, n]) => { if (!A.hasItem(k)) A.addItem(k, n); }); A.toast('Recibiste: ' + Object.keys(step.give).map(k => A.ITEMS[k] ? A.ITEMS[k].n : k).join(', ')); A.quickBtns(); } S.s++; S.c = 0; S.loose = false; spawned = {}; if (S.s >= mis.steps.length) return finish(); step = mis.steps[S.s]; save(); prep(); objective(); A.toast('▸ ' + step.txt); }
   function finish() { const r = mis.reward || {}; if (r.xp) A.giveXp(r.xp); if (r.coins) A.giveCoins(r.coins); Object.entries(r.items || {}).forEach(([k, n]) => A.addItem(k, n)); A.quickBtns(); A.INV.racha = 0;
     const done = mis; S.done = (S.done || []).concat(done.id); step = null; mis = null; objective(); save();
+    if (done.fin && window.CZ_FINAL && CZ_FINAL.drama && !S.dramaVisto) { S.dramaVisto = 1; A.INV.trajeFin = A.INV.trajeFin || {}; A.INV.trajeFin[A.me.faction] = 1; save(); A.setPaused(true); return CZ_FINAL.drama(A.me.faction, () => { A.setPaused(false); finCard(done, r); }); }
+    finCard(done, r); }
+  function finCard(done, r) {
     card('MISIÓN CUMPLIDA', done.t, '+' + (r.xp || 0) + ' XP · +' + (r.coins || 0) + ' $' + Object.entries(r.items || {}).map(([k, n]) => ' · ' + (A.ITEMS[k] ? A.ITEMS[k].n : k) + ' ×' + n).join(''), () => {
       if (done.fin) { if (window.CZ_FINAL) { A.setPaused(true); return CZ_FINAL.play(A.me.faction, () => { A.setPaused(false); card('THE O|F', 'FIN', done.fin + ' · El mundo sigue abierto: recorrelo libre.', () => {}); }); } return card('THE O|F', 'FIN', done.fin, () => {}); }
       setTimeout(() => setMission(S.m + 1, true), 1200); }); }

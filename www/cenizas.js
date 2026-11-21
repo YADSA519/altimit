@@ -238,14 +238,14 @@
     pista_ork: { n: 'Pista ORK', t: 'Pista · ORK', d: 'Un rastro de ORK. Con 3, Mercedes te da el brazalete ORK.' },
     pista_reb: { n: 'Pista rebelde', t: 'Pista · Rebeldes', d: 'Un rastro de la resistencia. Con 3, Jota te da el brazalete rebelde.' },
     pista: { n: 'Pista', t: 'Pista', d: 'Una pista. Se convierte en la de tu bando.' },
-    brz_ork: { n: 'Brazalete ORK', t: 'Brazalete · ORK', d: '10 segundos invencible y pegás el doble. Después quedás agotado con 10 de vida.', use: 'furia' },
-    brz_reb: { n: 'Brazalete rebelde', t: 'Brazalete · Rebeldes', d: '10 segundos invencible y pegás el doble. Después quedás agotado con 10 de vida.', use: 'furia' },
+    brz_ork: { n: 'Brazalete ORK', t: 'Brazalete · ORK', d: '10 segundos invencible y pegás el doble. Después quedás aturdido 2 segundos y medio.', use: 'furia' },
+    brz_reb: { n: 'Brazalete rebelde', t: 'Brazalete · Rebeldes', d: '10 segundos invencible y pegás el doble. Después quedás aturdido 2 segundos y medio.', use: 'furia' },
     cigarrillo: { n: 'Cigarrillos', t: 'Misiones · se vende', d: 'Fumar te saca 8 de vida y te hace más lento por 20 segundos. Mejor guardalo: hay gente que da mucho por uno.', use: 'fumar' },
     manzana: { n: 'Manzana', t: 'Comida', d: 'Recupera 15 de vida. A los chicos escondidos les viene bien.', use: 'comer' },
     kit: { n: 'Kit de curación', t: 'Consumible · lo vende Rosa', d: 'Te deja la vida completa.', use: 'heal', v: 9999 },
     mascara: { n: 'Máscara de filtrado', t: 'Equipo · poco común', d: 'En el subte y el complejo recibís 20% menos de daño.', eq: 'cara' },
-    b_contencion: { n: 'Brazalete de contención', t: 'Brazalete · raro', d: 'A favor: recibís 30% menos de daño. En contra: tu arma pega 1 menos.', eq: 'brazo' },
-    b_resonancia: { n: 'Brazalete de resonancia', t: 'Brazalete · raro', d: 'A favor: ves a las Sombras aunque se escondan. En contra: los Oscuros te detectan desde más lejos.', eq: 'brazo' },
+    b_contencion: { n: 'Brazalete de contención', t: 'Brazalete · raro', d: 'A favor: recibís 30% menos de daño. En contra: tu arma pega 1 menos.', eq: 'acc' },
+    b_resonancia: { n: 'Brazalete de resonancia', t: 'Brazalete · raro', d: 'A favor: ves a las Sombras aunque se escondan. En contra: los Oscuros te detectan desde más lejos.', eq: 'acc' },
     credencial: { n: 'Credencial de contención', t: 'Llave · poco común', d: 'La mostrás en cualquier tienda y por 10 minutos todo te sale 30% menos. Se gasta al usarla.', use: 'descuento' },
     receptor: { n: 'Receptor de señales', t: 'Objeto · poco común', d: 'Capta transmisiones: te marca con una flecha dónde está el maletín de curación (3 minutos) y te avisa si hay horda, jefe o Yuki. No se gasta (1 vez por minuto).', use: 'radar' },
     llave_rift: { n: 'Llave oxidada', t: 'Historia · abre la puerta del costado del Nogal', d: 'Tiene grabado NOGAL. Abre la puerta oxidada del costado del campamento.' },
@@ -308,7 +308,7 @@
     alto: [['C', 1.1], ['armadura', .4], ['V', 2], ['W', 1.6], ['G', .3], ['M', 1], ['X', .5], ['P', .4], ['A', .5], ['b_contencion', .3], ['b_resonancia', .3], ['pista', .7]],
     pvp: [['V', 2], ['campera', 1], ['W', 1.4], ['G', .12], ['M', .4], ['X', .4], ['pista', 1.4]],
     refugio: [['vendas', 1.5], ['pilas', 1]] };
-  Object.values(LOOT_T).forEach(l => l.push(['cigarrillo', .6], ['manzana', .6]));
+  Object.values(LOOT_T).forEach(l => l.push(['cigarrillo', .6], ['manzana', .6], ['F', .7], ['B', .15]));
   const LOOT = {}; Object.entries(MAPS).forEach(([k, m]) => { const top = (m.lv || [1, 3])[1]; LOOT[k] = EXP ? LOOT_T.pvp : m.safeAll ? LOOT_T.refugio : top <= 14 ? LOOT_T.bajo : top <= 30 ? LOOT_T.medio : LOOT_T.alto; });
   LOOT.parque = LOOT_T.bajo;
 
@@ -322,6 +322,7 @@
      Colores: gris común · VERDE · AZUL · VIOLETA · NARANJA (casi épico) · ÉPICO (solo MVPs, nunca se rompe) */
   const RAR = { g: ['COMÚN', '#a0a0a0'], v: ['VERDE', '#47d16a'], a: ['AZUL', '#3fa2ff'], p: ['VIOLETA', '#b26cff'], n: ['NARANJA', '#ff9a2a'], e: ['ÉPICO', '#ff3b5c'] };
   const TIERS = ['v', 'a', 'p', 'n'], TKEY = (b, t) => t === 'v' ? b : b + '_' + t, TB = { v: [0, 1, 1], a: [1, 1.15, 1.45], p: [2, 1.32, 1.95], n: [4, 1.55, 2.7] }, TADJ = { v: '', a: ' azul', p: ' violeta', n: ' naranja' };
+  const IMG_OK = {}; /* cuando llegue el dibujo de un objeto nuevo: IMG_OK.botas = 1, etc. */
   const ICO = (k, f) => { if (ICONS[k] && ICONS[k].src && ICONS[k].src.endsWith('/' + f + '.png')) return; const i = new Image(); i.src = '/a/it/' + f + '.png'; ICONS[k] = i; };
   const tierOf = k => (ITEMS[k] && ITEMS[k].r) || 'g', baseOf = k => (ITEMS[k] && ITEMS[k].base) || k;
   /* cuerpo a cuerpo: se rompen (podés juntar varias) */
@@ -354,12 +355,29 @@
   ITEMS.granada = { n: 'Granada', t: 'Arrojable · AZUL', d: 'La tirás hacia donde mirás: explota al segundo y lastima fuerte a todo lo que esté cerca. Va en el botón de HABILIDAD.', use: 'tirar', r: 'a', hab: 1 }; ICO('granada', 'granada');
   ITEMS.molotov = { n: 'Bomba molotov', t: 'Arrojable · VERDE', d: 'Se rompe donde cae y deja el piso prendido fuego 5 segundos: quema a todos los Oscuros que pisen. Va en el botón de HABILIDAD.', use: 'tirar', r: 'v', hab: 1 }; ICO('molotov', 'molotov');
   /* accesorios: guantes, rodilleras, amuleto, mira (ACCESORIO 1 y 2), zapatillas (PIES), casco (CABEZA) */
-  const ACCS = { guantes: ['Guantes de combate', 'acc', 'dmg', 'Pegás un % más fuerte con todo.'], rodilleras: ['Rodilleras', 'acc', 'def', 'Recibís un % menos de daño.'], amuleto: ['Amuleto de ceniza', 'acc', 'hp', 'Tenés un % más de vida máxima.'],
-    mira: ['Mira de precisión', 'acc', 'gdmg', 'Las armas de fuego pegan un % más.'], zapatillas: ['Zapatillas', 'pies', 'spd', 'Caminás y corrés un % más rápido.'], casco: ['Casco', 'cabeza', 'def', 'Recibís un % menos de daño.'] };
+  const ACCS = { guantes: ['Guantes de combate', 'brazo', 'dmg', 'Pegás un % más fuerte con todo.'], rodilleras: ['Rodilleras', 'acc', 'def', 'Recibís un % menos de daño.'], amuleto: ['Amuleto de ceniza', 'acc', 'hp', 'Tenés un % más de vida máxima.'],
+    mira: ['Mira de precisión', 'acc', 'gdmg', 'Las armas de fuego pegan un % más.'], zapatillas: ['Zapatillas', 'pies', 'spd', 'Caminás y corrés un % más rápido.'], casco: ['Casco', 'cabeza', 'def', 'Recibís un % menos de daño.'],
+    botas: ['Botas militares', 'pies', 'def', 'Recibís un % menos de daño.', 'zapatillas'], zapatos: ['Zapatos de cuero', 'pies', 'stamR', 'Recuperás el aire un % más rápido.', 'zapatillas', 3],
+    borcegos: ['Borceguíes con puntera', 'pies', 'res', 'Los venenos, quemaduras y aturdidos se te pasan un % más rápido.', 'zapatillas', 2],
+    guantes_cuero: ['Guantes de cuero', 'brazo', 'def', 'Recibís un % menos de daño.', 'guantes'], nudilleras: ['Nudilleras', 'brazo', 'mdmg', 'Pegás un % más fuerte cuerpo a cuerpo.', 'guantes', 1.4],
+    guantes_tac: ['Guantes tácticos', 'brazo', 'gdmg', 'Las armas de fuego pegan un % más.', 'guantes', 1.2], guantes_en: ['Guantes de energía', 'brazo', 'dmg', 'Pegás un % más fuerte con todo.', 'guantes', 1.3],
+    gorro: ['Gorro de lana', 'cabeza', 'hp', 'Tenés un % más de vida máxima.', 'casco'], capucha: ['Capucha', 'cabeza', 'sneak', 'Los Oscuros te ven un % menos.', 'casco', 2],
+    casco_moto: ['Casco de moto', 'cabeza', 'def', 'Recibís un % menos de daño.', 'casco', 1.2], gafas: ['Gafas tácticas', 'cabeza', 'vis', 'En los lugares oscuros ves un % más lejos.', 'casco', 3],
+    mascara_g: ['Máscara de gas mejorada', 'cabeza', 'def', 'Recibís un % menos de daño.', 'mascara_gas', 1.1] };
   const ACCSV = { v: .06, a: .12, p: .18, n: .26 };
-  Object.entries(ACCS).forEach(([b, [nm, sl, st, d]]) => TIERS.forEach(t => { const k = TKEY(b, t), v = st === 'spd' ? ACCSV[t] * .8 : ACCSV[t];
-    ITEMS[k] = { n: nm + TADJ[t], t: (sl === 'acc' ? 'Accesorio' : sl === 'pies' ? 'Pies' : 'Cabeza') + ' · ' + RAR[t][0] + ' · +' + Math.round(v * 100) + '%', d: d.replace('un %', 'un ' + Math.round(v * 100) + '%') + ' No se rompe.', eq: sl, [st]: v, r: t, base: b }; ICO(k, b); }));
+  Object.entries(ACCS).forEach(([b, [nm, sl, st, d, img, mul]]) => TIERS.forEach(t => { const k = TKEY(b, t), v = Math.round((st === 'spd' ? ACCSV[t] * .8 : ACCSV[t]) * (mul || 1) * 100) / 100;
+    ITEMS[k] = { n: nm + TADJ[t], t: (sl === 'acc' ? 'Accesorio' : sl === 'pies' ? 'Pies' : sl === 'brazo' ? 'Manos' : 'Cabeza') + ' · ' + RAR[t][0] + ' · +' + Math.round(v * 100) + '%', d: d.replace('un %', 'un ' + Math.round(v * 100) + '%') + ' No se rompe.', eq: sl, [st]: v, r: t, base: b }; ICO(k, img ? (IMG_OK[b] ? b : img) : b); }));
   ITEMS.mascara.eq = 'cabeza';
+  /* brazaletes con cargas (van en ACC, se activan con HABILIDAD y se rompen al gastarse) */
+  const BRZC = { brz_impulso: ['Brazalete de impulso', 'impulso', 'Por 6 segundos corrés muchísimo más rápido y sin cansarte.'], brz_fuerza: ['Brazalete de fuerza', 'fuerza', 'Por 8 segundos pegás 60% más fuerte.'],
+    brz_energia: ['Brazalete de energía', 'energia', 'Tirás tres bolitas de energía hacia donde mirás.'] }, BRZN = { v: 3, a: 5, p: 8, n: 12 };
+  Object.entries(BRZC).forEach(([b, [nm, act, d]]) => TIERS.forEach(t => { const k = TKEY(b, t); ITEMS[k] = { n: nm + TADJ[t], t: 'Brazalete · ' + RAR[t][0] + ' · ' + BRZN[t] + ' usos', d: d + ' Tiene ' + BRZN[t] + ' usos y después se rompe. Va en ACC.', eq: 'acc', act, cd: act === 'energia' ? 6 : 12, cargas: BRZN[t], r: t, base: b }; ICO(k, IMG_OK[b] ? b : 'brazalete'); }));
+  /* comidas con efecto por un rato */
+  Object.assign(ITEMS, { mate: { n: 'Mate', t: 'Comida · VERDE', d: 'Por 2 minutos recuperás el aire el doble de rápido cuando te cansás.', use: 'comida', buf: 'bAire', T: 120, r: 'v' },
+    empanada: { n: 'Empanada', t: 'Comida · AZUL', d: 'Por 5 minutos pegás 25% más fuerte.', use: 'comida', buf: 'bFuerza', T: 300, r: 'a' },
+    locro: { n: 'Locro', t: 'Comida · VIOLETA', d: 'Por 10 minutos recibís 20% menos de daño.', use: 'comida', buf: 'bRes', T: 600, r: 'p' },
+    alfajor: { n: 'Alfajor', t: 'Comida · VERDE', d: 'Recupera 25 de vida y te devuelve todo el aire.', use: 'comida', hpU: 25, r: 'v' } });
+  ['mate', 'empanada', 'locro', 'alfajor'].forEach(k => ICO(k, IMG_OK[k] ? k : 'manzana'));
   /* ÉPICOS · los dejan los MVPs de las libretas (muy poca probabilidad), nunca se rompen y se usan sin límite */
   const EPIC = {
     chaleco_cs: { n: 'Chaleco del Come Sueños', eq: 'ropa', shield: 500, regen: 1, d: 'Absorbe 500 de daño y nunca se rompe: si pasás 8 segundos sin que te peguen, se vuelve a cargar entero.' },
@@ -381,6 +399,7 @@
   ['brz_ork', 'brz_reb', 'b_contencion', 'b_resonancia', 'brz_jefe', 'campera', 'chaleco_t', 'armadura', 'botiquin', 'venda_q', 'kit', 'canister', 'baston', 'pista_ork', 'pista_reb', 'pista', 'fragmento', 'trampa', 'antiveneno', 'linterna', 'receptor', 'pilas', 'jeringa', 'jeringa_max'].forEach(k => ICO(k, k));
   const WEAPON_KEYS = ['palo'].concat(Object.keys(WEAP).filter(k => k !== 'palo' && ITEMS[k]));
   /* suma de bonos de todo lo equipado */
+  const eqHas = k => !!(INV && INV.eq && (INV.eq.acc1 === k || INV.eq.acc2 === k));
   function gearSum(st) { if (!INV || !INV.eq) return 0; let s = 0; Object.values(INV.eq).forEach(k => { const it = k && ITEMS[k]; if (it && it[st]) s += it[st]; }); return s; }
   /* qué arma de fuego (cualquier color) ya tenés */
   const gunOwned = b => Object.keys(INV.items).find(k => INV.items[k] > 0 && ITEMS[k] && ITEMS[k].gun && ITEMS[k].base === b);
@@ -415,9 +434,11 @@
     if (k === 'W') return TKEY(pickW([['barra', 2], ['cuchillo', 2], ['bate', 2], ['lanza', 1], ['katana', 1], ['hacha', 1.4], ['machete', 1.6], ['martillo', 1], ['cadena', 1.2], ['tubo', 1.3]]), t);
     if (k === 'G') return TKEY(pickW([['pistola', 3], ['ballesta', 1.2], ['escopeta', 1], ['metralleta', .8], ['lanzallamas', .4]]), t);
     if (k === 'C') return TKEY('chaleco', t); if (k === 'V') return TKEY('vendas', t); if (k === 'P') return TKEY('pocion', t);
-    if (k === 'A') return TKEY(pickW([['guantes', 1], ['rodilleras', 1], ['amuleto', 1], ['mira', .7], ['zapatillas', 1], ['casco', 1]]), t);
+    if (k === 'A') return TKEY(pickW([['guantes', 1], ['rodilleras', 1], ['amuleto', 1], ['mira', .7], ['zapatillas', 1], ['casco', 1], ['botas', 1], ['zapatos', .8], ['borcegos', .7], ['guantes_cuero', 1], ['nudilleras', .8], ['guantes_tac', .6], ['guantes_en', .5], ['gorro', 1], ['capucha', .8], ['casco_moto', .7], ['gafas', .6], ['mascara_g', .5]]), t);
     if (k === 'M') return pickW([['balas', 3], ['cart_itaka', 1.2], ['cargador', 1.2], ['nafta', .6], ['virotes', 1]]);
-    if (k === 'X') return pickW([['molotov', 2], ['granada', 1]]); return k; }
+    if (k === 'X') return pickW([['molotov', 2], ['granada', 1]]);
+    if (k === 'B') return TKEY(pickW([['brz_impulso', 1], ['brz_fuerza', 1], ['brz_energia', .7]]), t);
+    if (k === 'F') return pickW([['mate', 2], ['alfajor', 2], ['empanada', 1.2], ['locro', .6]]); return k; }
   /* estados de los Oscuros: aturdido/dormido/congelado, quemado/envenenado (daño de a poco), lento */
   function mobFx(o, fx, byId) { if (!o || !fx) return; if (!isHost) { net('mfx', { id: o.id, fx, by: byId || me.id }); return; } applyMobFx(o, fx, byId || me.id); }
   function applyMobFx(o, fx, by) { if (!o || o.hp <= 0) return; if (fx.stun) { o.stunT = Math.max(o.stunT || 0, fx.stun); o.stunK = fx.k || 'stun'; o.wind = 0; }
@@ -587,8 +608,8 @@
     else if (n.bot === 'maletin') { add(resolveLoot('W')); add(pickW([['vendas', 2], ['vendas_a', 1.2], ['antiveneno', 1]])); if (Math.random() < .35) add(pickW([['balas', 2], ['cargador', 1], ['cart_itaka', 1], ['molotov', 1], ['granada', .6]])); }
     else if (n.bot === 'caps_azul') { if (Math.random() < 2 / 3) add('jeringa'); else add(pickW([['vendas_a', 2], ['venda_q', 1]])); if (Math.random() < .25) add(pickW([['vendas', 2], ['antiveneno', 1]])); }
     else if (n.bot === 'caps_roja') { add(resolveLoot('W')); if (Math.random() < .6) add(pickW([['balas', 2], ['cargador', 1], ['cart_itaka', 1], ['virotes', .8]])); if (Math.random() < .3) add(pickW([['molotov', 1], ['granada', .7]])); }
-    else if (n.bot === 'caps_amarilla') { add(pickW([['vendas', 3], ['venda_q', 2], ['vendas_a', 1]])); add(pickW([['manzana', 2], ['pilas', 1.5], ['cigarrillo', 1]])); if (Math.random() < .3) add('antiveneno'); }
-    else { add(resolveLoot(pickW([['A', 2], ['C', 1.4]]))); if (Math.random() < .4) add(pickW([['vendas', 2], ['pilas', 1]])); }
+    else if (n.bot === 'caps_amarilla') { add(pickW([['vendas', 3], ['venda_q', 2], ['vendas_a', 1]])); add(pickW([['manzana', 2], ['pilas', 1.5], ['cigarrillo', 1]])); add(resolveLoot('F')); if (Math.random() < .3) add('antiveneno'); }
+    else { add(resolveLoot(pickW([['A', 2], ['C', 1.4], ['B', .8]]))); if (Math.random() < .4) add(pickW([['vendas', 2], ['pilas', 1]])); }
     SND.pick(); buzz(30); toast(got.length ? n.nm.charAt(0) + n.nm.slice(1).toLowerCase() + ': ' + got.join(', ') + '.' : 'Estaba vacío.'); quickBtns(); persist(); }
   function placeCas() { CAS = []; placeCaps(); placeBotin(); placePods(); if (!grid || MAP.safeAll || MAP.base || EXP || hashStr(mapKey) % 2) return; const r = seeded(hashStr(mapKey) * 31 + 7); let tries = 0;
     while (CAS.length < 1 && tries++ < 4000) { const c = (r() * grid.length) | 0; if (!grid[c]) continue; const x = (c % GW + .5) * CW, y = (((c / GW) | 0) + .5) * CW; if (inSafe(x, y) || CAS.some(o => Math.hypot(o.x * WS - x, o.y * WS - y) < 900)) continue;
@@ -694,7 +715,8 @@
     const lv = lvlOf(gc.xp || 0);
     P = { x: 0, y: 0, dir: 'd', face: 1, mv: false, walkT: 0, stepT: 0, atk: 0, cd: 0, hp: maxHp(lv), xp: gc.xp || 0, kills: gc.kills || 0, hurtT: 0, inv: 0, say: '', sayT: 0, dead: false, stam: 3, tired: false };
     let inv = gc.inv && gc.inv.items ? gc.inv : null; if (!inv && !EXP) { try { inv = JSON.parse(store.get('cz-inv-' + me.id) || 'null'); } catch (e) {} }
-    INV = Object.assign({ items: {}, eq: { arma: 'palo', luz: null, cara: null, brazo: null }, bat: 0 }, inv || {}); INV.eq = Object.assign({ arma: 'palo', luz: null, cara: null, brazo: null }, INV.eq || {}); INV.items = INV.items || {}; INV.dur = INV.dur || {}; INV.lost = INV.lost || {}; INV.eq.ropa = INV.eq.ropa || null; ['cabeza', 'pies', 'acc1', 'acc2'].forEach(k => { if (!(k in INV.eq)) INV.eq[k] = null; }); if (INV.eq.cara) { INV.eq.cabeza = INV.eq.cabeza || INV.eq.cara; } delete INV.eq.cara; Object.keys(INV.items).forEach(k => { if (!ITEMS[k]) delete INV.items[k]; }); Object.keys(INV.eq).forEach(k => { if (INV.eq[k] && !ITEMS[INV.eq[k]] && INV.eq[k] !== 'palo') INV.eq[k] = k === 'arma' ? 'palo' : null; }); Object.keys(INV.items).forEach(k => { if (ITEMS[k].gun && INV.dur[k] == null) INV.dur[k] = ITEMS[k].mag; }); if (INV.items.linterna > 1) INV.items.linterna = 1; { const best = {}; Object.keys(INV.items).forEach(k => { const it = ITEMS[k]; if (!it || !it.gun) return; if (INV.items[k] > 1) INV.items[k] = 1; const b = it.base; if (!best[b] || TORD[it.r] > TORD[ITEMS[best[b]].r]) best[b] = k; }); Object.keys(INV.items).forEach(k => { const it = ITEMS[k]; if (it && it.gun && best[it.base] !== k) { if (INV.eq.arma === k) INV.eq.arma = best[it.base]; delete INV.items[k]; delete INV.dur[k]; } }); } delete INV.items.botiquin; INV.coins = INV.coins || 0; INV.ab = INV.ab || []; P.best = Math.max(gc.best_xp || 0, gc.xp || 0);
+    INV = Object.assign({ items: {}, eq: { arma: 'palo', luz: null, cara: null, brazo: null }, bat: 0 }, inv || {}); INV.eq = Object.assign({ arma: 'palo', luz: null, cara: null, brazo: null }, INV.eq || {}); { const E_ = INV.eq || {}, b0 = E_.brazo && ITEMS[E_.brazo]; if (b0 && b0.eq === 'acc') { if (!E_.acc1) E_.acc1 = E_.brazo; else if (!E_.acc2) E_.acc2 = E_.brazo; E_.brazo = null; }
+      ['acc1', 'acc2'].forEach(a_ => { const g_ = E_[a_] && ITEMS[E_[a_]]; if (g_ && g_.eq === 'brazo') { if (!E_.brazo) E_.brazo = E_[a_]; E_[a_] = null; } }); } INV.items = INV.items || {}; INV.dur = INV.dur || {}; INV.lost = INV.lost || {}; INV.eq.ropa = INV.eq.ropa || null; ['cabeza', 'pies', 'acc1', 'acc2'].forEach(k => { if (!(k in INV.eq)) INV.eq[k] = null; }); if (INV.eq.cara) { INV.eq.cabeza = INV.eq.cabeza || INV.eq.cara; } delete INV.eq.cara; Object.keys(INV.items).forEach(k => { if (!ITEMS[k]) delete INV.items[k]; }); Object.keys(INV.eq).forEach(k => { if (INV.eq[k] && !ITEMS[INV.eq[k]] && INV.eq[k] !== 'palo') INV.eq[k] = k === 'arma' ? 'palo' : null; }); Object.keys(INV.items).forEach(k => { if (ITEMS[k].gun && INV.dur[k] == null) INV.dur[k] = ITEMS[k].mag; }); if (INV.items.linterna > 1) INV.items.linterna = 1; { const best = {}; Object.keys(INV.items).forEach(k => { const it = ITEMS[k]; if (!it || !it.gun) return; if (INV.items[k] > 1) INV.items[k] = 1; const b = it.base; if (!best[b] || TORD[it.r] > TORD[ITEMS[best[b]].r]) best[b] = k; }); Object.keys(INV.items).forEach(k => { const it = ITEMS[k]; if (it && it.gun && best[it.base] !== k) { if (INV.eq.arma === k) INV.eq.arma = best[it.base]; delete INV.items[k]; delete INV.dur[k]; } }); } delete INV.items.botiquin; INV.coins = INV.coins || 0; INV.ab = INV.ab || []; P.best = Math.max(gc.best_xp || 0, gc.xp || 0);
     /* 2.1: reinicio de objetos y niveles (una sola vez); se conservan los personajes desbloqueados */
     /* reinicio general (lo marca el SQL en game_state 'reglas'.reset): mochila, nivel, misiones y lugar a cero */
     if (RULES.reset && INV.reset !== RULES.reset) { const sk = INV.skins; INV = { items: { vendas: 3 }, eq: { arma: 'palo', luz: null, cara: null, brazo: null, ropa: null }, bat: 0, dur: {}, lost: {}, coins: 10, ab: [], q: { cura: 'vendas', esp: null }, ver: VER, reset: RULES.reset }; if (sk) INV.skins = sk;
@@ -814,7 +836,7 @@
   function spawnPickup(k, at, w) { if (!at && netMode === 'MULTI_CLIENT') return; const p = at || randomWalkCell(300); if (!p) return; const kk = resolveLoot(k || pickW(LOOT[mapKey] || LOOT.parque), w); if (!ITEMS[kk]) return; const pid = me.id.slice(0, 6) + '-' + (pkSeq++) + '-' + ((Math.random() * 1e4) | 0); pickups.push({ k: kk, x: p[0], y: p[1], t: Math.random() * 6, pid, loc: !at }); if (netMode !== 'SOLO') net('drop', { pid, k: kk, x: Math.round(p[0]), y: Math.round(p[1]) }); }
   function addItem(k, n) { INV.items[k] = (INV.items[k] || 0) + (n || 1); }
   function hasItem(k) { return (INV.items[k] || 0) > 0; }
-  const dmgMult = () => { let m = 1; if (P.jefe > 0) m *= .5; if (INV.eq.brazo === 'b_contencion') m *= .7; if (INV.eq.cabeza === 'mascara' && /refugioSub|bunker|lab|patio/.test(mapKey)) m *= .8; m *= 1 - Math.min(.6, gearSum('def')); return m; };
+  const dmgMult = () => { let m = 1; if (P.jefe > 0) m *= .5; if (eqHas('b_contencion')) m *= .7; if (P.bRes > 0) m *= .8; if (INV.eq.cabeza === 'mascara' && /refugioSub|bunker|lab|patio/.test(mapKey)) m *= .8; m *= 1 - Math.min(.6, gearSum('def')); return m; };
   function classMult(mk) { if (!mk || me.faction !== 'ork') return 1; let m = .85; const c = (look && look.cls) || 0;
     if ((c === 0 && mk === 'perro') || (c === 1 && mk === 'corredor') || (c === 2 && mk === 'errante')) m *= .6; return m; }
   /* ---------- contagio de los Oscuros: barra 0-100. +30 pierde vida, +70 más rápido. Al morir contagiado queda tu clon Oscuro ---------- */
@@ -897,7 +919,7 @@
     const eqName = k => k ? (k === 'palo' ? 'Palo' : ITEMS[k].n) : '—';
     $('#inv-eq').onclick = e => { const sp = e.target.closest('[data-s]'); if (!sp) return; const sl = sp.dataset.s; if (sl === 'arma') setWeapon('palo'); else INV.eq[sl] = null; hud(); renderInv(); };
     const col = k => k && ITEMS[k] && ITEMS[k].r ? ' style="color:' + RAR[ITEMS[k].r][1] + '"' : '';
-    $('#inv-eq').innerHTML = [['arma', 'ARMA'], ['cabeza', 'CABEZA'], ['ropa', 'ROPA'], ['brazo', 'BRAZO'], ['pies', 'PIES'], ['acc1', 'ACC 1'], ['acc2', 'ACC 2'], ['luz', 'LUZ']].map(([s_, l_]) => { const ek = s_ === 'luz' ? (INV.eq.luz ? 'linterna' : null) : INV.eq[s_], src_ = ek && ICONS[ek] && ICONS[ek].src ? ICONS[ek].src : ''; return '<span data-s="' + s_ + '" class="' + (ek ? 'full' : '') + '"' + (ek && ITEMS[ek] && ITEMS[ek].r ? ' style="--rc:' + RAR[ITEMS[ek].r][1] + '"' : '') + '>' + (src_ ? '<img src="' + src_ + '" alt="">' : '') + '<u>' + l_ + '</u> <b' + col(INV.eq[s_]) + '>' + (s_ === 'luz' ? (INV.eq.luz ? 'Linterna ' + Math.ceil(INV.bat) + '%' : '—') : eqName(INV.eq[s_])) + (s_ === 'ropa' && INV.eq.ropa && ITEMS[INV.eq.ropa] ? ' ' + Math.ceil(INV.dur[INV.eq.ropa] != null ? INV.dur[INV.eq.ropa] : ITEMS[INV.eq.ropa].shield) : '') + '</b></span>'; }).join('');
+    $('#inv-eq').innerHTML = [['arma', 'ARMA'], ['cabeza', 'CABEZA'], ['ropa', 'ROPA'], ['brazo', 'MANOS'], ['pies', 'PIES'], ['acc1', 'ACC 1'], ['acc2', 'ACC 2'], ['luz', 'LUZ']].map(([s_, l_]) => { const ek = s_ === 'luz' ? (INV.eq.luz ? 'linterna' : null) : INV.eq[s_], src_ = ek && ICONS[ek] && ICONS[ek].src ? ICONS[ek].src : ''; return '<span data-s="' + s_ + '" class="' + (ek ? 'full' : '') + '"' + (ek && ITEMS[ek] && ITEMS[ek].r ? ' style="--rc:' + RAR[ITEMS[ek].r][1] + '"' : '') + '>' + (src_ ? '<img src="' + src_ + '" alt="">' : '') + '<u>' + l_ + '</u> <b' + col(INV.eq[s_]) + '>' + (s_ === 'luz' ? (INV.eq.luz ? 'Linterna ' + Math.ceil(INV.bat) + '%' : '—') : eqName(INV.eq[s_])) + (s_ === 'ropa' && INV.eq.ropa && ITEMS[INV.eq.ropa] ? ' ' + Math.ceil(INV.dur[INV.eq.ropa] != null ? INV.dur[INV.eq.ropa] : ITEMS[INV.eq.ropa].shield) : '') + '</b></span>'; }).join('');
     const box = $('#inv-slots'); box.innerHTML = ''; const keys = Object.keys(ITEMS).filter(k => hasItem(k));
     if (!keys.length) box.innerHTML = '<div class="empty">La mochila está vacía. Buscá cosas brillando en el piso.</div>';
     keys.sort((a, b) => TORD[tierOf(b)] - TORD[tierOf(a)]); keys.forEach(k => { const b = document.createElement('button'); b.setAttribute('aria-pressed', invSel === k); if (Object.values(INV.eq).includes(k)) b.classList.add('on'); if (ITEMS[k].r && ITEMS[k].r !== 'g') { b.style.borderColor = RAR[ITEMS[k].r][1]; b.style.boxShadow = 'inset 0 0 10px ' + RAR[ITEMS[k].r][1] + '66'; }
@@ -910,7 +932,7 @@
     if (!invSel || !hasItem(invSel)) { det.innerHTML = diario + '<p>Tocá un objeto para ver qué hace.</p>'; return; }
     const it = ITEMS[invSel]; let act = '';
     if (it.hab || it.act) act = '<button class="btn solid" data-a="' + (it.eq ? 'eq' : 'use') + '">' + (it.eq ? (Object.values(INV.eq).includes(invSel) ? 'SACAR' : 'EQUIPAR') : 'USAR') + '</button><button class="btn" data-a="h">' + ((INV.q || {}).hab === invSel ? 'SACAR DE HABILIDAD' : 'PONER EN HABILIDAD') + '</button>';
-    else if (it.use === 'heal' || it.use === 'venda' || it.use === 'kitsune' || it.use === 'furia' || it.use === 'comer' || it.use === 'jefe' || it.use === 'leer' || it.use === 'fumar' || it.use === 'vida' || it.use === 'radar' || it.use === 'volver' || it.use === 'forzar' || it.use === 'trampa' || it.use === 'antiveneno' || it.use === 'vendaq' || it.use === 'jeringa') { const sl = QUICK_HEAL.includes(it.use) ? 'cura' : 'esp', on = (INV.q || {})[sl] === invSel; act = '<button class="btn solid" data-a="use">USAR</button><button class="btn" data-a="q">' + (on ? 'SACAR DEL ACCESO RÁPIDO' : sl === 'cura' ? 'PONER EN CURA RÁPIDA' : 'PONER EN ESPECIAL RÁPIDO') + '</button>'; }
+    else if (it.use === 'heal' || it.use === 'venda' || it.use === 'kitsune' || it.use === 'furia' || it.use === 'comer' || it.use === 'comida' || it.use === 'jefe' || it.use === 'leer' || it.use === 'fumar' || it.use === 'vida' || it.use === 'radar' || it.use === 'volver' || it.use === 'forzar' || it.use === 'trampa' || it.use === 'antiveneno' || it.use === 'vendaq' || it.use === 'jeringa') { const sl = QUICK_HEAL.includes(it.use) ? 'cura' : 'esp', on = (INV.q || {})[sl] === invSel; act = '<button class="btn solid" data-a="use">USAR</button><button class="btn" data-a="q">' + (on ? 'SACAR DEL ACCESO RÁPIDO' : sl === 'cura' ? 'PONER EN CURA RÁPIDA' : 'PONER EN ESPECIAL RÁPIDO') + '</button>'; }
     if (it.use === 'pilas') act = '<button class="btn solid" data-a="use">CARGAR LINTERNA</button>';
     if (it.use === 'luz') act = '<button class="btn solid" data-a="use">' + (INV.eq.luz ? 'APAGAR' : 'PRENDER') + '</button><button class="btn" data-a="q">' + ((INV.q || {}).esp === invSel ? 'SACAR DEL ACCESO RÁPIDO' : 'PONER EN ESPECIAL RÁPIDO') + '</button>';
     if (it.eq && it.use !== 'luz' && !it.act) { const on = it.eq === 'acc' ? (INV.eq.acc1 === invSel || INV.eq.acc2 === invSel) : INV.eq[it.eq] === invSel; act = '<button class="btn solid" data-a="eq">' + (on ? (it.eq === 'arma' ? 'GUARDAR Y USAR EL PALO' : it.eq === 'luz' ? 'APAGAR' : 'SACAR') : (it.eq === 'luz' ? 'PRENDER' : it.eq === 'arma' ? 'TENER EN LA MANO' : 'EQUIPAR')) + '</button>'; }
@@ -924,6 +946,8 @@
       const pid = me.id.slice(0, 6) + Date.now(); pickups.push({ k, x: dx_, y: dy_, t: 0, pid, cool: 2.5 }); net('drop', { pid, k, x: Math.round(dx_), y: Math.round(dy_) }); SND.pick(); toast('Tiraste ' + it.n + '. Queda en el piso.'); renderInv(); quickBtns(); hud(); persist(); return; }
     if (a === 'use' && it.use === 'heal') { if (P.hp >= maxHp(lv)) return toast('Ya estás con la vida completa. Guardalo.'); P.hp = maxHp(lv); INV.items[k]--; SND.level(); toast(k === 'kit' ? 'Usaste el kit. Vida completa.' : 'Abriste el maletín. Vida completa.'); }
     if (a === 'use' && it.use === 'venda') { useVenda(k); renderInv(); return; }
+    if (a === 'use' && it.use === 'comida') { const lv_ = lvlOf(P.xp); if (it.hpU) { P.hp = Math.min(maxHp(lv_), P.hp + it.hpU); P.stam = 3; P.tired = false; } if (it.buf) P[it.buf] = it.T;
+      INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; SND.pick(); toast(it.n + ': ' + it.d); hud(); renderInv(); persist(); return; }
     if (a === 'use' && it.use === 'comer') { const lv_ = lvlOf(P.xp); if (P.hp >= maxHp(lv_)) return toast('No tenés hambre.'); P.hp = Math.min(maxHp(lv_), P.hp + 15); INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; SND.pick(); hud(); renderInv(); persist(); return; }
     if (a === 'use' && it.use === 'furia') { INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; closeInv(); P.furia = 10; SND.level(); buzz([60, 40, 120]); shake = .4; toast('FURIA · 10 segundos invencible y pegás el doble.'); persist(); return; }
     if (a === 'use' && it.use === 'kitsune') { closeInv(); useKitsune(); return; }
@@ -964,9 +988,13 @@
     const fx = { d: [0, 1], u: [0, -1], l: [-1, 0], r: [1, 0] }[P.dir], near = (r) => mobs.filter(m => m.hp > 0 && !m.T.passive && Math.hypot(m.x - P.x, m.y - P.y) < r).sort((a, b) => Math.hypot(a.x - P.x, a.y - P.y) - Math.hypot(b.x - P.x, b.y - P.y))[0];
     if (it.act === 'dormir') { const o = near(700); if (!o) return toast('No hay nadie cerca para dormir.'); mobFx(o, { stun: 5, k: 'zz' }); floats.push({ x: o.x, y: o.y - o.T.h - 20, t: 1.4, txt: 'Zzz', c: '#9fd8ff' }); SND.mob('whisper', .3); }
     else if (it.act === 'clon') { P.clone = { t: 5, x: P.x - (fx[0] || .7) * 90, y: P.y - (fx[1] || 0) * 60 + (fx[0] ? 0 : 40) }; floats.push({ x: P.x, y: P.y - 220, t: 1, txt: 'CLON', c: '#ffd890' }); SND.level(); }
+    else if (it.act === 'impulso') { P.bImp = 6; fxOnda(P.x, P.y - 90); toast('IMPULSO · 6 segundos.'); SND.level(); }
+    else if (it.act === 'fuerza') { P.bFz = 8; fxOnda(P.x, P.y - 90); toast('FUERZA · 8 segundos pegás 60% más.'); SND.level(); }
+    else if (it.act === 'energia') { const a0 = Math.atan2(fx[1] * .8, fx[0]); [-.22, 0, .22].forEach(da => shots.push({ x: P.x + fx[0] * 30, y: P.y - 95, vx: Math.cos(a0 + da) * 640, vy: Math.sin(a0 + da) * 640, life: 1, dmg: Math.max(1, playerDmg() * .7), tear: 1 })); SND.shot(); }
     else if (it.act === 'invis') { P.ghost = 999; P.gorro = 1; sendPos(true); toast('Desapareciste. Si pegás o te pegan, volvés a aparecer.'); SND.mob('whisper', .3); }
     else if (it.act === 'lagrima') { shots.push({ x: P.x + fx[0] * 30, y: P.y - 95, vx: fx[0] * 620, vy: fx[1] * 620 * .8, life: 1, dmg: Math.max(1, playerDmg() * .6), tear: 1, fx: { stun: 5, k: 'frz' } }); SND.shot(); }
     else if (it.act === 'una') { shots.push({ x: P.x + fx[0] * 30, y: P.y - 95, vx: fx[0] * 650, vy: fx[1] * 650 * .8, life: 1.1, dmg: playerDmg() * 1.3, fire: 1, heal: .08, fx: { dot: 5, dps: playerDmg() * .9, c: 'f' } }); SND.shot(); }
+    if (it.cargas) { if (INV.dur[k] == null) INV.dur[k] = it.cargas; INV.dur[k]--; if (INV.dur[k] <= 0) { delete INV.dur[k]; INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; if (!hasItem(k)) { if (INV.eq.acc1 === k) INV.eq.acc1 = null; if (INV.eq.acc2 === k) INV.eq.acc2 = null; } toast(it.n + ' se rompió.'); SND.hurt(); persist(); } else toast(it.n + ': quedan ' + INV.dur[k] + ' usos.'); }
     INV.habT[k] = Date.now() + it.cd * 1000; quickBtns(); }
   /* granadas y molotov: vuelan en arco y caen donde mirás */
   const throws = [], fireZones = [];
@@ -1173,6 +1201,7 @@
   const WALK4 = [1, 0, 2, 0];
   const walkPose = (wt, moving) => { if (!moving) return { fr: 0, bob: 0 }; const b = (wt || 0) / 1.3; return { fr: WALK4[(b | 0) % 4], bob: -Math.abs(Math.sin(b * Math.PI / 2)) * 3.4 }; };
   let LBL = []; const LBL_H = 15.5; /* nombres: se dibujan al final, a la altura de la cabeza */
+  const fxOnda = (x, y) => fx('onda', x, y, { w: 260, T: .4, grow: .5 });
   function fx(k, x, y, o) { if (fxs.length > 60) fxs.shift(); fxs.push(Object.assign({ k, x, y, t: 0, T: .3, ang: 0, s: 1, grow: .25, flip: false }, o || {})); }
   function drawFxImg(c, k, x, y, w, ang, alpha, flip) { if (!fxOk(k)) return false; const im = FXI[k], h = w * im.naturalHeight / im.naturalWidth; c.save(); c.globalAlpha = Math.max(0, Math.min(1, alpha)); c.translate(x, y); c.rotate(ang); if (flip) c.scale(1, -1); c.drawImage(im, -w / 2, -h / 2, w, h); c.restore(); return true; }
   function shotSprite(b) { if (b.enemy) return false; if (b.knife) return ['cuchillo', 70, 1]; if (b.tear) return ['hielo', 80, 1]; if (b.moco) return ['moco', 80, 1]; if (b.boom) return ['bola_fuego', 80, 0];
@@ -1249,7 +1278,7 @@
     Object.entries(w).forEach(([k, n]) => { let have = mobs.filter(o => o.kind === k).length; const wait = MOB[k].respawn || 12000;
       if (!lastDeath[k]) { while (have < n) { if (!spawnMob(k, 560)) break; have++; } lastDeath[k] = 1; }
       else if (have < n && now - lastDeath[k] > wait) spawnMob(k, 560); }); }
-  function mobHit(o, dmg, kx, ky, byId, lc) { if (!o || o.hp <= 0 || o.T.passive) return; if (o.T.ai === 'angel' && o.st !== 'strike' && !lc) return; /* La Quieta: quieta solo la lastiman lanza y cadena */ o.hp -= dmg; o.hurt = .2; o.hitters.add(byId); o.lastBy = byId; o.chasing = true;
+  function mobHit(o, dmg, kx, ky, byId, lc) { if (!o || o.hp <= 0 || o.T.passive) return; if (o.T.ai === 'angel' && o.st !== 'strike' && !lc) return; /* La Quieta: quieta solo la lastiman lanza y cadena */ o.hp -= dmg; o.hurt = .2; o.hitters.add(byId); o.lastBy = byId; o.lhT = performance.now(); o.chasing = true;
     if (!o.T.heavy) { o.wind = Math.max(0, o.wind - .12); const nx = o.x + kx, ny = o.y + ky; if (mobWalk(nx, ny)) { o.x = nx; o.y = ny; } }
     if (o.st === 'run') { o.st = 'rest'; o.stT = 1.1; } if (o.hp <= 0) killMob(o); }
   function hitMob(o, dmg, kx, ky, fx_) { if (o && o.T) { const hy = o.y - (o.T.h || 150) * .45; fxs.length < 60 && fxs.push({ k: 'chispa', x: o.x + rnd(-14, 14), y: hy, t: 0, T: .18, ang: rnd(0, 6), s: 1, grow: .4, w: 70 }); } const fx = fx_; if (o.T.passive) { floats.push({ x: o.x, y: o.y - o.T.h - 30, t: .7, txt: 'HABLALE', c: '#ffb0c8' }); return; } const lc = /^(lanza|cadena)/.test(curW()); if (o.T.ai === 'angel' && o.st !== 'strike' && !lc) { floats.push({ x: o.x, y: o.y - o.T.h - 30, t: .7, txt: 'NO SE DEJA', c: '#b8b2a8' }); return; } if (o.T.fac && o.T.fac === me.faction) { floats.push({ x: o.x, y: o.y - o.T.h - 30, t: .6, txt: 'ALIADO', c: '#8fd0ff' }); return; } if (INV.eq.luz && !o.T.human && Math.hypot(o.x - P.x, o.y - P.y) < 520) dmg = Math.round(dmg * 1.25); o.hurt = .2; floats.push({ x: o.x + rnd(-10, 10), y: o.y - o.T.h * .8, t: .8, txt: '-' + dmg, c: '#ffffff' });
@@ -1515,7 +1544,23 @@
   cv.addEventListener('pointerdown', joyStart); cv.addEventListener('pointermove', joyMove); addEventListener('pointermove', joyMove);
   addEventListener('pointerup', endJoy); addEventListener('pointercancel', endJoy); cv.addEventListener('lostpointercapture', endJoy); addEventListener('blur', () => endJoy()); document.addEventListener('visibilitychange', () => endJoy());
   addEventListener('resize', stickRest); setTimeout(stickRest, 0);
-  $('#btn-b').addEventListener('pointerdown', e => { e.preventDefault(); attack(); $('#btn-b').classList.add('on'); setTimeout(() => $('#btn-b').classList.remove('on'), 120); });
+  /* ataque cargado: mantené GOLPEAR un segundo y soltá (cuesta aire, cada 4 s) */
+  const HEAVY_W = ['martillo', 'bate', 'hacha', 'tubo', 'barra', 'palo'], LONG_W = ['lanza', 'cadena', 'baston'];
+  let chgT0 = 0; const chgReady = () => chgT0 && performance.now() - chgT0 > 850;
+  function charged() { if (!P || P.dead || paused || P.aturd > 0 || !INV) return; if ((P.chgCd || 0) > performance.now()) return toast('El ataque cargado vuelve en ' + Math.ceil((P.chgCd - performance.now()) / 1000) + ' s.');
+    if (P.stam < 1.2) return toast('Te falta aire para el ataque cargado.'); P.stam -= 1.2; P.chgCd = performance.now() + 4000;
+    const wk = curW(), W = WEAP[wk], b0 = baseOf(wk), fx_ = { d: [0, 1], u: [0, -1], l: [-1, 0], r: [1, 0] }[P.dir], dmg = playerDmg(); shake = Math.max(shake, .35); buzz([30, 30, 60]);
+    if (W.gun) { let n = 0; const go = () => { if (n++ >= 3 || P.dead || !gunReady(wk)) return; shoot(fx_, Math.round(dmg * 1.2), W); setTimeout(go, 110); }; go(); floats.push({ x: P.x, y: P.y - 210, t: .8, txt: 'RÁFAGA', c: '#ffd27a' }); return; }
+    let kind = 'giro', R = (W.range || 120) + 70, mul = 1.6, st = null; if (LONG_W.includes(b0)) { kind = 'estocada'; R = (W.range || 170) * 1.8; mul = 2; } else if (HEAVY_W.includes(b0)) { kind = 'piso'; R = 240; mul = 1.5; st = { stun: 2, k: 'para' }; }
+    floats.push({ x: P.x, y: P.y - 210, t: .8, txt: kind === 'giro' ? 'GIRO' : kind === 'estocada' ? 'ESTOCADA' : 'GOLPE AL PISO', c: '#ffd27a' });
+    if (kind === 'estocada') fx('estocada', P.x + fx_[0] * R * .5, P.y - 80 + fx_[1] * R * .4, { w: R, T: .35, flip: fx_[0] < 0 }); else fx(kind === 'piso' ? 'onda' : 'tajo_largo', P.x, P.y - (kind === 'piso' ? 20 : 80), { w: R * 2, T: .45, grow: .5 });
+    SND.swing(); P.atk = .3; P.wk = wk; sendPos(true);
+    mobs.slice().forEach(o => { if (o.vis < .5 || o.hp <= 0 || o.T.passive) return; const dx = o.x - P.x, dy = (o.y - P.y) * 1.3, d = Math.hypot(dx, dy); if (d > R) return;
+      if (kind === 'estocada') { const dot = (dx * fx_[0] + dy * fx_[1]) / (d || 1); if (dot < .7 && d > 40) return; }
+      const kb = o.T.heavy ? 0 : 40, ux = dx / (d || 1), uy = dy / (d || 1); hitMob(o, Math.round(dmg * mul), ux * kb, uy * kb, st); }); }
+  $('#btn-b').addEventListener('pointerup', () => { if (chgReady()) charged(); chgT0 = 0; P && (P.chg = 0); });
+  $('#btn-b').addEventListener('pointercancel', () => { chgT0 = 0; P && (P.chg = 0); });
+  $('#btn-b').addEventListener('pointerdown', e => { e.preventDefault(); chgT0 = performance.now(); attack(); $('#btn-b').classList.add('on'); setTimeout(() => $('#btn-b').classList.remove('on'), 120); });
   $('#btn-a').addEventListener('pointerdown', e => { e.preventDefault(); pressA(); });
   $('#btn-w').addEventListener('pointerdown', e => { e.preventDefault(); cycleWeapon(); });
   $('#btn-h').addEventListener('pointerdown', e => { e.preventDefault(); quickUse('cura'); });
@@ -1529,7 +1574,7 @@
   $('#btn-x').addEventListener('pointerdown', e => { e.preventDefault(); goGhost(); });
   /* tienda de Plaza de Mayo */
   const SHOP = [['kit', 100, 'Vida completa'], ['vendas', 3, 'Cura el 22% de tu vida (3 s)'], ['pilas', 2, 'Recargan la linterna'], ['lanza', 8, 'Llega lejos y atraviesa · 30 golpes'], ['kitsune', 10, 'Desaparecés 3 segundos · 2 usos'], ['ganzuas', 6, 'Abren un casillero · se gastan']];
-  let curShop = null; function openShop(n) { if (!n || !n.nm) n = npcsHere().find(x => x.act === 'shop' || x.shop); if (!n || P.dead) return; curShop = (n.shop ? n.shop.map(([k, p]) => [k, p, ITEMS[k].d]) : SHOP.slice()); [['venda_q', 6], ['antiveneno', 6], ['trampa', 12], ['fragmento', 45], ['balas', 6], ['cart_itaka', 9], ['cargador', 14], ['virotes', 8], ['molotov', 15], ['vendas_a', 8]].concat(n.k === 'rosa' ? [['jeringa', 30]] : []).concat(n.shop && n.shop.some(([k]) => ITEMS[k] && ITEMS[k].eq === 'arma' && WEAP[k] && WEAP[k].gun) ? [['metralleta', 110]] : []).forEach(([k, p]) => { if (!curShop.some(r => r[0] === k)) curShop.push([k, p, ITEMS[k].d]); });
+  let curShop = null; function openShop(n) { if (!n || !n.nm) n = npcsHere().find(x => x.act === 'shop' || x.shop); if (!n || P.dead) return; curShop = (n.shop ? n.shop.map(([k, p]) => [k, p, ITEMS[k].d]) : SHOP.slice()); [['venda_q', 6], ['antiveneno', 6], ['trampa', 12], ['fragmento', 45], ['balas', 6], ['cart_itaka', 9], ['cargador', 14], ['virotes', 8], ['molotov', 15], ['granada', 25], ['vendas_a', 8], ['mate', 8], ['alfajor', 6], ['empanada', 15], ['locro', 25]].concat(n.k === 'rosa' ? [['jeringa', 30]] : []).concat(n.shop && n.shop.some(([k]) => ITEMS[k] && ITEMS[k].eq === 'arma' && WEAP[k] && WEAP[k].gun) ? [['metralleta', 110]] : []).forEach(([k, p]) => { if (!curShop.some(r => r[0] === k)) curShop.push([k, p, ITEMS[k].d]); });
     $('#ov-shop h2').textContent = n.nm; $('#ov-shop p i').textContent = '"' + n.line + '"'; paused = true; $('#ov-shop').hidden = false; renderShop(); }
   const SELL = { metralleta: 20, trampa: 5, antiveneno: 3, venda_q: 3, pagina: 4, cigarrillo: 3, credencial: 6, receptor: 8, ganzuas: 6, filtro: 5, fragmento: 15, pista: 3, manzana: 2, pilas: 1, tarjeta: 10, expediente: 10, fusible: 4, radio: 6, cartucho: 10, canister: 10, contenedor: 8, energia: 8, mascara: 8, b_contencion: 12, b_resonancia: 12, campera: 5, chaleco: 10, armadura: 18, linterna: 4, cuchillo: 3, bate: 4, barra: 3, lanza: 6, pistola: 8, katana: 10, escopeta: 14, lanzallamas: 18, pista_ork: 4, pista_reb: 4 };
   const disc = () => (INV.descT || 0) > Date.now() ? .7 : 1;
@@ -1551,8 +1596,8 @@
       go.onclick = () => { addItem('vendas', 20); addItem(fire); addItem(melee); delete INV.dur[fire]; delete INV.dur[melee]; setWeapon(melee); INV.kitT = Date.now() + 15 * 60000; SND.level(); paused = false; $('#ov-shop').hidden = true; toast('Recibiste 20 vendas, ' + ITEMS[fire].n + ' y ' + ITEMS[melee].n + '.'); quickBtns(); hud(); persist(); }; box.appendChild(go); };
     draw(); }
   $('#shop-b').onclick = openShop; $('#shop-close').onclick = () => { paused = false; $('#ov-shop').hidden = true; };
-  const playerDmg = () => Math.round(Math.max(1, dmgOf(lvlOf(P.xp)) + (INV ? WEAP[curW()].dmg : 0) - (INV && INV.eq.brazo === 'b_contencion' ? 1 : 0)) * (P.furia > 0 ? 2 : 1) * (P.jefe > 0 ? 1.6 : 1) * (WEAP[curW()].mul || 1) * (1 + gearSum('dmg')) * (WEAP[curW()].gun ? 1 + gearSum('gdmg') : 1) * (gearSum('fauno') && P.running ? 2 : 1) * 10) / 10;
-  function attack() { if (!P || P.dead || paused || P.cd > 0) return; const wk = curW(), W = WEAP[wk], EI = ITEMS[wk] || {}; if (W.gun && !gunReady(wk)) return; P.atk = .3; P.cd = W.cd * (INV.ab.includes('rapido') ? .7 : 1); P.wk = wk;
+  const playerDmg = () => Math.round(Math.max(1, dmgOf(lvlOf(P.xp)) + (INV ? WEAP[curW()].dmg : 0) - (INV && eqHas('b_contencion') ? 1 : 0)) * (P.furia > 0 ? 2 : 1) * (P.jefe > 0 ? 1.6 : 1) * (P.bFuerza > 0 ? 1.25 : 1) * (P.bFz > 0 ? 1.6 : 1) * (WEAP[curW()].gun ? 1 : 1 + gearSum('mdmg')) * (WEAP[curW()].mul || 1) * (1 + gearSum('dmg')) * (WEAP[curW()].gun ? 1 + gearSum('gdmg') : 1) * (gearSum('fauno') && P.running ? 2 : 1) * 10) / 10;
+  function attack() { if (!P || P.dead || paused || P.cd > 0 || P.aturd > 0) return; const wk = curW(), W = WEAP[wk], EI = ITEMS[wk] || {}; if (W.gun && !gunReady(wk)) return; P.atk = .3; P.cd = W.cd * (INV.ab.includes('rapido') ? .7 : 1); P.wk = wk;
     if (P.gorro) { P.gorro = 0; P.ghost = 0; }
     const fx = { d: [0, 1], u: [0, -1], l: [-1, 0], r: [1, 0] }[P.dir], dmg = playerDmg(), range = W.range; let hitAny = false; const hitList = [];
     if (MAP.mvp && mvpObjs.length) hitObjs(W.gun ? 300 : range);
@@ -1652,18 +1697,19 @@
     // jugador
     let ix = joy.dx, iy = joy.dy;
     if (keys.arrowleft || keys.a) ix = -1; if (keys.arrowright || keys.d) ix = 1; if (keys.arrowup || keys.w) iy = -1; if (keys.arrowdown || keys.s) iy = 1;
-    if (paused) { ix = iy = 0; } const mag = Math.hypot(ix, iy); P.mv = !P.dead && mag > .08;
+    if (paused || P.aturd > 0) { ix = iy = 0; } const mag = Math.hypot(ix, iy); P.mv = !P.dead && mag > .08;
     const wantRun = (runHeld || keys.shift) && P.mv && !P.tired && P.stam > 0; P.running = wantRun;
-    if (wantRun) { P.stam = Math.max(0, P.stam - dt); if (P.stam <= 0) { P.tired = true; toast('Te cansaste. Esperá a recuperar el aire.'); } } else { P.stam = Math.min(3, P.stam + dt * .55); if (P.stam >= 3) P.tired = false; }
+    if (wantRun) { P.stam = Math.max(0, P.stam - dt); if (P.stam <= 0) { P.tired = true; toast('Te cansaste. Esperá a recuperar el aire.'); } } else { P.stam = Math.min(3, P.stam + dt * .55 * (1 + gearSum('stamR')) * (P.bAire > 0 ? 2 : 1)); if (P.stam >= 3) P.tired = false; }
     const sb_ = $('#h-st'); if (sb_) { sb_.style.width = (P.stam / 3 * 100) + '%'; sb_.style.background = P.tired ? '#7a3a34' : ''; }
-    if (P.mv) { const sp = 175 * Math.min(1, mag) * (P.slow > 0 ? .45 : 1) * (P.fast > 0 ? (P.potion ? 1.6 : 1.3) : 1) * (1 + gearSum('spd')) * (P.smoke > 0 ? .75 : 1) * (wantRun ? (me.faction === 'rebel' ? 1.9 : 1.65) : 1); const vx = ix / mag * sp * dt, vy = iy / mag * sp * dt;
+    if (P.mv) { const sp = 175 * Math.min(1, mag) * (P.slow > 0 ? .45 : 1) * (P.fast > 0 ? (P.potion ? 1.6 : 1.3) : 1) * (1 + gearSum('spd')) * (P.smoke > 0 ? .75 : 1) * (P.bImp > 0 ? 1.45 : 1) * (wantRun ? (me.faction === 'rebel' ? 1.9 : 1.65) : 1); const vx = ix / mag * sp * dt, vy = iy / mag * sp * dt;
       if (walkable(P.x + vx, P.y)) P.x += vx; if (walkable(P.x, P.y + vy)) P.y += vy;
       P.dir = Math.abs(ix) > Math.abs(iy) ? (ix < 0 ? 'l' : 'r') : (iy < 0 ? 'u' : 'd'); if (Math.abs(ix) > .2) P.face = ix < 0 ? -1 : 1;
       P.walkT += dt * 9 * Math.min(1, mag) * (wantRun ? 1.6 : 1); P.stepT -= dt; if (P.stepT <= 0) { P.stepT = wantRun ? .22 : .36; SND.step(); } if (wantRun && Math.random() < .5) parts.push({ x: P.x + rnd(-14, 14), y: P.y - rnd(0, 10), vx: rnd(-30, 30), vy: rnd(-30, -5), life: .4, s: rnd(2, 4), c: 120 }); }
     P.atk = Math.max(0, P.atk - dt); P.cd = Math.max(0, P.cd - dt); P.hurtT = Math.max(0, P.hurtT - dt); P.inv = Math.max(0, P.inv - dt); if (P.sayT > 0) P.sayT -= dt;
-    if (P.furia > 0) { P.furia -= dt; if ((t % .2) < dt) parts.push({ x: P.x + rnd(-20, 20), y: P.y - rnd(40, 160), vx: 0, vy: -60, life: .5, s: 4, c: 200, fire: 1 }); if (P.furia <= 0) { P.furia = 0; P.hp = Math.min(P.hp, 10); SND.hurt(); toast('La furia se terminó. Quedaste agotado: 10 de vida.'); hud(); } }
+    if (P.furia > 0) { P.furia -= dt; if ((t % .2) < dt) parts.push({ x: P.x + rnd(-20, 20), y: P.y - rnd(40, 160), vx: 0, vy: -60, life: .5, s: 4, c: 200, fire: 1 }); if (P.furia <= 0) { P.furia = 0; P.aturd = 2.5; fx('onda', P.x, P.y - 110, { w: 320, T: .5, grow: .5 }); SND.hurt(); buzz([80, 40, 80]); toast('La furia se terminó. Quedaste aturdido unos segundos.'); hud(); } }
     if (P.jefe > 0) { P.jefe -= dt; if ((t % .25) < dt) parts.push({ x: P.x + rnd(-24, 24), y: P.y - rnd(30, 180), vx: 0, vy: -50, life: .6, s: 4, c: 200, fire: 1 }); if (P.jefe <= 0) { P.jefe = 0; P.hp = Math.min(P.hp, maxHp(lvlOf(P.xp))); toast('El poder de jefe se apagó.'); hud(); } }
-    if (P.slow > 0) P.slow -= dt; if (P.stunT > 0) P.stunT -= dt; if (P.fast > 0) P.fast -= dt; if (P.smoke > 0) P.smoke -= dt;
+    if (P.slow > 0) P.slow -= dt; if (P.stunT > 0) P.stunT -= dt; ['bAire', 'bFuerza', 'bRes', 'bImp', 'bFz'].forEach(b_ => { if (P[b_] > 0) P[b_] -= dt; }); { const rs = gearSum('res'); if (rs) { if (P.poison > 0) P.poison -= dt * rs; if (P.burn > 0) P.burn -= dt * rs; if (P.slow > 0) P.slow -= dt * rs; if (P.stunT > 0) P.stunT -= dt * rs; } }
+    if (chgReady() && (t % .12) < dt) parts.push({ x: P.x + rnd(-30, 30), y: P.y - rnd(20, 150), vx: 0, vy: -50, life: .4, s: 3, c: 45, fire: 1 }); if (P.bImp > 0) { P.stam = 3; P.tired = false; } if (P.aturd > 0) { P.aturd -= dt; if ((t % .25) < dt) parts.push({ x: P.x + rnd(-22, 22), y: P.y - rnd(150, 175), vx: rnd(-30, 30), vy: -10, life: .4, s: 4, c: 50 }); } if (P.fast > 0) P.fast -= dt; if (P.smoke > 0) P.smoke -= dt;
     if (P.burn > 0 && !P.dead) { P.burn -= dt; P.dotT = (P.dotT || 0) + dt; if (Math.random() < dt * 8) parts.push({ x: P.x + rnd(-18, 18), y: P.y - rnd(20, 150), vx: rnd(-10, 10), vy: -60, life: .5, s: 4, c: 200, fire: 1 }); }
     if (P.poison > 0 && !P.dead) { P.poison -= dt; P.dotT = (P.dotT || 0) + dt; if (Math.random() < dt * 4) parts.push({ x: P.x + rnd(-14, 14), y: P.y - rnd(40, 150), vx: 0, vy: -30, life: .7, s: 3, c: 120 }); }
     if ((P.burn > 0 || P.poison > 0) && P.dotT >= 1 && !P.dead) { P.dotT = 0; const dd = (P.burn > 0 ? 3 : 0) + (P.poison > 0 ? (P.poisonK || 2) : 0); if (!(P.poison > 1)) P.poisonK = 0; P.hp -= dd; floats.push({ x: P.x, y: P.y - 200, t: .7, txt: (P.burn > 0 ? 'QUEMADO ' : '') + (P.poison > 0 ? 'VENENO ' : '') + '-' + dd, c: P.burn > 0 ? '#ff9a50' : '#9fe070' }); hud(); if (P.hp <= 0) { P.hp = 1; hitPlayer(999, null, 0, null, P.burn > 0 ? 'incinerario' : 'insecto'); } }
@@ -1696,7 +1742,7 @@
         if (o.vis > .5 && Math.random() < dt * 5) parts.push({ x: o.x + rnd(-.25, .25) * o.T.pw * PXS, y: o.y - rnd(.2, .9) * o.T.h, vx: rnd(5, 25), vy: rnd(-40, -15), life: rnd(.8, 1.6), s: rnd(1.5, 3.5), c: 30 }); });
     } else {
     maintT -= dt; if (maintT <= 0) { maintT = 3; maintainMobs(); }
-    const sightMul = (INV.eq.brazo === 'b_resonancia' ? 1.4 : 1) * (INV.eq.luz && MAP.dark > .45 ? 1.2 : 1);
+    const sightMul = (eqHas('b_resonancia') ? 1.4 : 1) * (1 - Math.min(.5, gearSum('sneak'))) * (INV.eq.luz && MAP.dark > .45 ? 1.2 : 1);
     // jugadores que los Oscuros pueden atacar
     const PLS = [{ id: me.id, me: true, fac: me.faction, x: P.x, y: P.y, ok: !P.dead && P.inv <= 0 && !(P.ghost > 0) && !pSafe, sm: sightMul, mv: P.mv }];
     others.forEach((o, id) => PLS.push({ id, me: false, fac: o.fac, x: o.x, y: o.y, ok: !o.dead && !o.iv && !inSafe(o.x, o.y), sm: 1, mv: o.mv }));
@@ -1710,9 +1756,23 @@
     function blinkTo(o, tg, near, minFar) { let p = null; if (near && tg) for (let k = 0; k < 25 && !p; k++) { const a = Math.random() * 6.283, r = rnd(110, 190), nx = tg.x + Math.cos(a) * r, ny = tg.y + Math.sin(a) * r * .7; if (mobWalk(nx, ny)) p = [nx, ny]; }
       if (!p) { if (tg && minFar) { for (let k = 0; k < 40 && !p; k++) { const q = randomMobCell(0); if (q && Math.hypot(q[0] - tg.x, q[1] - tg.y) > minFar) p = q; } } if (!p) p = randomMobCell(500); }
       if (p) { for (let i = 0; i < 18; i++) parts.push({ x: o.x + rnd(-20, 20), y: o.y - rnd(0, o.T.h), vx: rnd(-40, 40), vy: rnd(-60, -10), life: rnd(.4, .9), s: rnd(2, 5), c: 20 }); o.x = p[0]; o.y = p[1]; } }
+    /* bichos de bando (drones/robots ORK, palomas/perros rebeldes) atacan al enemigo que está golpeando un jugador de su bando */
+    function facHelp(o, T, dt, PLS) { const now = performance.now();
+      let em = o.helpId && mobs.find(m => m.id === o.helpId && m.hp > 0 && now - (m.lhT || 0) < 7000);
+      if (!em) { em = mobs.filter(m => m !== o && m.hp > 0 && !m.T.passive && !m.cl && !m.T.npc && m.T.fac !== T.fac && now - (m.lhT || 0) < 5000 && Math.hypot(m.x - o.x, m.y - o.y) < 620 && PLS.some(p => p.id === m.lastBy && p.fac === T.fac))
+          .sort((a, b) => Math.hypot(a.x - o.x, a.y - o.y) - Math.hypot(b.x - o.x, b.y - o.y))[0]; o.helpId = em ? em.id : null; }
+      if (!em) return false;
+      const dx = em.x - o.x, dy = em.y - o.y, d = Math.hypot(dx, dy) || 1, rch = Math.max(90, (T.reach || 70) + 30), shooter = !!T.shot;
+      o.face = dx < 0 ? -1 : 1; o.chasing = false;
+      if (d > (shooter ? 330 : rch)) { const st = Math.min(d, (T.sp || 200) * .85 * dt), nx = o.x + dx / d * st, ny = o.y + dy / d * st; if (mobWalk(nx, ny)) { o.x = nx; o.y = ny; } else if (mobWalk(nx, o.y)) o.x = nx; else if (mobWalk(o.x, ny)) o.y = ny; o.moving = true; }
+      else { o.moving = false; o.hcd = (o.hcd || 0) - dt; if (o.hcd <= 0) { o.hcd = 1.1; o.lunge = 1; const lv = (MAP.lv || [1, 3])[1], dmg = Math.round((8 + lv * 1.4) * (em.T.boss ? .5 : 1));
+          fx(shooter ? 'bala' : ['tajo_corto', 'impacto'][(Math.random() * 2) | 0], em.x, em.y - (em.T.h || 120) * .5, { w: 120, T: .3, flip: dx < 0 });
+          floats.push({ x: em.x, y: em.y - (em.T.h || 150) * .8, t: .7, txt: '-' + dmg, c: '#9fe0ff' }); const by = em.lastBy; mobHit(em, dmg, dx > 0 ? 14 : -14, 0, by); } }
+      o.t += dt; o.hurt = Math.max(0, o.hurt - dt); o.lunge = Math.max(0, o.lunge - dt * 3); return true; }
     mobs.slice().forEach(o => { const T = o.T; if (mobStatus(o, dt)) { o.t += dt; o.hurt = Math.max(0, o.hurt - dt); return; } if (T.ai === 'mvp') { mvpAI(o, dt, live, strikeOn); return; } o.t += dt; o.alpha = Math.min(1, o.alpha + dt * .8); o.hurt = Math.max(0, o.hurt - dt); o.cd = Math.max(0, o.cd - dt); o.lunge = Math.max(0, o.lunge - dt * 3); o.stT -= dt; o.ab -= dt; o.shotT -= dt;
       // objetivo: el jugador vivo más cercano que lo pueda ver
       let tg = null, best = 1e9; live.forEach(p => { if (T.fac && p.fac === T.fac) return; const d = Math.hypot(p.x - o.x, p.y - o.y); if (d < T.sight * p.sm * (o.chasing ? 1.4 : 1) && d < best) { best = d; tg = p; } });
+      if (T.fac && !T.boss && !T.passive && facHelp(o, T, dt, PLS)) return;
       if (T.eyes && (INV.eq.luz || (tg && tg.me && INV.eq.luz))) { o.vis = Math.max(0, o.vis - dt * 2.5); if (o.vis <= 0) { const ii = mobs.indexOf(o); if (ii >= 0) mobs.splice(ii, 1); lastDeath[o.kind] = Date.now(); return; } tg = null; }
       if (T.passive) tg = null;
       if (o.give > 0) { o.give -= dt; tg = null; }
@@ -1979,7 +2039,7 @@
     const dw = dark.width, dh = dark.height; dg.globalCompositeOperation = 'source-over'; dg.clearRect(0, 0, dw, dh); dg.fillStyle = 'rgba(4,4,8,' + Math.min(.9, (MAP.dark || .5) * ((MAP.dark || .5) >= .42 && !INV.eq.luz ? 1.75 : 1)) + ')'; dg.fillRect(0, 0, dw, dh);
     dg.globalCompositeOperation = 'destination-out';
     const hole = (x, y, r, a) => { const gg = dg.createRadialGradient(x / 2, y / 2, 0, x / 2, y / 2, r / 2); gg.addColorStop(0, 'rgba(0,0,0,' + a + ')'); gg.addColorStop(1, 'rgba(0,0,0,0)'); dg.fillStyle = gg; dg.fillRect(x / 2 - r / 2, y / 2 - r / 2, r, r); };
-    const [px_, py_] = W2S(P.x, P.y - 80); hole(px_, py_, (INV.eq.luz ? 980 : (MAP.dark || .4) >= .42 ? 300 : 520) * zoom, .97); if (MAP.fire) hole(fx, fy, 520 * zoom * fl, 1);
+    const [px_, py_] = W2S(P.x, P.y - 80); hole(px_, py_, (INV.eq.luz ? 980 : ((MAP.dark || .4) >= .42 ? 300 : 520) * (1 + gearSum('vis'))) * zoom, .97); if (MAP.fire) hole(fx, fy, 520 * zoom * fl, 1);
     others.forEach(o => { const [ox, oy] = W2S(o.x, o.y - 80); hole(ox, oy, 280 * zoom, .7); });
     c.drawImage(dark, 0, 0, VW, VH);
     mobs.forEach(o => { if (!o.T.eyes) return; const [ex_, ey_] = W2S(o.x + (o.lunge > 0 ? o.face * 20 * o.lunge : 0), o.y - o.T.h * .82); const blink = Math.sin(o.t * 1.7 + o.x) > .97 ? .15 : 1, a_ = o.alpha * o.vis * blink, gap = 13 * zoom, r_ = 5 * zoom;
