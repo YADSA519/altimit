@@ -40,8 +40,9 @@ body.cine #st-dlg{display:block}
 #pz .keys{display:grid;grid-template-columns:repeat(5,52px);gap:6px;justify-content:center}
 #pz button{font-family:Bebas,sans-serif;font-size:22px;letter-spacing:.1em;color:#f1efe9;background:#2a2620;border:1px solid #5a4d36;border-radius:6px;height:44px;cursor:pointer}
 #pz .row{display:flex;gap:10px;justify-content:center;margin-top:12px}
-#pz .wires{display:grid;grid-template-columns:84px 110px 84px;gap:12px 0;align-items:center;justify-content:center}
-#pz .wb{height:48px;border-radius:24px;border:3px solid #000;touch-action:none}
+#pz .wires{position:relative;display:grid;grid-template-columns:84px 110px 84px;gap:12px 0;align-items:center;justify-content:center}
+#pz .wsvg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+#pz .wb{position:relative;z-index:1;height:48px;border-radius:24px;border:3px solid #000;touch-action:none}
 #pz .wb.sel{outline:4px solid #fff;box-shadow:0 0 18px #fff}
 #pz .wb.ok{opacity:.35}
 #pz .ln{height:4px;border-radius:2px}
@@ -150,12 +151,14 @@ body.cine #st-dlg{display:block}
       if (o.i === p.hit || p.done.length >= 3) { if (step.give) Object.entries(step.give).forEach(([k, c]) => A.addItem(k, c)); return pzWin(); }
       if (Math.random() < .5) { const q = randomAround(300, 600); if (q) A.spawnMob(['errante', 'rastrero', 'oscura'][rnd(3)], q[0], q[1]); return A.toast('Nada... y algo se movió atrás tuyo.'); } return A.toast(['Nada. Polvo y vidrios.', 'Vacío. Alguien pasó antes.', 'Solo trapos viejos.'][rnd(3)]); }
     if (t === 'cables') { const right = [0, 1, 2].sort(() => Math.random() - .5); let sel = null; const okd = [];
-      const b = pzBox('<h3>' + (step.lock || 'TABLERO') + '</h3><p>Tocá un cable y después el borne del mismo color (en cualquier orden).</p><div class="wires">' + [0, 1, 2].map(r => '<div class="wb" data-s="L" data-c="' + r + '" style="background:' + COLS[r][1] + '"></div><div class="ln" data-ln="' + r + '"></div><div class="wb" data-s="R" data-c="' + right[r] + '" style="background:' + COLS[right[r]][1] + '"></div>').join('') + '</div><div class="row"><button data-x="c">SALIR</button></div>');
+      const b = pzBox('<h3>' + (step.lock || 'TABLERO') + '</h3><p>Tocá un cable y después el borne del mismo color (en cualquier orden).</p><div class="wires">' + [0, 1, 2].map(r => '<div class="wb" data-s="L" data-c="' + r + '" style="background:' + COLS[r][1] + '"></div><div class="ln" data-ln="' + r + '"></div><div class="wb" data-s="R" data-c="' + right[r] + '" style="background:' + COLS[right[r]][1] + '"></div>').join('') + '<svg class="wsvg"></svg></div><div class="row"><button data-x="c">SALIR</button></div>');
       const tap = (el, fn) => el.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); fn(); });
       const clear = () => b.querySelectorAll('.wb').forEach(y => y.classList.remove('sel'));
       b.querySelectorAll('.wb').forEach(x => tap(x, () => { const c = +x.dataset.c, sd = x.dataset.s; if (okd.includes(c)) return;
         if (!sel || sel.s === sd) { clear(); x.classList.add('sel'); sel = { s: sd, c, el: x }; return; }
-        if (sel.c === c) { okd.push(c); sel.el.classList.add('ok'); x.classList.add('ok'); const li = b.querySelector('[data-s="L"][data-c="' + c + '"]'); const row = [...b.querySelectorAll('[data-s="L"]')].indexOf(li); b.querySelector('[data-ln="' + row + '"]').style.background = COLS[c][1]; A.SND && A.SND.pick && A.SND.pick(); if (okd.length === 3) setTimeout(() => { pzClose(); pzWin(); }, 500); }
+        if (sel.c === c) { okd.push(c); sel.el.classList.add('ok'); x.classList.add('ok'); /* el cable va de verdad del borne izquierdo al derecho del mismo color (antes se dibujaba recto y parecía que unía cualquiera) */
+          const W_ = b.querySelector('.wires'), sv = W_.querySelector('.wsvg'), wr = W_.getBoundingClientRect(), li = b.querySelector('[data-s="L"][data-c="' + c + '"]').getBoundingClientRect(), ri = b.querySelector('[data-s="R"][data-c="' + c + '"]').getBoundingClientRect();
+          sv.insertAdjacentHTML('beforeend', '<line x1="' + (li.right - wr.left - 4) + '" y1="' + (li.top + li.height / 2 - wr.top) + '" x2="' + (ri.left - wr.left + 4) + '" y2="' + (ri.top + ri.height / 2 - wr.top) + '" stroke="' + COLS[c][1] + '" stroke-width="7" stroke-linecap="round"/>'); A.SND && A.SND.pick && A.SND.pick(); if (okd.length === 3) setTimeout(() => { pzClose(); pzWin(); }, 500); }
         else { A.toast('Chispazo. Ese no va ahí.'); A.buzz && A.buzz(60); }
         sel = null; clear(); }));
       tap(b.querySelector('[data-x=c]'), pzClose); } }
