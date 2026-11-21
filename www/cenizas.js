@@ -303,10 +303,10 @@
   if (MAPS.plazaMayo && !EXP) MAPS.plazaMayo.safeFac = 'rebel'; /* Plaza de Mayo: segura para rebeldes; para ORK hay palomas y perros policía */
   if (!EXP) Object.entries(SPECIAL_AT).forEach(([k, add]) => { const m = MAPS[k]; if (m) m.mobs = Object.assign({}, m.mobs || {}, add); });
   const LOOT_T = {
-    bajo: [['pilas', 3], ['campera', 1.2], ['V', 2.2], ['linterna', 1], ['W', .8], ['C', .4], ['M', .5], ['X', .25], ['P', .25], ['A', .2], ['pista', .5]],
-    medio: [['pilas', 2], ['campera', 1], ['C', .8], ['V', 2], ['W', .8], ['G', .18], ['M', .8], ['X', .4], ['P', .35], ['A', .35], ['mascara', .6], ['pista', .6]],
-    alto: [['C', 1.1], ['armadura', .4], ['V', 2], ['W', .8], ['G', .3], ['M', 1], ['X', .5], ['P', .4], ['A', .5], ['b_contencion', .3], ['b_resonancia', .3], ['pista', .7]],
-    pvp: [['V', 2], ['campera', 1], ['W', .7], ['G', .12], ['M', .4], ['X', .4], ['pista', 1.4]],
+    bajo: [['pilas', 3], ['campera', 1.2], ['V', 2.2], ['linterna', 1], ['W', 1.6], ['C', .4], ['M', .5], ['X', .25], ['P', .25], ['A', .2], ['pista', .5]],
+    medio: [['pilas', 2], ['campera', 1], ['C', .8], ['V', 2], ['W', 1.6], ['G', .18], ['M', .8], ['X', .4], ['P', .35], ['A', .35], ['mascara', .6], ['pista', .6]],
+    alto: [['C', 1.1], ['armadura', .4], ['V', 2], ['W', 1.6], ['G', .3], ['M', 1], ['X', .5], ['P', .4], ['A', .5], ['b_contencion', .3], ['b_resonancia', .3], ['pista', .7]],
+    pvp: [['V', 2], ['campera', 1], ['W', 1.4], ['G', .12], ['M', .4], ['X', .4], ['pista', 1.4]],
     refugio: [['vendas', 1.5], ['pilas', 1]] };
   Object.values(LOOT_T).forEach(l => l.push(['cigarrillo', .6], ['manzana', .6]));
   const LOOT = {}; Object.entries(MAPS).forEach(([k, m]) => { const top = (m.lv || [1, 3])[1]; LOOT[k] = EXP ? LOOT_T.pvp : m.safeAll ? LOOT_T.refugio : top <= 14 ? LOOT_T.bajo : top <= 30 ? LOOT_T.medio : LOOT_T.alto; });
@@ -550,7 +550,20 @@
   function placeCaps() { if (!grid || EXP || !CAPS_MAPS.includes(mapKey)) return; const r = seeded(hashStr(mapKey) * 17 + 3); let tries = 0, n = 0;
     while (n < 1 && tries++ < 4000) { const c = (r() * grid.length) | 0; if (!grid[c]) continue; const x = (c % GW + .5) * CW, y = (((c / GW) | 0) + .5) * CW; if ([1, -1, GW, -GW].filter(d => grid[c + d]).length < 4) continue;
       if (Math.hypot(x - MAP.spawn[0] * WS, y - MAP.spawn[1] * WS) < 400) continue; CAS.push({ obj: true, caps: true, k: 'capsula', id: 'caps:' + mapKey, nm: 'CÁPSULA', x: x / WS, y: y / WS }); n++; } }
-  function placeCas() { CAS = []; placeCaps(); if (!grid || MAP.safeAll || MAP.base || EXP || hashStr(mapKey) % 2) return; const r = seeded(hashStr(mapKey) * 31 + 7); let tries = 0;
+  /* BOTÍN: mochilas, maletines y cápsulas tirados por el mapa (cambian de lugar cada día, cada uno se abre una vez por día por jugador) */
+  const BOT_IMG = { mochila: 'mochila', maletin: 'maletin', capsula_b: 'capsula_chica' }; /* si existe la imagen propia la usa; si no, caja / cápsula */
+  const BOTIN = [['mochila', 'MOCHILA', 'caja'], ['maletin', 'MALETÍN', 'caja'], ['capsula_b', 'CÁPSULA', 'capsula']];
+  function placeBotin() { if (!grid || EXP || MAP.base || MAP.safeAll || MAP.mvp) return; const d = dayN(), r = seeded(hashStr(mapKey + ':bot:' + d)); const n = 2 + ((r() * 2) | 0); let tries = 0, k = 0;
+    while (k < n && tries++ < 6000) { const c = (r() * grid.length) | 0; if (!grid[c]) continue; const x = (c % GW + .5) * CW, y = (((c / GW) | 0) + .5) * CW; if ([1, -1, GW, -GW].filter(dd => grid[c + dd]).length < 4) continue;
+      if (Math.hypot(x - MAP.spawn[0] * WS, y - MAP.spawn[1] * WS) < 300 || CAS.some(o => Math.hypot(o.x * WS - x, o.y * WS - y) < 500)) continue;
+      const t = BOTIN[(k + (d % 3)) % BOTIN.length]; CAS.push({ obj: true, bot: t[0], k: t[2], id: 'bot:' + mapKey + ':' + k, nm: t[1], x: x / WS, y: y / WS }); k++; } }
+  function openBotin(n) { INV.cas = INV.cas || {}; if (INV.cas[n.id] === dayN()) return toast('Ya lo revisaste. Mañana puede haber otro.');
+    INV.cas[n.id] = dayN(); const got = [], add = k => { const g = takeItem(k); if (g) got.push(ITEMS[g].n); };
+    if (n.bot === 'mochila') { add(pickW([['vendas', 3], ['venda_q', 2], ['vendas_a', 1]])); if (Math.random() < .5) add(resolveLoot('W')); if (Math.random() < .3) add(pickW([['manzana', 2], ['cigarrillo', 1], ['pilas', 1]])); }
+    else if (n.bot === 'maletin') { add(resolveLoot('W')); add(pickW([['vendas', 2], ['vendas_a', 1.2], ['antiveneno', 1]])); if (Math.random() < .35) add(pickW([['balas', 2], ['cargador', 1], ['cart_itaka', 1], ['molotov', 1], ['granada', .6]])); }
+    else { if (Math.random() < 2 / 3) add('jeringa'); else add(pickW([['vendas_a', 2], ['venda_q', 1]])); if (Math.random() < .25) add(pickW([['vendas', 2], ['antiveneno', 1]])); }
+    SND.pick(); buzz(30); toast(got.length ? n.nm.charAt(0) + n.nm.slice(1).toLowerCase() + ': ' + got.join(', ') + '.' : 'Estaba vacío.'); quickBtns(); persist(); }
+  function placeCas() { CAS = []; placeCaps(); placeBotin(); if (!grid || MAP.safeAll || MAP.base || EXP || hashStr(mapKey) % 2) return; const r = seeded(hashStr(mapKey) * 31 + 7); let tries = 0;
     while (CAS.length < 1 && tries++ < 4000) { const c = (r() * grid.length) | 0; if (!grid[c]) continue; const x = (c % GW + .5) * CW, y = (((c / GW) | 0) + .5) * CW; if (inSafe(x, y) || CAS.some(o => Math.hypot(o.x * WS - x, o.y * WS - y) < 900)) continue;
       const nb = [1, -1, GW, -GW].filter(d => grid[c + d]).length; if (nb < 4) continue; CAS.push({ obj: true, cas: true, k: 'cas_' + mapKey + CAS.length, id: mapKey + ':' + CAS.length, nm: 'CASILLERO', x: x / WS, y: y / WS }); } }
   function nearCasillero() { const o = CAS.find(o => Math.hypot(o.x * WS - P.x, (o.y * WS - P.y) * 1.2) < 170); if (!o) return null; return { id: o.id, open: !!(INV.cas && INV.cas[o.id] === dayN()) }; }
@@ -668,7 +681,7 @@
     if (STORY && window.CZ_STORY) CZ_STORY.init(API);
   }
   let yuki = null; const hordeSeen = {}, yukiSaid = {};
-  function yukiPlan() { const sl = (minOfDay() / 360) | 0, d = dayN() * 4 + sl, r = seeded(d * 7919 + 13), ks = Object.keys(MAPS).filter(k => !MAPS[k].safeAll && !MAPS[k].base && !MAPS[k].mvp); return { day: d, map: ks[(r() * ks.length) | 0], start: sl * 360 + ((r() * (360 - 120)) | 0) }; } /* Yuki: 4 veces por día, 2 horas cada vez */
+  function yukiPlan() { const sl = (minOfDay() / 180) | 0, d = dayN() * 8 + sl, r = seeded(d * 7919 + 13), ks = Object.keys(MAPS).filter(k => !MAPS[k].safeAll && !MAPS[k].base && !MAPS[k].mvp); return { day: d, map: ks[(r() * ks.length) | 0], start: sl * 180 + ((r() * 60) | 0) }; } /* Yuki: 8 veces por día (cada 3 horas), 2 horas cada vez */
   function worldTick() { if (!running || !MAP) return; if (EXP) return;
     const hk = mapKey + dayN() + (minOfDay() / 6 | 0); if (hordeOn(mapKey) && !hordeSeen[hk]) { hordeSeen[hk] = 1; toast('¡HORDA DE OSCUROS en ' + MAP.name.toLowerCase() + '!'); SND.zone(); }
     const y = yukiPlan(), now = minOfDay(), active = now >= y.start && now < y.start + 120;
@@ -1210,7 +1223,7 @@
     if (T.fac && T.fac !== me.faction) { const rj = Math.random(); if (rj < .04) spawnPickup('jeringa_max', [p.x - 30, p.y + 10]); else if (rj < .3) spawnPickup('jeringa', [p.x - 30, p.y + 10]); } /* vacunas: las tiran los del otro bando */
     if (T.boss && !T.mvp) { const n_ = T.world ? 3 : 2; for (let j = 0; j < n_; j++) spawnPickup(pickW([['W', 3], ['C', 2], ['A', 2], ['G', 1], ['V', 1.5], ['P', 1], ['X', 1]]), [p.x + rnd(-80, 80), p.y + rnd(-40, 40)], 'jefe'); }
     const r2 = Math.random();
-    if (r2 < .012) spawnPickup(pickW(mL >= 10 ? [['W', 3], ['G', 1], ['A', 1]] : [['W', 3], ['A', .5]]), [p.x + 30, p.y]);
+    if (r2 < .05) spawnPickup(pickW(mL >= 10 ? [['W', 4], ['G', 1], ['A', 1]] : [['W', 4], ['A', .5]]), [p.x + 30, p.y]); /* armas cuerpo a cuerpo: se rompen rápido, que aparezcan más */
     else if (r2 < .021) spawnPickup('pista', [p.x - 30, p.y]);
     else if (r2 < .044) spawnPickup(pickW([['venda_q', T.burn || mL >= 15 ? 1.2 : .3], ['antiveneno', T.poison || mL >= 15 ? 1.2 : .3], ['trampa', .5], ['fragmento', mL >= 10 ? .25 : 0], ['metralleta', mL >= 25 ? .05 : 0], ['cigarrillo', 2], ['manzana', 1.5], ['receptor', mL >= 18 ? .5 : 0], ['fragmento', mL >= 40 ? .3 : 0], ['credencial', p.kind === 'corredor' ? 1.5 : 0], ['linterna', .3]]), [p.x, p.y + 30]);
     /* ganzúas: antes solo caían de Oscuros nivel 30+; ahora en todos los niveles (los jefes siempre dejan una) */
@@ -1389,6 +1402,7 @@
   function talkNpc(n) { SND.pick();
     if (n.dama) return damaTalk(n);
     if (n.lib) return openLib(n.lib);
+    if (n.bot) return openBotin(n);
     if (n.caps) { INV.cas = INV.cas || {}; if (INV.cas[n.id] === dayN()) return toast('La cápsula está vacía. Se vuelve a cargar mañana.'); INV.cas[n.id] = dayN(); const jk = mapKey === 'lab_cuarentena' && Math.random() < .3 ? 'jeringa_max' : 'jeringa'; addItem(jk); SND.pick(); buzz(30); toast('Abriste la cápsula: ' + ITEMS[jk].n + '.'); quickBtns(); persist(); return; }
     if (n.cas) { const op = INV.cas && INV.cas[n.id] === dayN(); if (op) return toast('Casillero abierto. Ya no queda nada (vuelve a llenarse mañana).'); if (!hasItem('ganzuas')) return toast('Casillero cerrado. Necesitás ganzúas para forzarlo.'); return useItem('ganzuas', 'use'); }
     if (n.story && window.CZ_STORY) return CZ_STORY.talk(n);
@@ -1844,7 +1858,7 @@
       c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; const nm = '☣ ' + (o.cn || 'Contagiado') + (o.lv ? ' · NV ' + o.lv : ''), w = c.measureText(nm).width + 10, ny = sy - 27 * S - 6; c.fillStyle = 'rgba(0,0,0,.65)'; c.fillRect(sx - w / 2, ny - 12, w, 15); c.fillStyle = '#c99bff'; c.fillText(nm, sx, ny); c.globalAlpha = 1; }
     function drawNpc(n) { if (n.dama) return; /* el mob ya se dibuja: el NPC de la chica/el chico es solo para hablarle */
       if (n.obj) { const [ox, oy] = W2S(n.x * WS, n.y * WS); if (n.lib) { const im = img(LIBS[n.lib].img), h = 70 * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, 26); c.save(); c.shadowColor = n.lib === 'pablo' ? '#ff4060' : '#ff9ad0'; c.shadowBlur = 16 + Math.sin(t * 3) * 8; c.drawImage(im, ox - w / 2, oy - h - 10 + Math.sin(t * 2) * 3, w, h); c.restore(); } } if (n.cas) { const im = img('/a/ob/casillero.png'), h = 150 * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, 30); if (INV.cas && INV.cas[n.id] === dayN()) c.globalAlpha = .55; c.drawImage(im, ox - w / 2, oy - h, w, h); c.globalAlpha = 1; } }
-        if (!n.cas && !n.lib && n.k) { const im = img('/a/ob/' + n.k + '.png'), h = 170 * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, 40); if (n.quest && (INV.quests || {})[n.quest.id]) c.globalAlpha = .6; c.drawImage(im, ox - w / 2, oy - h, w, h); c.globalAlpha = 1; } }
+        if (!n.cas && !n.lib && n.k) { const im = img('/a/ob/' + (n.bot && BOT_IMG[n.bot] && ok(img('/a/ob/' + BOT_IMG[n.bot] + '.png')) ? BOT_IMG[n.bot] : n.k) + '.png'), h = (n.bot ? 70 : 170) * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, n.bot ? 24 : 40); if ((n.quest && (INV.quests || {})[n.quest.id]) || (n.bot && INV.cas && INV.cas[n.id] === dayN())) c.globalAlpha = .45; c.drawImage(im, ox - w / 2, oy - h, w, h); c.globalAlpha = 1; } }
         if (nearNpc() === n) { c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; c.fillStyle = '#e8c070'; c.fillText(n.nm + ' · A', ox, oy - 40 * zoom); } return; } const [sx, sy] = W2S(n.x * WS, n.y * WS); if (sx < -200 || sx > VW + 200 || sy < -50 || sy > VH + 300) return; const S = 6.4 * zoom; shadow(sx, sy, 28);
       const dir = Math.abs(P.x - n.x * WS) > 120 ? (P.x < n.x * WS ? 'l' : 'r') : 'd'; blitChar(c, charSprite({ npc: n.k }, dir, 0, false), sx, sy, S, n.sc ? HD_K * n.sc : undefined); c.imageSmoothingEnabled = true;
       const near = nearNpc() === n; c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; const nm = n.nm + (near ? ' · A' : ''); const w = c.measureText(nm).width + 10, ny = sy - 27 * S - 6;
