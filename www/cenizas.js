@@ -1910,13 +1910,15 @@
       if (o.cl) return drawClon(o, sx, sy);
       let vis = o.vis; if (T.ai === 'blink' && (INV.eq.brazo === 'b_resonancia' || INV.eq.luz)) vis = Math.max(vis, .55);
       if (vis < .03) return;
-      const fast = o.st === 'run' ? 20 : o.chasing ? (T.boss ? 14 : 9) : 5, frame = o.moving ? (Math.floor(o.t * fast) % 2 ? 1 : 2) : 0;
+      /* paso al ritmo de lo que se mueve en pantalla (igual que los jugadores): ciclo de 4 tiempos y rebote */
+      const mdd = Math.min(60, Math.hypot(o.x - (o.lpx ?? o.x), o.y - (o.lpy ?? o.y))); o.lpx = o.x; o.lpy = o.y; o.wt = (o.wt || 0) + mdd * .045; o.wmv = mdd > .25 ? .15 : Math.max(0, (o.wmv || 0) - 1 / 60);
+      const mwp = walkPose(o.wt, o.wmv > 0 && !(o.lunge > 0)), frame = mwp.fr, mbob = T.fly ? 0 : mwp.bob * zoom * Math.max(.6, Math.min(1.4, (T.ph || 26) / 26));
       const TT = o.sk ? (o.Tsk && o.Tsk.sheet === o.sk ? o.Tsk : (o.Tsk = Object.assign({}, T, { sheet: o.sk }))) : T, f4 = Math.floor(o.t * 7) % 4;
-      const art = o.sk ? artOf(TT, f4 % 3, o.hurt > 0, false, f4 === 3) : artOf(T, frame, o.hurt > 0, o.moving, o.lunge > 0 || o.st === 'aim'), S = PXS * zoom, W = T.pw * S, H = T.ph * S;
+      const art = o.sk ? artOf(TT, f4 % 3, o.hurt > 0, false, f4 === 3) : artOf(T, frame, o.hurt > 0, o.wmv > 0, o.lunge > 0 || o.st === 'aim'), S = PXS * zoom, W = T.pw * S, H = T.ph * S;
       const AX = art.hd ? CELL_HD * H * HD_K / 220 : W, AY = art.hd ? 240 * H * HD_K / 220 : H, AW = art.hd ? AX : W, AH = art.hd ? AX : H; // HD: celda cuadrada con pies en 240
       let lx = 0, jx = 0; if (o.lunge > 0) lx = o.face * 26 * o.lunge * zoom; if (o.wind > 0 || o.st === 'aim') jx = Math.sin(t * 60) * 2 * zoom;
       shadow(sx, sy, Math.max(22, T.pw * 1.6));
-      c.save(); c.translate(Math.round(sx + lx + jx), Math.round(sy)); if (o.face < 0) c.scale(-1, 1);
+      c.save(); c.translate(Math.round(sx + lx + jx), Math.round(sy + mbob)); if (o.face < 0) c.scale(-1, 1);
       c.globalAlpha = o.alpha * vis * (T.ai === 'blink' ? (.75 + Math.sin(t * 12 + o.x) * .2) : 1); c.imageSmoothingEnabled = false;
       const AU = T.aura || o.au; c.drawImage(glowOf(art, AU), Math.round(-AW / 2), Math.round(-AY), Math.round(AW), Math.round(AH));
       if (T.npc && o.hurt > 0) { c.globalCompositeOperation = 'lighter'; c.globalAlpha = .35 * vis; c.drawImage(art, Math.round(-AW / 2), Math.round(-AY), Math.round(AW), Math.round(AH)); c.globalCompositeOperation = 'source-over'; }
