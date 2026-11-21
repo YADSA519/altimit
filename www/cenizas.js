@@ -1169,6 +1169,9 @@
   const FXI = {}; ['tajo_corto', 'tajo_largo', 'impacto', 'impacto_pesado', 'estocada', 'cadena', 'bala', 'bala_chica', 'perdigon', 'perdigones', 'virote', 'llamarada', 'bola_fuego', 'hielo', 'moco', 'cuchillo', 'chispa', 'explosion', 'fuego_piso', 'charco_moco', 'hielo_piso', 'onda', 'g_madera', 'g_madera2', 'g_acero', 'g_sangre', 'g_naranja', 'g_azul', 'g_violeta', 'g_verde', 'g_celeste', 'g_fuego', 'g_veneno', 'g_rayo'].forEach(k => { const i = new Image(); i.src = '/a/fx/' + k + '.webp'; FXI[k] = i; });
   const fxOk = k => FXI[k] && FXI[k].complete && FXI[k].naturalWidth;
   const fxs = [];
+  /* CAMINAR: ciclo de 4 tiempos (paso · parado · el otro paso · parado), al ritmo de lo que te movés, con un rebote suave del cuerpo */
+  const WALK4 = [1, 0, 2, 0];
+  const walkPose = (wt, moving) => { if (!moving) return { fr: 0, bob: 0 }; const b = (wt || 0) / 1.3; return { fr: WALK4[(b | 0) % 4], bob: -Math.abs(Math.sin(b * Math.PI / 2)) * 3.4 }; };
   let LBL = []; const LBL_H = 15.5; /* nombres: se dibujan al final, a la altura de la cabeza */
   function fx(k, x, y, o) { if (fxs.length > 60) fxs.shift(); fxs.push(Object.assign({ k, x, y, t: 0, T: .3, ang: 0, s: 1, grow: .25, flip: false }, o || {})); }
   function drawFxImg(c, k, x, y, w, ang, alpha, flip) { if (!fxOk(k)) return false; const im = FXI[k], h = w * im.naturalHeight / im.naturalWidth; c.save(); c.globalAlpha = Math.max(0, Math.min(1, alpha)); c.translate(x, y); c.rotate(ang); if (flip) c.scale(1, -1); c.drawImage(im, -w / 2, -h / 2, w, h); c.restore(); return true; }
@@ -1462,7 +1465,7 @@
           .sort((a, b) => Math.hypot(a.x - ax, a.y - ay) - Math.hypot(b.x - ax, b.y - ay))[0]; n.tgId = tg ? tg.id : null; }
       let gx = hx, gy = hy; if (tg) { gx = tg.x + (ax < tg.x ? -85 : 85); gy = tg.y; }
       const dx = gx - ax, dy = gy - ay, d = Math.hypot(dx, dy); n.mv = d > 14;
-      if (n.mv) { const st = Math.min(d, ALLY_SP * (tg ? 1 : .8) * dt), mx = dx / d * st, my = dy / d * st; if (walkable(ax + mx, ay + my)) { n.ox += mx; n.oy += my; } else if (walkable(ax + mx, ay)) n.ox += mx; else if (walkable(ax, ay + my)) n.oy += my; n.face = dx < 0 ? 'l' : 'r'; n.walkT = (n.walkT || 0) + dt; }
+      if (n.mv) { const st = Math.min(d, ALLY_SP * (tg ? 1 : .8) * dt), mx = dx / d * st, my = dy / d * st; if (walkable(ax + mx, ay + my)) { n.ox += mx; n.oy += my; } else if (walkable(ax + mx, ay)) n.ox += mx; else if (walkable(ax, ay + my)) n.oy += my; n.face = dx < 0 ? 'l' : 'r'; n.walkT = (n.walkT || 0) + st * .03; }
       else if (!tg) { n.face = null; }
       if (n.atkT > 0) n.atkT -= dt;
       if (tg && Math.hypot(tg.x - (hx + n.ox), (tg.y - (hy + n.oy)) * 1.3) < 130) { n.face = tg.x < hx + n.ox ? 'l' : 'r'; n.cd = (n.cd || 0) - dt;
@@ -1685,7 +1688,7 @@
     (MAP.exits || []).forEach(e => { if (ix0 >= e.r[0] - 4 && ix0 <= e.r[2] + 4 && iy0 >= e.r[1] - 4 && iy0 <= e.r[3] + 4) inExit = e; });
     P.exitT = Math.max(0, (P.exitT || 0) - dt); if (!inExit) exitLock = false; else if (!exitLock && !P.dead && P.exitT <= 0) warp(inExit);
     // otros jugadores
-    others.forEach(o => { if (o.buf) { const sx = o.x, sy = o.y; interp(o, o.mv); if (o.sm) { const k = Math.min(1, dt * 14), jx = o.x - sx, jy = o.y - sy; if (Math.hypot(jx, jy) < 220) { o.x = sx + jx * k; o.y = sy + jy * k; } } o.sm = 1; } else { o.x += (o.tx - o.x) * Math.min(1, dt * 10); o.y += (o.ty - o.y) * Math.min(1, dt * 10); } if (o.mv) o.walkT = (o.walkT || 0) + dt * 9; if (o.sayT > 0) o.sayT -= dt; if (o.atk > 0) o.atk -= dt; });
+    others.forEach(o => { if (o.buf) { const sx = o.x, sy = o.y; interp(o, o.mv); if (o.sm) { const k = Math.min(1, dt * 14), jx = o.x - sx, jy = o.y - sy; if (Math.hypot(jx, jy) < 220) { o.x = sx + jx * k; o.y = sy + jy * k; } } o.sm = 1; } else { o.x += (o.tx - o.x) * Math.min(1, dt * 10); o.y += (o.ty - o.y) * Math.min(1, dt * 10); } { const dd = Math.min(60, Math.hypot(o.x - (o.lpx ?? o.x), o.y - (o.lpy ?? o.y))); o.lpx = o.x; o.lpy = o.y; o.walkT = (o.walkT || 0) + dd * .03; } if (o.sayT > 0) o.sayT -= dt; if (o.atk > 0) o.atk -= dt; });
     // Oscuros
     const pSafe = inSafe(P.x, P.y);
     if (netMode === 'MULTI_CLIENT') {
@@ -1876,12 +1879,12 @@
       c.restore(); }
     function drawChar(o, lk, nick, fac, mine) {
       const [sx, sy] = W2S(o.x, o.y); const moving = mine ? o.mv : (Math.hypot((o.tx || 0) - o.x, (o.ty || 0) - o.y) > 2 || o.mv);
-      const frame = moving ? (Math.floor((o.walkT || 0) / 1.6) % 2 ? 1 : 2) : 0; const dir = mine ? P.dir : (o.dir || 'd');
+      const wp = walkPose(o.walkT, moving), frame = wp.fr, bob = wp.bob * zoom; const dir = mine ? P.dir : (o.dir || 'd');
       const S = 6.4 * zoom; shadow(sx, sy, 28);
       c.imageSmoothingEnabled = false; if (mine && (P.hurtT > 0 || P.inv > 0)) c.globalAlpha = .7 + Math.sin(t * 30) * .25; if (mine && P.dead) c.globalAlpha = .35; if (mine && P.ghost > 0) c.globalAlpha = .25;
       if (!mine && o.dead) c.globalAlpha = .3; else if (!mine && o.gh) c.globalAlpha = .1; else if (!mine && o.iv) c.globalAlpha = .6;
-      const spr = charSprite(lk, dir, frame, (o.atk || 0) > 0); blitChar(c, spr, sx, sy, S);
-      if (!mine && (o.hurt || 0) > 0) { o.hurt -= 1 / 60; c.globalCompositeOperation = 'lighter'; c.globalAlpha = .6; blitChar(c, spr, sx, sy, S); c.globalCompositeOperation = 'source-over'; }
+      const spr = charSprite(lk, dir, frame, (o.atk || 0) > 0); blitChar(c, spr, sx, sy + bob, S);
+      if (!mine && (o.hurt || 0) > 0) { o.hurt -= 1 / 60; c.globalCompositeOperation = 'lighter'; c.globalAlpha = .6; blitChar(c, spr, sx, sy + bob, S); c.globalCompositeOperation = 'source-over'; }
       c.globalAlpha = 1; c.imageSmoothingEnabled = true;
       if (!mine && fac !== me.faction && o.hp != null && !o.dead) { const bw = 46 * zoom, by = sy - 27 * S - 24; c.fillStyle = 'rgba(0,0,0,.65)'; c.fillRect(sx - bw / 2, by, bw, 4); c.fillStyle = '#ff6a5c'; c.fillRect(sx - bw / 2, by, bw * Math.max(0, o.hp / 100), 4); }
       if ((o.atk || 0) > 0) { const a = { d: Math.PI / 2, u: -Math.PI / 2, l: Math.PI, r: 0 }[dir]; const k = 1 - (o.atk / .3), wk = baseOf(mine ? (P.wk || 'palo') : (o.wk || 'palo')), cy0 = sy - 80 * zoom, al = 1 - k;
@@ -1938,7 +1941,7 @@
       if (n.obj) { const [ox, oy] = W2S(n.x * WS, n.y * WS); if (n.lib) { const im = img(LIBS[n.lib].img), h = 70 * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, 26); c.save(); c.shadowColor = n.lib === 'pablo' ? '#ff4060' : '#ff9ad0'; c.shadowBlur = 16 + Math.sin(t * 3) * 8; c.drawImage(im, ox - w / 2, oy - h - 10 + Math.sin(t * 2) * 3, w, h); c.restore(); } } if (n.cas) { const im = img('/a/ob/casillero.png'), h = 150 * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, 30); if (INV.cas && INV.cas[n.id] === dayN()) c.globalAlpha = .55; c.drawImage(im, ox - w / 2, oy - h, w, h); c.globalAlpha = 1; } }
         if (!n.cas && !n.lib && n.k) { const im = img('/a/ob/' + (n.bot && BOT_IMG[n.bot] && ok(img('/a/ob/' + BOT_IMG[n.bot] + '.png')) ? BOT_IMG[n.bot] : n.k) + '.png'), h = (n.bot || n.caps ? 66 : n.pod ? 150 : 170) * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, n.bot || n.caps ? 24 : 40); if ((n.quest && (INV.quests || {})[n.quest.id]) || ((n.bot || n.caps) && INV.cas && INV.cas[n.id] === dayN())) c.globalAlpha = .45; c.drawImage(im, ox - w / 2, oy - h, w, h); c.globalAlpha = 1; } }
         if (nearNpc() === n) { c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; c.fillStyle = '#e8c070'; c.fillText(n.nm + ' · A', ox, oy - 40 * zoom); } return; } const [sx, sy] = W2S(n.x * WS + (n.ox || 0), n.y * WS + (n.oy || 0)); if (sx < -200 || sx > VW + 200 || sy < -50 || sy > VH + 300) return; const S = 6.4 * zoom; shadow(sx, sy, 28);
-      const dir = n.face || (Math.abs(P.x - n.x * WS) > 120 ? (P.x < n.x * WS ? 'l' : 'r') : 'd'), fr = n.mv ? ((n.walkT * 8 | 0) % 2 ? 1 : 2) : 0; blitChar(c, charSprite({ npc: n.k }, dir, fr, n.atkT > 0), sx, sy, S, n.sc ? HD_K * n.sc : undefined); c.imageSmoothingEnabled = true;
+      const dir = n.face || (Math.abs(P.x - n.x * WS) > 120 ? (P.x < n.x * WS ? 'l' : 'r') : 'd'), wp = walkPose(n.walkT, n.mv), fr = wp.fr; blitChar(c, charSprite({ npc: n.k }, dir, fr, n.atkT > 0), sx, sy + wp.bob * zoom, S, n.sc ? HD_K * n.sc : undefined); c.imageSmoothingEnabled = true;
       const near = nearNpc() === n; LBL.push(() => { c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; const nm = n.nm + (near ? ' · A' : ''); const w = c.measureText(nm).width + 10, ny = sy - LBL_H * S;
       c.fillStyle = 'rgba(0,0,0,.6)'; c.fillRect(sx - w / 2, ny - 12, w, 15); c.fillStyle = '#e8c070'; c.fillText(nm, sx, ny); });
       }
