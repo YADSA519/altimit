@@ -160,7 +160,7 @@
   const HOURLY_AT = { patio: 'electrico', nueveJulio: 'garras', muelle: 'serpiente', teatroAv: 'pantallas' };
   /* nuevos: los Ojos (sólo en la oscuridad, sin linterna), la Quieta (se mueve cuando no la mirás) y el Kamikaze (explota) */
   MOB.ojos = nm_('sombra', { name: 'Ojos', eyes: true, ai: 'chase', hp: 6, sp: 150, wsp: 40, dmg: 14, reach: 60, sight: 620, wind: .35, cd: 1.1, xp: 30, coins: 2 });
-  MOB.quieta = nm_('errante', { name: 'La Quieta', sheet: 'oscuro_mujer', ai: 'angel', hp: 10, sp: 360, wsp: 0, dmg: 20, reach: 66, sight: 950, wind: .05, cd: 1.4, xp: 45, coins: 3 });
+  MOB.quieta = nm_('errante', { name: 'La Quieta', sheet: 'oscuro_mujer', ai: 'angel', hp: 10, sp: 270, wsp: 0, dmg: 20, reach: 66, sight: 950, wind: .05, cd: 1.4, xp: 45, coins: 3 });
   MOB.kamikaze = nm_('corredor', { name: 'Kamikaze', sheet: 'kamikaze', ai: 'boom', hp: 5, sp: 165, dmg: 30, aoe: 150, reach: 95, sight: 480, wind: .9, cd: 2, xp: 28, coins: 2 });
   /* cada uno tira lo suyo: no todo es bola de fuego */
   Object.assign(MOB.babosa, { shot: 'acido' }); Object.assign(MOB.patrulla, { shot: 'bala', pspeed: 620 }); Object.assign(MOB.tirador, { shot: 'bala', pspeed: 620 });
@@ -1249,10 +1249,10 @@
     Object.entries(w).forEach(([k, n]) => { let have = mobs.filter(o => o.kind === k).length; const wait = MOB[k].respawn || 12000;
       if (!lastDeath[k]) { while (have < n) { if (!spawnMob(k, 560)) break; have++; } lastDeath[k] = 1; }
       else if (have < n && now - lastDeath[k] > wait) spawnMob(k, 560); }); }
-  function mobHit(o, dmg, kx, ky, byId) { if (!o || o.hp <= 0 || o.T.passive) return; if (o.T.ai === 'angel' && o.st !== 'strike') return; o.hp -= dmg; o.hurt = .2; o.hitters.add(byId); o.lastBy = byId; o.chasing = true;
+  function mobHit(o, dmg, kx, ky, byId) { if (!o || o.hp <= 0 || o.T.passive) return; if (o.T.ai === 'angel' && o.st !== 'strike') dmg = Math.max(1, Math.round(dmg * .5)); /* La Quieta: quieta recibe la mitad; después de pegarte, todo */ o.hp -= dmg; o.hurt = .2; o.hitters.add(byId); o.lastBy = byId; o.chasing = true;
     if (!o.T.heavy) { o.wind = Math.max(0, o.wind - .12); const nx = o.x + kx, ny = o.y + ky; if (mobWalk(nx, ny)) { o.x = nx; o.y = ny; } }
     if (o.st === 'run') { o.st = 'rest'; o.stT = 1.1; } if (o.hp <= 0) killMob(o); }
-  function hitMob(o, dmg, kx, ky, fx_) { if (o && o.T) { const hy = o.y - (o.T.h || 150) * .45; fxs.length < 60 && fxs.push({ k: 'chispa', x: o.x + rnd(-14, 14), y: hy, t: 0, T: .18, ang: rnd(0, 6), s: 1, grow: .4, w: 70 }); } const fx = fx_; if (o.T.passive) { floats.push({ x: o.x, y: o.y - o.T.h - 30, t: .7, txt: 'HABLALE', c: '#ffb0c8' }); return; } if (o.T.ai === 'angel' && o.st !== 'strike') { floats.push({ x: o.x, y: o.y - o.T.h - 30, t: .7, txt: 'NO SE DEJA', c: '#b8b2a8' }); return; } if (o.T.fac && o.T.fac === me.faction) { floats.push({ x: o.x, y: o.y - o.T.h - 30, t: .6, txt: 'ALIADO', c: '#8fd0ff' }); return; } if (INV.eq.luz && !o.T.human && Math.hypot(o.x - P.x, o.y - P.y) < 520) dmg = Math.round(dmg * 1.25); o.hurt = .2; floats.push({ x: o.x + rnd(-10, 10), y: o.y - o.T.h * .8, t: .8, txt: '-' + dmg, c: '#ffffff' });
+  function hitMob(o, dmg, kx, ky, fx_) { if (o && o.T) { const hy = o.y - (o.T.h || 150) * .45; fxs.length < 60 && fxs.push({ k: 'chispa', x: o.x + rnd(-14, 14), y: hy, t: 0, T: .18, ang: rnd(0, 6), s: 1, grow: .4, w: 70 }); } const fx = fx_; if (o.T.passive) { floats.push({ x: o.x, y: o.y - o.T.h - 30, t: .7, txt: 'HABLALE', c: '#ffb0c8' }); return; } if (o.T.ai === 'angel' && o.st !== 'strike') dmg = Math.max(1, Math.round(dmg * .5)); if (o.T.fac && o.T.fac === me.faction) { floats.push({ x: o.x, y: o.y - o.T.h - 30, t: .6, txt: 'ALIADO', c: '#8fd0ff' }); return; } if (INV.eq.luz && !o.T.human && Math.hypot(o.x - P.x, o.y - P.y) < 520) dmg = Math.round(dmg * 1.25); o.hurt = .2; floats.push({ x: o.x + rnd(-10, 10), y: o.y - o.T.h * .8, t: .8, txt: '-' + dmg, c: '#ffffff' });
     for (let i = 0; i < 10; i++) parts.push({ x: o.x, y: o.y - o.T.h * .6, vx: rnd(-140, 140), vy: rnd(-110, -30), life: .6, s: rnd(2, 4), c: 25 });
     if (isHost) { mobHit(o, dmg, kx, ky, me.id); if (fx) applyMobFx(o, fx, me.id); } else net('mhit', { id: o.id, d: dmg, kx: Math.round(kx), ky: Math.round(ky), by: me.id, fx: fx || undefined }); }
   function killMob(o) { const i = mobs.indexOf(o); if (i >= 0) mobs.splice(i, 1); lastDeath[o.kind] = Date.now();
@@ -1735,7 +1735,7 @@
         const seen = (-dx * fx_ + -dy * fy_) > dist * .3 && dist < 1000;
         if (o.st === 'strike') { if (o.stT <= 0) { o.st = 'idle'; o.cd = T.cd; } else if (!seen) { sp = T.sp * .35; [mx, my] = steer(o, dx, dy, dist); } }
         else if (seen) { o.st = 'idle'; o.moving = false; }
-        else if (dist < T.reach && o.cd <= 0) { strikeOn(tg, T.dmg, o, 70); o.lunge = 1; o.st = 'strike'; o.stT = 4; SND.mob('shriek', .3); }
+        else if (dist < T.reach && o.cd <= 0) { strikeOn(tg, T.dmg, o, 25); o.lunge = 1; o.st = 'strike'; o.stT = 4; SND.mob('shriek', .3); }
         else { sp = T.sp; [mx, my] = steer(o, dx, dy, dist); o.face = dx < 0 ? -1 : 1; } }
       else if (T.ai === 'scream' && tg) { o.face = dx < 0 ? -1 : 1;
         if (o.st === 'aim') { if (o.stT <= 0) { o.st = 'idle'; o.cd = T.cd; SND.mob('shriek', .9); if (Math.hypot(P.x - o.x, P.y - o.y) < 900) shake = .35; o.ring = .6;
