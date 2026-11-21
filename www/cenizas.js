@@ -390,8 +390,24 @@
     if (k === 'linterna' && hasItem('linterna')) { addItem('pilas'); toast('Ya tenés linterna: le sacaste las pilas.'); return 'pilas'; }
     if (it.gun) { const own = gunOwned(it.base); if (own) { if (TORD[it.r] > TORD[tierOf(own)]) { const was = INV.eq.arma === own; delete INV.items[own]; const d = INV.dur[own]; delete INV.dur[own]; addItem(k); INV.dur[k] = d != null ? d : it.mag; if (was) INV.eq.arma = k; toast('Mejoraste: ' + it.n + '.'); return k; }
         addItem(it.ammoK); toast('Ya tenés ' + ITEMS[own].n.toLowerCase() + ': le sacaste la munición (' + ITEMS[it.ammoK].n.toLowerCase() + ').'); return it.ammoK; }
-      addItem(k); INV.dur[k] = it.mag; return k; }
-    addItem(k); return k; }
+      addItem(k); INV.dur[k] = it.mag; return autoFill(k); }
+    addItem(k); return autoFill(k); }
+  /* AUTO-EQUIPAR: si agarrás algo y ese lugar está vacío, te lo ponés; si se rompe lo que tenías, te ponés lo mejor que quede en la mochila */
+  const wScore = k => { const w = WEAP[k]; return w ? (w.dmg || 0) * (w.mul || 1) : -1; };
+  const shieldOf = k => (ITEMS[k] && ITEMS[k].shield) || 0;
+  function bestFor(slot, skip) { const ks = Object.keys(INV.items || {}).filter(k => INV.items[k] > 0 && k !== skip && ITEMS[k]);
+    if (slot === 'arma') { const mel = ks.filter(k => WEAP[k] && !WEAP[k].gun && k !== 'palo').sort((a, b) => wScore(b) - wScore(a)); if (mel.length) return mel[0];
+      return ks.filter(k => WEAP[k] && WEAP[k].gun && ((INV.dur[k] || 0) > 0 || hasItem(ITEMS[k].ammoK))).sort((a, b) => wScore(b) - wScore(a))[0] || null; }
+    if (slot === 'ropa') return ks.filter(k => ITEMS[k].eq === 'ropa').sort((a, b) => shieldOf(b) - shieldOf(a))[0] || null;
+    return ks.filter(k => ITEMS[k].eq === slot).sort((a, b) => (TORD[ITEMS[b].r] || 0) - (TORD[ITEMS[a].r] || 0))[0] || null; }
+  function autoEquip(slot, skip, quiet) { if (!INV) return null; const k = bestFor(slot, skip); if (!k) return null;
+    if (slot === 'arma') { INV.eq.arma = k; const it = ITEMS[k]; if (it.uses && INV.dur[k] == null) INV.dur[k] = it.uses; if (it.gun && INV.dur[k] == null) INV.dur[k] = it.mag; }
+    else { INV.eq[slot] = k; if (shieldOf(k) && INV.dur[k] == null) INV.dur[k] = shieldOf(k); }
+    if (!quiet) setTimeout(() => toast('Te equipaste solo: ' + ITEMS[k].n + '.'), 900); hud(); quickBtns(); return k; }
+  function autoFill(k) { const it = ITEMS[k]; if (!it || !INV) return k;
+    if (WEAP[k] && !WEAP[k].gun && curW() === 'palo') { INV.eq.arma = k; if (it.uses && INV.dur[k] == null) INV.dur[k] = it.uses; setTimeout(() => toast('Te equipaste: ' + it.n + '.'), 600); quickBtns(); }
+    else if (it.eq && it.eq !== 'arma' && it.eq !== 'acc' && it.eq !== 'luz' && !INV.eq[it.eq]) { INV.eq[it.eq] = k; if (shieldOf(k) && INV.dur[k] == null) INV.dur[k] = shieldOf(k); setTimeout(() => toast('Te pusiste: ' + it.n + '.'), 600); }
+    return k; }
   /* botín: fichas genéricas que se convierten en un objeto del color que toque */
   const DROPW = { mapa: { v: 70, a: 22, p: 7, n: 1 }, alto: { v: 45, a: 34, p: 17, n: 4 }, jefe: { v: 8, a: 32, p: 38, n: 22 }, mvp: { v: 0, a: 20, p: 45, n: 35 }, evento: { v: 65, a: 30, p: 5 } };
   const pickT = w => pickW(Object.entries(DROPW[w] || DROPW.mapa));
@@ -782,11 +798,11 @@
   function cycleWeapon() { if (!P || P.dead) return; const list = ownedWeapons(); if (list.length < 2) return toast('Solo tenés el palo. Buscá armas en los mapas.'); const i = list.indexOf(curW()); setWeapon(list[(i + 1) % list.length]); }
   function setWeapon(w) { INV.eq.arma = w; const it = ITEMS[w]; if (it && it.uses && INV.dur[w] == null) INV.dur[w] = it.uses; SND.pick(); toast('En la mano: ' + (w === 'palo' ? 'Palo' : it.n)); hud(); quickBtns(); }
   function breakItem(k) { const it = ITEMS[k]; INV.items[k] = (INV.items[k] || 1) - 1;
-    if (INV.items[k] > 0) INV.dur[k] = it.shield || it.uses; else { delete INV.items[k]; delete INV.dur[k]; if (it.eq === 'ropa') INV.eq.ropa = null; }
+    if (INV.items[k] > 0) INV.dur[k] = it.shield || it.uses; else { delete INV.items[k]; delete INV.dur[k]; if (it.eq === 'ropa') { INV.eq.ropa = null; autoEquip('ropa'); } }
     const ms = Object.keys(MAPS).filter(m => m !== mapKey); const where = ms[(Math.random() * ms.length) | 0]; INV.lost[k] = where;
     SND.hurt(); toast('Se rompió: ' + it.n + '. Dicen que apareció otra en ' + MAPS[where].name.toLowerCase() + '.'); hud(); persist(); }
-  function wearWeapon() { const w = curW(), it = ITEMS[w]; if (it && it.gun) { INV.dur[w] = Math.max(0, (INV.dur[w] != null ? INV.dur[w] : it.mag) - 1); if (INV.dur[w] <= 0 && hasItem(it.ammoK)) gunReady(w); hud(); return; } if (!it || !it.uses) return; if (INV.dur[w] == null) INV.dur[w] = it.uses; INV.dur[w]--;
-    if (INV.dur[w] <= 0) { INV.items[w] = (INV.items[w] || 1) - 1; if (INV.items[w] > 0) INV.dur[w] = it.uses; else { delete INV.items[w]; delete INV.dur[w]; INV.eq.arma = 'palo'; }
+  function wearWeapon() { const w = curW(), it = ITEMS[w]; if (it && it.gun) { INV.dur[w] = Math.max(0, (INV.dur[w] != null ? INV.dur[w] : it.mag) - 1); if (INV.dur[w] <= 0 && hasItem(it.ammoK)) gunReady(w); else if (INV.dur[w] <= 0) autoEquip('arma', w); hud(); return; } if (!it || !it.uses) return; if (INV.dur[w] == null) INV.dur[w] = it.uses; INV.dur[w]--;
+    if (INV.dur[w] <= 0) { INV.items[w] = (INV.items[w] || 1) - 1; if (INV.items[w] > 0) INV.dur[w] = it.uses; else { delete INV.items[w]; delete INV.dur[w]; INV.eq.arma = 'palo'; autoEquip('arma'); }
       const others_ = Object.keys(MAPS).filter(m => m !== mapKey && !MAPS[m].safeAll); const where = others_[(Math.random() * others_.length) | 0]; INV.lost[w] = where;
       SND.hurt(); buzz([30, 30, 30]); toast((WEAP[w].gun ? (w === 'baston' ? 'El bastón se apagó y se rompió' : 'Se te acabaron los tiros de la ' + it.n.toLowerCase()) : 'Se rompió ' + (/lanza|katana|barra/.test(w) ? 'la ' : 'el ') + it.n.toLowerCase()) + '. Dicen que apareció otra en ' + MAPS[where].name.toLowerCase() + '.'); persist(); }
     hud(); }
