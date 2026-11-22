@@ -112,7 +112,7 @@
     return lk && lk.npc && NPC && NPC.C[lk.npc] ? NPC.draw(lk.npc, dir, frame) : sprite(lk, dir, frame, atk); }
   /* dibuja un personaje (pixel 18×26 o planilla HD) con los pies en (sx, sy) */
   function blitChar(ctx, spr, sx, sy, S, k) { if (spr.hd) return HD.blit(ctx, spr, sx, sy + S, 25 * S * (k == null ? HD_K : k)); ctx.imageSmoothingEnabled = false; ctx.drawImage(spr, Math.round(sx - 9 * S), Math.round(sy - 25 * S), Math.round(18 * S), Math.round(26 * S)); }
-  const SKIN_NAMES = { pablo4: 'Pablo casual', pabloFuturo: 'Pablo futuro', pablo: 'Pablo 1', pablo2: 'Pablo 2', pablo3: 'Pablo 3', pol: 'Pol del futuro', polAlter: 'Pol alter', renzo: 'Renzo', sam: 'Sam', eze: 'Eze', esteban: 'Esteban', giuliana: 'Giuliana', lean: 'Lean', luis: 'Luis', norbert: 'Norbert', toby: 'Tobías', tomy: 'Tomy' };
+  const SKIN_NAMES = { admin_saco: 'Saco del admin', fin_ork01: 'ORK · Casco rojo I', fin_ork02: 'ORK · Casco rojo II', fin_ork03: 'ORK · Casco rojo III', fin_ork04: 'ORK · Boina ORK I', fin_ork05: 'ORK · Boina ORK II', fin_ork06: 'ORK · Gafas ORK', fin_ork07: 'ORK · Máscara ORK I', fin_ork08: 'ORK · Máscara ORK II', fin_ork09: 'ORK · Saco dorado I', fin_ork10: 'ORK · Saco dorado II', fin_ork11: 'ORK · Saco dorado III', fin_ork12: 'ORK · Saco dorado IV', fin_ork13: 'ORK · Saco dorado V', fin_ork14: 'ORK · La Reina', fin_reb01: 'Rebelde · Campera celeste', fin_reb02: 'Rebelde · Lentes y bolso', fin_reb03: 'Rebelde · Campera negra', fin_reb04: 'Rebelde · Pelo rojo', fin_reb05: 'Rebelde · Pelo naranja', fin_reb06: 'Rebelde · Dije violeta', fin_reb07: 'Rebelde · Ceniza I', fin_reb08: 'Rebelde · Ceniza II', fin_reb09: 'Rebelde · Lentes oscuros I', fin_reb10: 'Rebelde · Lentes oscuros II', fin_reb11: 'Rebelde · Bufanda azul I', fin_reb12: 'Rebelde · Bufanda azul II', fin_reb13: 'Rebelde · Explorador I', fin_reb14: 'Rebelde · Explorador II', fin_reb15: 'Rebelde · Vincha azul I', fin_reb16: 'Rebelde · Vincha azul II', pablo4: 'Pablo casual', pabloFuturo: 'Pablo futuro', pablo: 'Pablo 1', pablo2: 'Pablo 2', pablo3: 'Pablo 3', pol: 'Pol del futuro', polAlter: 'Pol alter', renzo: 'Renzo', sam: 'Sam', eze: 'Eze', esteban: 'Esteban', giuliana: 'Giuliana', lean: 'Lean', luis: 'Luis', norbert: 'Norbert', toby: 'Tobías', tomy: 'Tomy' };
   const skinName = k => { const n = SKIN_NAMES[k]; if (n) return n; const H = window.CZ_SHEETS; if (H && H.ALL.includes(H.NPC_SHEET[k] || k)) return (k.charAt(0).toUpperCase() + k.slice(1)).replace(/_/g, ' '); return null; };
   /* tipos de Oscuro: h = altura en mundo; las imágenes laterales miran a la derecha */
   /* Oscuros en pixel: PXS = tamaño de cada pixel en el mundo (igual que los avatares) */
@@ -376,6 +376,10 @@
     ITEMS[k] = { n: nm + TADJ[t], t: (sl === 'acc' ? 'Accesorio' : sl === 'pies' ? 'Pies' : sl === 'brazo' ? 'Manos' : 'Cabeza') + ' · ' + RAR[t][0] + ' · +' + Math.round(v * 100) + '%', d: d.replace('un %', 'un ' + Math.round(v * 100) + '%') + ' No se rompe.', eq: sl, [st]: v, r: t, base: b }; const rk = RESB[b]; if (rk && RESV[t]) { ITEMS[k][rk] = (ITEMS[k][rk] || 0) + RESV[t]; ITEMS[k].d = ITEMS[k].d.replace(' No se rompe.', ' Además te protege ' + Math.round(RESV[t] * 100) + '% ' + RESN[rk] + '. No se rompe.'); }
     ICO(k, IMG_OK[k] ? k : IMG_OK[b] ? b : img || b); }));
   ITEMS.mascara.eq = 'cabeza';
+  /* brazaletes ÉPICOS de los gatos secretos de El Nogal: no se rompen y no se pueden usar los dos juntos */
+  ITEMS.brz_chino = { n: 'Brazalete de Chino', t: 'Accesorio · ÉPICO · no se rompe', d: 'Corrés más rápido y sin cansarte, y lo que golpeás queda más lento. No se puede usar junto al de Bianca.', eq: 'acc', r: 'e', epic: 1, gato: 1 }; ICO('brz_chino', 'brz_chino');
+  ITEMS.brz_chita = { n: 'Brazalete de Chita', t: 'Accesorio · ÉPICO · no se rompe', d: 'Pegás el doble y lo que golpeás queda atontado 5 segundos (los jefes, 2). No se puede usar junto al de Chino ni al de Bianca.', eq: 'acc', r: 'e', epic: 1, gato: 1 }; ICO('brz_chita', 'brz_chita');
+  ITEMS.brz_bianca = { n: 'Brazalete de Bianca', t: 'Accesorio · ÉPICO · no se rompe', d: 'Pegás el doble y lo que golpeás queda más lento. No se puede usar junto al de Chino.', eq: 'acc', r: 'e', epic: 1, gato: 1 }; ICO('brz_bianca', 'brz_bianca');
   /* brazaletes con cargas (van en ACC, se activan con HABILIDAD y se rompen al gastarse) */
   const BRZC = { brz_impulso: ['Brazalete de impulso', 'impulso', 'Por 6 segundos corrés muchísimo más rápido y sin cansarte.'], brz_fuerza: ['Brazalete de fuerza', 'fuerza', 'Por 8 segundos pegás 60% más fuerte.'],
     brz_energia: ['Brazalete de energía', 'energia', 'Tirás tres bolitas de energía hacia donde mirás.'] }, BRZN = { v: 3, a: 5, p: 8, n: 12 };
@@ -407,6 +411,10 @@
     baston_oscuro: { n: 'BASTÓN OSCURO', dmg: 5, range: 145, cd: .55, kb: 170, mul: 1.6 }, baston_resina: { n: 'BASTÓN DE RESINA', dmg: 6, range: 140, cd: .5, kb: 50, mul: 1.7 }, espada_lamentos: { n: 'LAMENTOS', dmg: 7, range: 140, cd: .3, kb: 30, mul: 1.9 } });
   /* fotos propias para los que antes compartían o no tenían */
   ['brz_ork', 'brz_reb', 'b_contencion', 'b_resonancia', 'brz_jefe', 'campera', 'chaleco_t', 'armadura', 'botiquin', 'venda_q', 'kit', 'canister', 'baston', 'pista_ork', 'pista_reb', 'pista', 'fragmento', 'trampa', 'antiveneno', 'linterna', 'receptor', 'pilas', 'jeringa', 'jeringa_max'].forEach(k => ICO(k, k));
+  /* armas ÉPICAS de Luna: no se rompen y no gastan balas */
+  ITEMS.pistola_veneno = { n: 'Pistola de veneno', t: 'Arma · ÉPICO · de Luna', d: 'Dispara veneno violeta: daña, envenena y deja un charco que sigue envenenando. No se rompe y nunca se queda sin balas.', eq: 'arma', r: 'e', epic: 1 }; ICO('pistola_veneno', 'pistola_veneno');
+  ITEMS.canon_violeta = { n: 'Cañón de fuego violeta', t: 'Arma · ÉPICO · de Luna', d: 'Dispara fuego violeta: daña, prende fuego y deja un charco en llamas. No se rompe y nunca se queda sin balas.', eq: 'arma', r: 'e', epic: 1 }; ICO('canon_violeta', 'canon_violeta');
+  Object.assign(WEAP, { pistola_veneno: { n: 'PISTOLA DE VENENO', dmg: 5, range: 600, cd: .35, kb: 8, gun: true, venom: true, mul: 1.5 }, canon_violeta: { n: 'CAÑÓN VIOLETA', dmg: 7, range: 560, cd: .55, kb: 20, gun: true, fireP: true, mul: 1.5 } });
   const WEAPON_KEYS = ['palo'].concat(Object.keys(WEAP).filter(k => k !== 'palo' && ITEMS[k]));
   /* suma de bonos de todo lo equipado */
   const eqHas = k => !!(INV && INV.eq && (INV.eq.acc1 === k || INV.eq.acc2 === k));
@@ -653,9 +661,9 @@
   let mySkins = [];
   /* los skins de Pablo son solo de Thiriang: su cuenta admin y su cuenta xhiang */
   const pabloOk = () => !!me && (me.role === 'admin' || String(me.nick || '').toLowerCase() === 'xhiang');
-  async function loadSkins(uid, gc) { const set = new Set((gc && gc.inv && gc.inv.skins) || []); if (pabloOk()) { set.add('pablo4'); set.add('pabloFuturo'); }
+  async function loadSkins(uid, gc) { const set = new Set((gc && gc.inv && gc.inv.skins) || []); if (pabloOk()) { set.add('pablo4'); set.add('pabloFuturo'); } if (me && me.role === 'admin') set.add('admin_saco');
     try { const { data } = await sb.from('game_skins').select('skin').eq('user_id', uid); (data || []).forEach(r => set.add(r.skin)); } catch (e) {}
-    return [...set].filter(k => skinName(k) && (!/^pablo/.test(k) || pabloOk())); } /* los skins de Pablo son solo de la cuenta admin */
+    return [...set].filter(k => skinName(k) && (!/^pablo/.test(k) || pabloOk()) && (k !== 'admin_saco' || (me && me.role === 'admin'))); } /* los skins de Pablo son solo de la cuenta admin */
   /* EXPERIMENTAL: nivel, mochila y lugar guardados aparte (game_exp, o el teléfono si falta la tabla) */
   let noExpTable = false;
   async function loadExp(uid) { let row = null;
@@ -983,7 +991,7 @@
     if (a === 'use' && it.use === 'luz') { if (!INV.eq.luz && INV.bat <= 0) { if (!hasItem('pilas')) return toast('La linterna no tiene pilas.'); INV.items.pilas--; if (!INV.items.pilas) delete INV.items.pilas; INV.bat = 100; } INV.eq.luz = INV.eq.luz ? null : 'linterna'; toast(INV.eq.luz ? 'Linterna prendida.' : 'Linterna apagada.'); hud(); quickBtns(); if (!$('#ov-inv').hidden) renderInv(); return; }
     if (a === 'use' && it.use === 'pilas') { if (!hasItem('linterna')) return toast('Primero necesitás una linterna.'); INV.bat = 100; INV.items[k]--; toast('Linterna cargada.'); }
     if (a === 'eq' && slot_is_weapon(k)) { if (INV.eq.arma === k) setWeapon('palo'); else setWeapon(k); }
-    else if (a === 'eq' && it.eq === 'acc') { if (INV.eq.acc1 === k && !(INV.eq.acc2 !== k && INV.items[k] > 1 && false)) INV.eq.acc1 = null; else if (INV.eq.acc2 === k) INV.eq.acc2 = null; else if (!INV.eq.acc1) INV.eq.acc1 = k; else if (!INV.eq.acc2) INV.eq.acc2 = k; else { INV.eq.acc1 = INV.eq.acc2; INV.eq.acc2 = k; } toast(INV.eq.acc1 === k || INV.eq.acc2 === k ? 'Te pusiste: ' + it.n : 'Te sacaste: ' + it.n); }
+    else if (a === 'eq' && it.eq === 'acc') { const GB_ = ['brz_chino', 'brz_bianca', 'brz_chita'], otro_ = GB_.includes(k) ? GB_.find(b => b !== k && eqHas(b)) : null; if (otro_ && !eqHas(k)) return toast('Solo podés usar un brazalete de gato a la vez. Sacate el ' + ITEMS[otro_].n + ' primero.'); if (INV.eq.acc1 === k && !(INV.eq.acc2 !== k && INV.items[k] > 1 && false)) INV.eq.acc1 = null; else if (INV.eq.acc2 === k) INV.eq.acc2 = null; else if (!INV.eq.acc1) INV.eq.acc1 = k; else if (!INV.eq.acc2) INV.eq.acc2 = k; else { INV.eq.acc1 = INV.eq.acc2; INV.eq.acc2 = k; } toast(INV.eq.acc1 === k || INV.eq.acc2 === k ? 'Te pusiste: ' + it.n : 'Te sacaste: ' + it.n); }
     else if (a === 'eq') { const slot = it.eq; if (INV.eq[slot] === k) INV.eq[slot] = slot === 'arma' ? 'palo' : null; else { INV.eq[slot] = k; if (ITEMS[k].shield && INV.dur[k] == null) INV.dur[k] = ITEMS[k].shield; if (k === 'linterna' && INV.bat <= 0) { if (hasItem('pilas')) { INV.items.pilas--; INV.bat = 100; } else { INV.eq.luz = null; toast('La linterna no tiene pilas.'); } } } }
     if (a === 'eq' && !slot_is_weapon(k) && it.eq !== 'luz' && it.eq !== 'acc') toast(INV.eq[it.eq] === k ? 'Te pusiste: ' + it.n : 'Te sacaste: ' + it.n);
     if (!INV.items[k]) { delete INV.items[k]; if (invSel === k) invSel = null; }
@@ -1291,7 +1299,7 @@
   function mobHit(o, dmg, kx, ky, byId, lc) { if (!o || o.hp <= 0 || o.T.passive) return; if (o.T.ai === 'angel' && o.st !== 'strike' && !lc) return; /* La Quieta: quieta solo la lastiman lanza y cadena */ o.hp -= dmg; o.hurt = .2; o.hitters.add(byId); o.lastBy = byId; o.lhT = performance.now(); o.chasing = true;
     if (!o.T.heavy) { o.wind = Math.max(0, o.wind - .12); const nx = o.x + kx, ny = o.y + ky; if (mobWalk(nx, ny)) { o.x = nx; o.y = ny; } }
     if (o.st === 'run') { o.st = 'rest'; o.stT = 1.1; } if (o.hp <= 0) killMob(o); }
-  function hitMob(o, dmg, kx, ky, fx_) { if (o && o.T) { const hy = o.y - (o.T.h || 150) * .45; fxs.length < 60 && fxs.push({ k: 'chispa', x: o.x + rnd(-14, 14), y: hy, t: 0, T: .18, ang: rnd(0, 6), s: 1, grow: .4, w: 70 }); } const fx = fx_; if (o.T.passive) { floats.push({ x: o.x, y: o.y - o.T.h - 30, t: .7, txt: 'HABLALE', c: '#ffb0c8' }); return; } const lc = /^(lanza|cadena)/.test(curW()); if (o.T.ai === 'angel' && o.st !== 'strike' && !lc) { floats.push({ x: o.x, y: o.y - o.T.h - 30, t: .7, txt: 'NO SE DEJA', c: '#b8b2a8' }); return; } if (o.T.fac && o.T.fac === me.faction) { floats.push({ x: o.x, y: o.y - o.T.h - 30, t: .6, txt: 'ALIADO', c: '#8fd0ff' }); return; } if (INV.eq.luz && !o.T.human && Math.hypot(o.x - P.x, o.y - P.y) < 520) dmg = Math.round(dmg * 1.25); o.hurt = .2; floats.push({ x: o.x + rnd(-10, 10), y: o.y - o.T.h * .8, t: .8, txt: '-' + dmg, c: '#ffffff' });
+  function hitMob(o, dmg, kx, ky, fx_) { if (eqHas('brz_chino') || eqHas('brz_bianca')) fx_ = Object.assign({ slow: 2.5 }, fx_ || {}); if (eqHas('brz_chita') && o && o.T) fx_ = Object.assign({}, fx_ || {}, { stun: o.T.boss ? 2 : 5, k: 'stun' }); if (o && o.T) { const hy = o.y - (o.T.h || 150) * .45; fxs.length < 60 && fxs.push({ k: 'chispa', x: o.x + rnd(-14, 14), y: hy, t: 0, T: .18, ang: rnd(0, 6), s: 1, grow: .4, w: 70 }); } const fx = fx_; if (o.T.passive) { floats.push({ x: o.x, y: o.y - o.T.h - 30, t: .7, txt: 'HABLALE', c: '#ffb0c8' }); return; } const lc = /^(lanza|cadena)/.test(curW()); if (o.T.ai === 'angel' && o.st !== 'strike' && !lc) { floats.push({ x: o.x, y: o.y - o.T.h - 30, t: .7, txt: 'NO SE DEJA', c: '#b8b2a8' }); return; } if (o.T.fac && o.T.fac === me.faction) { floats.push({ x: o.x, y: o.y - o.T.h - 30, t: .6, txt: 'ALIADO', c: '#8fd0ff' }); return; } if (INV.eq.luz && !o.T.human && Math.hypot(o.x - P.x, o.y - P.y) < 520) dmg = Math.round(dmg * 1.25); o.hurt = .2; floats.push({ x: o.x + rnd(-10, 10), y: o.y - o.T.h * .8, t: .8, txt: '-' + dmg, c: '#ffffff' });
     for (let i = 0; i < 10; i++) parts.push({ x: o.x, y: o.y - o.T.h * .6, vx: rnd(-140, 140), vy: rnd(-110, -30), life: .6, s: rnd(2, 4), c: 25 });
     if (isHost) { mobHit(o, dmg, kx, ky, me.id, lc); if (fx) applyMobFx(o, fx, me.id); } else net('mhit', { id: o.id, d: dmg, kx: Math.round(kx), ky: Math.round(ky), by: me.id, fx: fx || undefined, lc: lc ? 1 : undefined }); }
   function killMob(o) { const i = mobs.indexOf(o); if (i >= 0) mobs.splice(i, 1); lastDeath[o.kind] = Date.now();
@@ -1465,7 +1473,7 @@
   const NPCS = {}; Object.entries(MAPS).forEach(([k, m]) => { if (m.npcs) NPCS[k] = m.npcs.map(n => Object.assign({}, n, n.act === 'heal' ? { heal: n.fac, act: null } : {}, n.k === 'mercedes' ? { brz: 'ork' } : {}, n.act === 'brazalete' ? { brz: n.fac, act: null } : {})); });
   if (EXP) { NPCS.pvp_azul = [{ k: 'ex10', nm: 'INTENDENTE', line: 'Kit de combate. Elegí bien.', x: 640, y: 330, act: 'kit', fac: 'rebel' }]; NPCS.pvp_rojo = [{ k: 'instructor_ork', nm: 'INSTRUCTOR', line: 'Equipate, recluta.', x: 760, y: 330, act: 'kit', fac: 'ork' }]; }
   const damaNpcs = () => mobs.filter(o => o.T.passive && o.hp > 0).map(o => ({ k: o.T.sheet, nm: o.T.name, line: '…', x: o.x / WS, y: o.y / WS, dama: o.id }));
-  const npcsHere = () => CAS.concat(libNpcs(), NPCS[mapKey] || [], damaNpcs()).filter(n => !n.cada || ((minOfDay() + hashStr(n.k) % 60) % 60) < 20 || (STORY && window.CZ_STORY && CZ_STORY.wants && CZ_STORY.wants(n.k))).concat(STORY && window.CZ_STORY ? CZ_STORY.npcs(mapKey) : []);
+  const npcsHere = () => CAS.concat(gatoNpcs(), libNpcs(), NPCS[mapKey] || [], damaNpcs()).filter(n => !n.cada || ((minOfDay() + hashStr(n.k) % 60) % 60) < 20 || (STORY && window.CZ_STORY && CZ_STORY.wants && CZ_STORY.wants(n.k))).concat(STORY && window.CZ_STORY ? CZ_STORY.npcs(mapKey) : []);
   function nearNpc() { let best = null, bd = 150; npcsHere().forEach(n => { const d = Math.hypot(n.x * WS - P.x, (n.y * WS - P.y) * 1.2); if (d < bd) { bd = d; best = n; } }); return best; }
   const healCd = {};
   /* el bando contrario no te atiende: te maldicen, te insultan o te lastiman */
@@ -1514,8 +1522,35 @@
   const nearSaid = {}; let nearT = 0;
   function nearTalk(dt) { if ((nearT += dt) < .5 || P.dead) return; nearT = 0; const n = nearNpc(); if (!n || !n.near) return; const now = Date.now(); if (nearSaid[n.k] && now - nearSaid[n.k] < 90000) return; nearSaid[n.k] = now; npcSay(n, n.near); }
   function npcSay(n, txt) { if (window.CZ_STORY && CZ_STORY.say && !EXP) CZ_STORY.say([[n.k, String(txt), n.nm]]); else toast(n.nm + ': "' + txt + '"'); }
+  /* gatos secretos de El Nogal: a la 01:00 (hasta 01:59), una noche Chino y la siguiente Bianca. 10 charlas = premio + brazalete épico */
+  const GATO_H = () => new Date().getHours() === 1;
+  function gatoNpcs() { if (!GATO_H() || !INV) return []; if (mapKey === lunaMap() && !(INV.gatos && INV.gatos.lunaOk)) { const p_ = lunaPos(); return (mapKey === 'lezama' ? [{ k: 'chita', nm: 'CHITA', x: 700, y: 610, gato: 'chita', lblH: 9, face: 'd' }] : []).concat([{ k: 'luna', nm: 'LUNA', x: p_[0], y: p_[1], gato: 'luna', lblH: 9, face: 'd' }]); } if (mapKey === 'lezama') return [{ k: 'chita', nm: 'CHITA', x: 700, y: 610, gato: 'chita', lblH: 9, face: 'd' }]; if (mapKey !== 'nogal') return []; const k = dayN() % 2 ? 'bianca' : 'chino';
+    return [{ k, nm: k === 'chino' ? 'CHINO' : 'BIANCA', x: k === 'chino' ? 560 : 1180, y: k === 'chino' ? 640 : 610, gato: k, lblH: 9, face: 'd' }]; }
+  /* Luna: una noche está en Plaza del Árbol Muerto y otra en Lezama (al azar). Corre 3 veces y a la cuarta ronronea y te deja un arma épica al azar */
+  const lunaMap = () => (hashStr('luna' + dayN()) % 2 ? 'plazaArbol' : 'lezama');
+  let LUNA_P = null; function lunaPos(re) { if (LUNA_P && !re && LUNA_P.m === mapKey) return LUNA_P.p; for (let i = 0; i < 80; i++) { const x = 150 + Math.random() * ((MAP.w || 1670) - 300), y = 250 + Math.random() * ((MAP.h || 940) - 400);
+      if (walkable(x * WS, y * WS) && (!P || Math.hypot(x * WS - P.x, y * WS - P.y) > 380)) { LUNA_P = { m: mapKey, p: [Math.round(x), Math.round(y)] }; return LUNA_P.p; } } LUNA_P = { m: mapKey, p: [800, 600] }; return LUNA_P.p; }
+  const GATO_L = { chino: ['Chino te mira y parpadea despacio.', 'Chino hace "mrrp" y se te acerca.', 'Chino ronronea bajito.', 'Chino se frota contra tu pierna.', 'Chino ronronea más fuerte.', 'Chino se tira panza arriba.', 'Chino hace "prrrr" y amasa el piso.', 'Chino te sigue la mano con la cabeza.', 'Chino ronronea como un motorcito.', 'Chino está contento con vos. Te deja un regalo y un brazalete plateado azul.'],
+    chita: ['Chita te mira de reojo.', 'Chita mueve la punta de la cola.', 'Chita se aleja un pasito.', 'Chita aplasta las orejas.', 'Chita gruñe bajito.', 'Chita te muestra los dientes.', 'Chita bufa fuerte.', 'Chita se agacha, lista para saltar.', 'Chita te avisa por última vez...', '¡Chita te salta encima, te muerde y te deja herido! Pero respeta que la hayas enfrentado: te deja su brazalete.'],
+    bianca: ['Bianca no hace nada. Solo te mira.', 'Bianca sigue ahí, quieta.', 'Bianca mueve la cola.', 'Bianca se incomoda.', 'Bianca baja las orejas.', 'Bianca se pone más molesta.', 'Bianca bufa.', 'Bianca te gruñe. Mejor no insistas...', 'Bianca está a punto de saltar.', '¡Bianca te muerde y te rasguña! Pero le gustó que la molestaras: te deja un regalo y un brazalete plateado violeta.'] };
+  function gatoTalk(n) { const k = n.gato, G = INV.gatos = INV.gatos || {}, br = 'brz_' + k;
+    if (k === 'luna') { G.luna = (G.luna || 0) + 1;
+      if (G.luna < 4) { SND.pick(); floats.push({ x: n.x * WS, y: n.y * WS - 110, t: .9, txt: 'zuuum', c: '#c8b0ff' }); for (let j = 0; j < 8; j++) parts.push({ x: n.x * WS + rnd(-20, 20), y: n.y * WS - rnd(0, 40), vx: rnd(-90, 90), vy: rnd(-60, 0), life: .5, s: 4, c: 70 }); lunaPos(true); persist(); return npcSay(n, ['Luna corre...', 'Luna corre... corre...', 'Luna corre... corre... corre...'][G.luna - 1]); }
+      G.lunaOk = 1; const w_ = Math.random() < .5 ? 'pistola_veneno' : 'canon_violeta'; addItem(w_, 1); SND.level(); persist(); hud(); npcSay(n, 'Luna se cansó de correr. Ronronea y te deja un regalo.'); setTimeout(() => toast('Recibiste: ' + ITEMS[w_].n.toUpperCase() + ' · arma épica'), 900); return; }
+    if (G[k + 'Ok']) { SND.pick(); return npcSay(n, k === 'chino' ? 'Chino ronronea. Ya te dio su brazalete.' : 'Bianca te ignora con elegancia. Ya te dio su brazalete.'); }
+    G[k] = (G[k] || 0) + 1; const i = Math.min(10, G[k]), line = GATO_L[k][i - 1];
+    if (k === 'chino') { SND.pick(); floats.push({ x: n.x * WS, y: n.y * WS - 120, t: .9, txt: i % 2 ? 'prrr…' : 'mrrp', c: '#ffd27a' }); }
+    else if (k === 'chita' && i === 9 && P.hp < maxHp(lvlOf(P.xp))) { npcSay(n, 'Chita te avisa por última vez... (si no tenés toda la vida, te va a matar)'); return; }
+    else if (i >= 4) { floats.push({ x: n.x * WS, y: n.y * WS - 120, t: .9, txt: i >= 7 ? '¡FFFT!' : '…', c: '#d9a0ff' }); }
+    if (i >= 10) { G[k + 'Ok'] = 1;
+      if (k === 'chita') { const mx_ = maxHp(lvlOf(P.xp)); if (P.hp < mx_) { G[k] = 9; G[k + 'Ok'] = 0; SND.hurt(); npcSay(n, '¡Chita te saltó encima y no estabas entero! No sobreviviste.'); P.inv = 0; P.furia = 0; persist(); setTimeout(() => hitPlayer(Math.round(P.hp) + 9999, null, 0, 'chita'), 600); return; } P.hp = Math.max(1, Math.round(mx_ * .1)); shake = Math.max(shake, .5); SND.hurt(); buzz([90, 40, 120]); }
+      if (k === 'bianca') { P.hp = Math.max(1, P.hp - Math.round(maxHp(lvlOf(P.xp)) * .12)); shake = Math.max(shake, .3); SND.hurt(); buzz([60, 30, 60]); }
+      const reg = TKEY(pickW(Object.keys(ACCS).map(b => [b, 1])), 'n'); addItem(reg, 1); addItem(br, 1); SND.level(); hud(); persist();
+      npcSay(n, line); setTimeout(() => toast('Recibiste: ' + ITEMS[reg].n + ' y ' + ITEMS[br].n), 900); return; }
+    persist(); npcSay(n, line); }
   function talkNpc(n) { SND.pick();
     if ((n.k === 'mary' && me.faction !== 'ork') || (n.k === 'mercedes' && me.faction === 'ork')) { if (giveKit(n)) return; }
+    if (n.gato) return gatoTalk(n);
     if (n.dama) return damaTalk(n);
     if (n.lib) return openLib(n.lib);
     if (n.bot) return openBotin(n);
@@ -1606,7 +1641,7 @@
       go.onclick = () => { addItem('vendas', 20); addItem(fire); addItem(melee); delete INV.dur[fire]; delete INV.dur[melee]; setWeapon(melee); INV.kitT = Date.now() + 15 * 60000; SND.level(); paused = false; $('#ov-shop').hidden = true; toast('Recibiste 20 vendas, ' + ITEMS[fire].n + ' y ' + ITEMS[melee].n + '.'); quickBtns(); hud(); persist(); }; box.appendChild(go); };
     draw(); }
   $('#shop-b').onclick = openShop; $('#shop-close').onclick = () => { paused = false; $('#ov-shop').hidden = true; };
-  const playerDmg = () => Math.round(Math.max(1, dmgOf(lvlOf(P.xp)) + (INV ? WEAP[curW()].dmg : 0) - (INV && eqHas('b_contencion') ? 1 : 0)) * (P.furia > 0 ? 2 : 1) * (P.jefe > 0 ? 1.6 : 1) * (P.bFuerza > 0 ? 1.25 : 1) * (P.bFz > 0 ? 1.6 : 1) * (WEAP[curW()].gun ? 1 : 1 + gearSum('mdmg')) * (WEAP[curW()].mul || 1) * (1 + gearSum('dmg')) * (WEAP[curW()].gun ? 1 + gearSum('gdmg') : 1) * (gearSum('fauno') && P.running ? 2 : 1) * 10) / 10;
+  const playerDmg = () => Math.round(Math.max(1, dmgOf(lvlOf(P.xp)) + (INV ? WEAP[curW()].dmg : 0) - (INV && eqHas('b_contencion') ? 1 : 0)) * (P.furia > 0 ? 2 : 1) * (P.jefe > 0 ? 1.6 : 1) * (P.bFuerza > 0 ? 1.25 : 1) * (P.bFz > 0 ? 1.6 : 1) * (eqHas('brz_bianca') || eqHas('brz_chita') ? 2 : 1) * (WEAP[curW()].gun ? 1 : 1 + gearSum('mdmg')) * (WEAP[curW()].mul || 1) * (1 + gearSum('dmg')) * (WEAP[curW()].gun ? 1 + gearSum('gdmg') : 1) * (gearSum('fauno') && P.running ? 2 : 1) * 10) / 10;
   function attack() { if (!P || P.dead || paused || P.cd > 0 || P.aturd > 0) return; const wk = curW(), W = WEAP[wk], EI = ITEMS[wk] || {}; if (W.gun && !gunReady(wk)) return; P.atk = .3; P.cd = W.cd * (INV.ab.includes('rapido') ? .7 : 1); P.wk = wk;
     if (P.gorro) { P.gorro = 0; P.ghost = 0; }
     const fx = { d: [0, 1], u: [0, -1], l: [-1, 0], r: [1, 0] }[P.dir], dmg = playerDmg(), range = W.range; let hitAny = false; const hitList = [];
@@ -1633,7 +1668,7 @@
   function shoot(fx, dmg, W) { const wkS = baseOf(curW()); const n0 = shots.length; setTimeout(() => { for (let i = n0; i < shots.length; i++) if (!shots[i].wk) shots[i].wk = wkS; }, 0); if (W && W.flame) { const ox = P.x + fx[0] * 40, oy = P.y - 90 + fx[1] * 20; for (let i = 0; i < 3; i++) { const a = rnd(-.22, .22), c_ = Math.cos(a), s_ = Math.sin(a), vx = fx[0] * c_ - fx[1] * s_, vy = fx[0] * s_ + fx[1] * c_; shots.push({ x: ox, y: oy, vx: vx * 620, vy: vy * 620 * .8, life: .32, dmg: Math.max(1, Math.round(dmg * .6)), fire: 1, flame: 1 }); }
       if ((P.flameS = (P.flameS || 0) + 1) % 3 === 0) SND.shot(); wearWeapon(); buzz(8); sendPos(true); net('shot', { x: Math.round(ox), y: Math.round(oy), vx: fx[0], vy: fx[1] }); return; }
     const ox = P.x + fx[0] * 40, oy = P.y - 95 + fx[1] * 20, sp = W && W.fire ? 650 : 1100;
-    const dirs = W && W.spread ? [-.13, .13] : [0]; dirs.forEach(a => { const c_ = Math.cos(a), s_ = Math.sin(a), vx = fx[0] * c_ - fx[1] * s_, vy = fx[0] * s_ + fx[1] * c_; shots.push({ x: ox, y: oy, vx: vx * sp, vy: vy * sp * .8, life: W && W.fire ? 1.1 : W && W.bolt ? .8 : .6, dmg, fire: W && W.fire ? 1 : 0, bolt: W && W.bolt ? 1 : 0, hitIds: W && W.bolt ? [] : null }); });
+    const dirs = W && W.spread ? [-.13, .13] : [0]; dirs.forEach(a => { const c_ = Math.cos(a), s_ = Math.sin(a), vx = fx[0] * c_ - fx[1] * s_, vy = fx[0] * s_ + fx[1] * c_; shots.push({ x: ox, y: oy, vx: vx * sp, vy: vy * sp * .8, life: W && W.fire ? 1.1 : W && W.bolt ? .8 : .6, dmg, venom: W && W.venom ? 1 : 0, charco: W && W.venom ? 'veneno' : W && W.fireP ? 'fuego' : 0, fx: W && W.venom ? { dot: 5, dps: 5 + lvlOf(P.xp) * .5, c: 'p' } : W && W.fireP ? { dot: 4, dps: 7 + lvlOf(P.xp) * .5, c: 'f' } : undefined, fire: W && (W.fire || W.fireP) ? 1 : 0, bolt: W && W.bolt ? 1 : 0, hitIds: W && W.bolt ? [] : null }); });
     SND.shot(); buzz(30); shake = Math.max(shake, .12); sendPos(true); net('shot', { x: Math.round(ox), y: Math.round(oy), vx: fx[0], vy: fx[1] }); wearWeapon(); }
   function throwKnife(fx, dmg) { shots.push({ x: P.x + fx[0] * 30, y: P.y - 95, vx: fx[0] * 820, vy: fx[1] * 820 * .8, life: .55, dmg, knife: 1 }); }
   /* vendas: 3 segundos entre una y otra */
@@ -1652,7 +1687,10 @@
   function useKitsune() { if (!hasItem('kitsune') || P.dead) return; if ((P.ghost || 0) > 0) return; P.ghost = 3; if (INV.dur.kitsune == null) INV.dur.kitsune = 2; INV.dur.kitsune--; SND.mob('whisper', .3); sendPos(true);
     if (INV.dur.kitsune <= 0) { INV.items.kitsune--; if (INV.items.kitsune > 0) INV.dur.kitsune = 2; else { delete INV.items.kitsune; delete INV.dur.kitsune; } toast('Desaparecés 3 segundos. La máscara kitsune se partió.'); } else toast('Desaparecés 3 segundos. A la máscara le queda 1 uso.'); abButtons(); hud(); persist(); }
   function goGhost() { if (P.dead) return; if (!INV.ab.includes('invis') || ((P.ghostCd || 0) > 0 && hasItem('kitsune'))) return useKitsune(); if ((P.ghostCd || 0) > 0) return toast('HUIR vuelve en ' + Math.ceil(P.ghostCd) + ' s.'); P.ghost = 3; P.ghostCd = 20; SND.mob('whisper', .3); sendPos(true); toast('Invisible por 3 segundos.'); }
-  function updateShots(dt) { for (let i = shots.length - 1; i >= 0; i--) { const b = shots[i]; const steps = 4; let hit = false;
+  let charcos = []; /* charcos de las armas de Luna: envenenan o queman a los Oscuros que los pisan */
+  function charcoTick(dt) { for (let i = charcos.length - 1; i >= 0; i--) { const q = charcos[i]; q.t -= dt; q.tk -= dt; if (q.t <= 0) { charcos.splice(i, 1); continue; }
+      if (q.tk <= 0) { q.tk = .5; mobs.forEach(o => { if (o.hp > 0 && !o.T.passive && Math.hypot(o.x - q.x, (o.y - q.y) * 1.6) < 95) mobFx(o, q.k === 'veneno' ? { dot: 2, dps: 5 + lvlOf(P.xp) * .4, c: 'p' } : { dot: 2, dps: 7 + lvlOf(P.xp) * .4, c: 'f' }); }); } } }
+  function updateShots(dt) { charcoTick(dt); for (let i = shots.length - 1; i >= 0; i--) { const b = shots[i]; const steps = 4; let hit = false;
       for (let k = 0; k < steps && !hit; k++) { b.x += b.vx * dt / steps; b.y += b.vy * dt / steps; const gy = b.y + 95;
         if (!walkable(b.x, gy) && !b.fake) { hit = true; break; }
         if (b.fake) continue;
@@ -1661,7 +1699,7 @@
         if (!hit) others.forEach((o, id) => { if (hit || !enemy(o)) return; if (Math.abs(o.x - b.x) < 40 && gy > o.y - 40 && gy < o.y + 40) { hit = true; const d = b.dmg * 6; o.hurt = .2; floats.push({ x: o.x, y: o.y - 170, t: .8, txt: '-' + d, c: '#ffffff' }); SND.hit();
             net('hit', { id: me.id, to: id, d, ax: Math.round(P.x), ay: Math.round(P.y) }); } }); }
       if (b.boom) { b.t0 += dt; if (b.t0 > .55 && !b.back) { b.back = 1; b.vx = -b.vx; b.vy = -b.vy; } }
-      b.life -= dt; if (hit || b.life <= 0) { for (let j = 0; j < 6; j++) parts.push({ x: b.x, y: b.y + 95 - 95, vx: rnd(-80, 80), vy: rnd(-80, 0), life: .3, s: 2, c: 200 }); shots.splice(i, 1); } } }
+      b.life -= dt; if (hit || b.life <= 0) { if (b.charco && charcos.length < 12) charcos.push({ x: b.x, y: b.y + 95, k: b.charco, t: 4, tk: 0 }); for (let j = 0; j < 6; j++) parts.push({ x: b.x, y: b.y + 95 - 95, vx: rnd(-80, 80), vy: rnd(-80, 0), life: .3, s: 2, c: 200 }); shots.splice(i, 1); } } }
   function pressA() { if (!P || P.dead || paused) return; if (mvpEv && mvpEv.rev) return revive(mvpEv.rev); const n = nearNpc(); if (n) return talkNpc(n); }
   function sendSay() { const t = $('#say-in').value.trim(); $('#say').hidden = true; $('#say-in').blur(); if (!t) return; P.say = t; P.sayT = 6; net('say', { id: me.id, t }); }
   $('#say-go').onclick = sendSay; $('#say-in').addEventListener('keydown', e => { if (e.key === 'Enter') sendSay(); if (e.key === 'Escape') { $('#say').hidden = true; $('#say-in').blur(); } });
@@ -1688,7 +1726,8 @@
   /* =================== API para el modo historia (cenizas-story.js) =================== */
   const API = { useItem, get CAS() { return CAS; }, get ptraps() { return ptraps; }, get guide() { return guide; }, get suero() { return suero; }, get P() { return P; }, get look() { return look; }, get INV() { return INV; }, get me() { return me; }, get mapKey() { return mapKey; }, get MAP() { return MAP; }, MAPS, ITEMS, MOB, WS, toast, buzz, SND, hud, persist, addItem, hasItem, spawnPickup, warpTo, iconOf, img, ok, quickBtns,
     lvlOf, xpFor, maxHp, walkable, charSprite, blitChar, HD_K, get mobs() { return mobs; }, get pickups() { return pickups; },
-    setPaused(v) { paused = v; }, spawnMob(kind, x, y) { const o = spawnMob(kind, 0, [x, y]); if (o) { o.story = 1; o.chasing = true; } return o; },
+    setPaused(v) { paused = v; }, /* atuendos que se ganan al terminar el final de cada bando */
+    grantFin(fac) { const pre = fac === 'ork' ? 'fin_ork' : 'fin_reb', n = fac === 'ork' ? 14 : 16; grantSkins(Array.from({ length: n }, (_, i) => pre + String(i + 1).padStart(2, '0'))); }, spawnMob(kind, x, y) { const o = spawnMob(kind, 0, [x, y]); if (o) { o.story = 1; o.chasing = true; } return o; },
     giveXp(x) { const lb = lvlOf(P.xp); P.xp += x; if (lvlOf(P.xp) > lb) { P.hp = maxHp(lvlOf(P.xp)); SND.level(); toast('SUBISTE A NIVEL ' + lvlOf(P.xp)); } hud(); },
     giveCoins(c_) { INV.coins += c_; hud(); }, takeItem(k, n) { INV.items[k] = (INV.items[k] || 0) - (n || 1); if (INV.items[k] <= 0) delete INV.items[k]; quickBtns(); } };
   window.CZ_API = API;
@@ -1709,9 +1748,9 @@
     if (keys.arrowleft || keys.a) ix = -1; if (keys.arrowright || keys.d) ix = 1; if (keys.arrowup || keys.w) iy = -1; if (keys.arrowdown || keys.s) iy = 1;
     if (paused || P.aturd > 0) { ix = iy = 0; } const mag = Math.hypot(ix, iy); P.mv = !P.dead && mag > .08;
     const wantRun = (runHeld || keys.shift) && P.mv && !P.tired && P.stam > 0; P.running = wantRun;
-    if (wantRun) { P.stam = Math.max(0, P.stam - dt); if (P.stam <= 0) { P.tired = true; toast('Te cansaste. Esperá a recuperar el aire.'); } } else { P.stam = Math.min(3, P.stam + dt * .55 * (1 + gearSum('stamR')) * (P.bAire > 0 ? 2 : 1)); if (P.stam >= 3) P.tired = false; }
+    if (wantRun) { if (!eqHas('brz_chino')) P.stam = Math.max(0, P.stam - dt); if (P.stam <= 0) { P.tired = true; toast('Te cansaste. Esperá a recuperar el aire.'); } } else { P.stam = Math.min(3, P.stam + dt * .55 * (1 + gearSum('stamR')) * (P.bAire > 0 ? 2 : 1)); if (P.stam >= 3) P.tired = false; }
     const sb_ = $('#h-st'); if (sb_) { sb_.style.width = (P.stam / 3 * 100) + '%'; sb_.style.background = P.tired ? '#7a3a34' : ''; }
-    if (P.mv) { const sp = 175 * Math.min(1, mag) * (P.slow > 0 ? .45 : 1) * (P.fast > 0 ? (P.potion ? 1.6 : 1.3) : 1) * (1 + gearSum('spd')) * (P.smoke > 0 ? .75 : 1) * (P.bImp > 0 ? 1.45 : 1) * (P.bVel > 0 ? 1.12 : 1) * (wantRun ? (me.faction === 'rebel' ? 1.9 : 1.65) : 1); const vx = ix / mag * sp * dt, vy = iy / mag * sp * dt;
+    if (P.mv) { const sp = 175 * Math.min(1, mag) * (P.slow > 0 ? .45 : 1) * (P.fast > 0 ? (P.potion ? 1.6 : 1.3) : 1) * (1 + gearSum('spd')) * (P.smoke > 0 ? .75 : 1) * (P.bImp > 0 ? 1.45 : 1) * (P.bVel > 0 ? 1.12 : 1) * (eqHas('brz_chino') ? 1.2 : 1) * (wantRun ? (me.faction === 'rebel' ? 1.9 : 1.65) : 1); const vx = ix / mag * sp * dt, vy = iy / mag * sp * dt;
       if (walkable(P.x + vx, P.y)) P.x += vx; if (walkable(P.x, P.y + vy)) P.y += vy;
       P.dir = Math.abs(ix) > Math.abs(iy) ? (ix < 0 ? 'l' : 'r') : (iy < 0 ? 'u' : 'd'); if (Math.abs(ix) > .2) P.face = ix < 0 ? -1 : 1;
       P.walkT += dt * 9 * Math.min(1, mag) * (wantRun ? 1.6 : 1); P.stepT -= dt; if (P.stepT <= 0) { P.stepT = wantRun ? .22 : .36; SND.step(); } if (wantRun && Math.random() < .5) parts.push({ x: P.x + rnd(-14, 14), y: P.y - rnd(0, 10), vx: rnd(-30, 30), vy: rnd(-30, -5), life: .4, s: rnd(2, 4), c: 120 }); }
@@ -2014,7 +2053,7 @@
         if (!n.cas && !n.lib && n.k) { const im = img('/a/ob/' + (n.bot && BOT_IMG[n.bot] && ok(img('/a/ob/' + BOT_IMG[n.bot] + '.png')) ? BOT_IMG[n.bot] : n.k) + '.png'), h = (n.bot || n.caps ? 66 : n.pod ? 150 : 170) * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, n.bot || n.caps ? 24 : 40); if ((n.quest && (INV.quests || {})[n.quest.id]) || ((n.bot || n.caps) && INV.cas && INV.cas[n.id] === dayN())) c.globalAlpha = .45; c.drawImage(im, ox - w / 2, oy - h, w, h); c.globalAlpha = 1; } }
         if (nearNpc() === n) { c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; c.fillStyle = '#e8c070'; c.fillText(n.nm + ' · A', ox, oy - 40 * zoom); } return; } const [sx, sy] = W2S(n.x * WS + (n.ox || 0), n.y * WS + (n.oy || 0)); if (sx < -200 || sx > VW + 200 || sy < -50 || sy > VH + 300) return; const S = 6.4 * zoom; shadow(sx, sy, 28);
       const dir = n.face || (Math.abs(P.x - n.x * WS) > 120 ? (P.x < n.x * WS ? 'l' : 'r') : 'd'), wp = walkPose(n.walkT, n.mv), fr = wp.fr; blitChar(c, charSprite({ npc: n.k }, dir, fr, n.atkT > 0), sx, sy + wp.bob * zoom, S, n.sc ? HD_K * n.sc : undefined); c.imageSmoothingEnabled = true;
-      const near = nearNpc() === n; LBL.push(() => { c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; const nm = n.nm + (near ? ' · A' : ''); const w = c.measureText(nm).width + 10, ny = sy - LBL_H * S;
+      const near = nearNpc() === n; LBL.push(() => { c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; const nm = n.nm + (near ? ' · A' : ''); const w = c.measureText(nm).width + 10, ny = sy - (n.lblH || LBL_H) * S;
       c.fillStyle = 'rgba(0,0,0,.6)'; c.fillRect(sx - w / 2, ny - 12, w, 15); c.fillStyle = '#e8c070'; c.fillText(nm, sx, ny); });
       }
     function drawPickup(q) { const [sx, sy] = W2S(q.x, q.y); if (sx < -60 || sx > VW + 60 || sy < -60 || sy > VH + 60) return; const b = Math.sin(q.t * 3) * 4 * zoom, S = 4.2 * zoom;
@@ -2028,6 +2067,7 @@
     // nubes tóxicas
     goos.forEach(g_ => { const [x, y] = W2S(g_.x, g_.y), a = Math.min(1, g_.ttl) * .75; if (drawFxImg(c, 'charco_moco', x, y, g_.r * 2.4 * zoom, 0, a + .2, false)) return; c.fillStyle = 'rgba(110,140,40,' + a + ')'; c.beginPath(); c.ellipse(x, y, g_.r * zoom, g_.r * .55 * zoom, 0, 0, 7); c.fill(); c.fillStyle = 'rgba(190,220,90,' + a * .6 + ')'; c.beginPath(); c.ellipse(x - 12 * zoom, y - 6 * zoom, g_.r * .4 * zoom, g_.r * .18 * zoom, 0, 0, 7); c.fill(); });
     mobs.forEach(o => { if (!(o.ring > 0)) return; o.ring -= 1 / 60; const [x, y] = W2S(o.x, o.y - o.T.h * .7), r_ = (1 - o.ring / .6) * 330 * zoom; c.strokeStyle = 'rgba(230,220,255,' + (o.ring / .6) + ')'; c.lineWidth = 6 * zoom; c.beginPath(); c.ellipse(x, y, r_, r_ * .6, 0, 0, 7); c.stroke(); });
+    charcos.forEach(q => { const im = img('/a/ob/charco_' + q.k + '.png'); if (!ok(im)) return; const [x, y] = W2S(q.x, q.y), w = 190 * zoom, h = w * im.naturalHeight / im.naturalWidth; c.globalAlpha = Math.min(1, q.t * 1.5) * (q.k === 'fuego' ? .85 + Math.sin(t * 9) * .1 : .85); c.drawImage(im, x - w / 2, y - h * .6, w, h); c.globalAlpha = 1; });
     clouds.forEach(c0 => { const [x, y] = W2S(c0.x, c0.y); const a = Math.min(1, c0.ttl) * .5; const gr = c.createRadialGradient(x, y, 0, x, y, c0.r * zoom); gr.addColorStop(0, 'rgba(120,150,90,' + a + ')'); gr.addColorStop(.7, 'rgba(80,100,60,' + a * .6 + ')'); gr.addColorStop(1, 'rgba(60,70,50,0)');
       c.fillStyle = gr; c.beginPath(); c.ellipse(x, y, c0.r * zoom, c0.r * .7 * zoom, 0, 0, 7); c.fill(); });
     // fuego y cuchillos de los Oscuros
@@ -2042,7 +2082,7 @@
     shots.forEach(b => { if (!b.fire || b.drawn) return; const [x, y] = W2S(b.x, b.y); c.globalCompositeOperation = 'lighter'; const gr = c.createRadialGradient(x, y, 0, x, y, 24 * zoom); gr.addColorStop(0, 'rgba(255,245,200,1)'); gr.addColorStop(.4, 'rgba(255,150,50,.9)'); gr.addColorStop(1, 'rgba(200,40,10,0)'); c.fillStyle = gr; c.fillRect(x - 24 * zoom, y - 24 * zoom, 48 * zoom, 48 * zoom); c.globalCompositeOperation = 'source-over'; });
     gearDraw(c, W2S, zoom, t); mvpDraw(c, W2S, zoom, t);
     fxDraw(c, W2S, zoom);
-    shots.forEach(b => { if (b.fire || b.drawn) return; const [x, y] = W2S(b.x, b.y); const [x2, y2] = W2S(b.x - b.vx * .03, b.y - b.vy * .03); c.strokeStyle = b.tear ? '#bfefff' : b.moco ? '#7fe060' : b.bolt ? '#d8c8a0' : b.knife ? '#e8ecf0' : 'rgba(255,230,160,.9)'; if (b.tear || b.moco) { c.fillStyle = c.strokeStyle; c.beginPath(); c.arc(x, y, 9 * zoom, 0, 7); c.fill(); } c.lineWidth = 3 * zoom; c.beginPath(); c.moveTo(x2, y2); c.lineTo(x, y); c.stroke(); });
+    shots.forEach(b => { if (b.fire || b.drawn) return; const [x, y] = W2S(b.x, b.y); const [x2, y2] = W2S(b.x - b.vx * .03, b.y - b.vy * .03); c.strokeStyle = b.venom ? '#a050ff' : b.tear ? '#bfefff' : b.moco ? '#7fe060' : b.bolt ? '#d8c8a0' : b.knife ? '#e8ecf0' : 'rgba(255,230,160,.9)'; if (b.tear || b.moco || b.venom) { c.fillStyle = c.strokeStyle; c.beginPath(); c.arc(x, y, 9 * zoom, 0, 7); c.fill(); } c.lineWidth = 3 * zoom; c.beginPath(); c.moveTo(x2, y2); c.lineTo(x, y); c.stroke(); });
     // partículas
     parts.forEach(p => { const [x, y] = W2S(p.x, p.y); const v = p.c || 30; c.fillStyle = p.fire ? 'rgba(255,' + (120 + (Math.random() * 100 | 0)) + ',40,' + Math.min(1, p.life * 2) + ')' : 'rgba(' + v + ',' + v + ',' + (v + 2) + ',' + Math.min(1, p.life) * .85 + ')'; c.fillRect(x, y, p.s * zoom, p.s * zoom); });
     // oscuridad
