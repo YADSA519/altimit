@@ -502,7 +502,12 @@
     if (!audios.length) { box.appendChild(el('div', 'empty', 'No hay audios todavía.')); return; }
     audios.forEach(a => { const mine = a.sender === me.id; const r = el('div', 'row'); const pb = el('button', 'play' + (playingId === a.id ? ' on' : '')); pb.setAttribute('aria-label', 'Escuchar');
       const mid = el('span'); mid.style.minWidth = '0'; mid.append(el('div', 'who', mine ? 'para ' + nickOf(a.recipient) : nickOf(a.sender)), el('div', 'sub', '0:' + pad(a.seconds || 0) + (mine ? '' : (a.heard_at ? ' · escuchado' : ' · nuevo'))));
-      const tm = el('span', 'time', when(a.created_at)); r.append(pb, mid, tm); pb.onclick = () => playAudio(a, pb); box.appendChild(r); }); }
+      const tm = el('span', 'time', when(a.created_at)); const del = el('button', 'aud-del', 'BORRAR'); del.setAttribute('aria-label', 'Borrar audio'); tm.appendChild(del);
+      del.onclick = ev => { ev.stopPropagation(); if (!del.classList.contains('sure')) { del.classList.add('sure'); del.textContent = '¿SEGURO?'; setTimeout(() => { del.classList.remove('sure'); del.textContent = 'BORRAR'; }, 3000); return; } borrarAudio(a); };
+      r.append(pb, mid, tm); pb.onclick = () => playAudio(a, pb); box.appendChild(r); }); }
+  async function borrarAudio(a) { if (player && playingId === a.id) { player.pause(); player = null; playingId = null; }
+    const { error } = await sb.from('audios').delete().eq('id', a.id); if (error) return toast('No se pudo borrar el audio.');
+    try { await sb.storage.from('audios').remove([a.path]); } catch (e) {} audios = audios.filter(x => x.id !== a.id); audioBadge(); renderAudios(); toast('Audio borrado.'); }
   async function playAudio(a, btn) {
     if (player && playingId === a.id) { player.pause(); player = null; playingId = null; renderAudios(); return; }
     if (player) player.pause();
