@@ -60,6 +60,7 @@ body.cine #st-dlg{display:block}
   function portrait(k) {
     if (D.portraits[k]) return '/a/av/' + D.portraits[k] + '.jpg';
     if (k === 'RADIO') return '/a/it/radio.png';
+    if (/^nota_/.test(k)) return '/a/it/' + k + '.png'; if (k === 'joystick_senado') return '/a/it/joystick_lilia.png';
     if (k === 'VOS' && A.look && AVSEL.includes(A.look.pj)) return '/a/av/' + A.look.pj + '.jpg';
     if (busts[k]) return busts[k];
     let spr = null; try { spr = k === 'VOS' ? A.charSprite(A.look || {}, 'd', 0, false) : A.charSprite({ npc: k }, 'd', 0, false); } catch (e) {}
