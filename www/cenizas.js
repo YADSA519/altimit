@@ -304,9 +304,9 @@
   if (MAPS.plazaMayo && !EXP) MAPS.plazaMayo.safeFac = 'rebel'; /* Plaza de Mayo: segura para rebeldes; para ORK hay palomas y perros policía */
   if (!EXP) Object.entries(SPECIAL_AT).forEach(([k, add]) => { const m = MAPS[k]; if (m) m.mobs = Object.assign({}, m.mobs || {}, add); });
   const LOOT_T = {
-    bajo: [['pilas', 3], ['campera', 1.2], ['V', 2.2], ['linterna', 1], ['W', 1.6], ['C', .4], ['M', .5], ['X', .25], ['P', .25], ['A', .2], ['pista', .5]],
-    medio: [['pilas', 2], ['campera', 1], ['C', .8], ['V', 2], ['W', 1.6], ['G', .18], ['M', .8], ['X', .4], ['P', .35], ['A', .35], ['mascara', .6], ['pista', .6]],
-    alto: [['C', 1.1], ['armadura', .4], ['V', 2], ['W', 1.6], ['G', .3], ['M', 1], ['X', .5], ['P', .4], ['A', .5], ['b_contencion', .3], ['b_resonancia', .3], ['pista', .7]],
+    bajo: [['pilas', 3], ['campera', 1.2], ['V', 2.2], ['linterna', 1], ['W', 1.6], ['C', 1.1], ['Z', .7], ['M', .5], ['X', .25], ['P', .25], ['A', .2], ['pista', .5]],
+    medio: [['pilas', 2], ['campera', 1], ['C', 1.8], ['Z', .9], ['V', 2], ['W', 1.6], ['G', .18], ['M', .8], ['X', .4], ['P', .35], ['A', .35], ['mascara', .6], ['pista', .6]],
+    alto: [['C', 2.4], ['Z', 1.1], ['armadura', .4], ['V', 2], ['W', 1.6], ['G', .3], ['M', 1], ['X', .5], ['P', .4], ['A', .5], ['b_contencion', .3], ['b_resonancia', .3], ['pista', .7]],
     pvp: [['V', 2], ['campera', 1], ['W', 1.4], ['G', .12], ['M', .4], ['X', .4], ['pista', 1.4]],
     refugio: [['vendas', 1.5], ['pilas', 1]] };
   Object.values(LOOT_T).forEach(l => l.push(['cigarrillo', .6], ['manzana', .6], ['F', .7], ['B', .15]));
@@ -323,7 +323,7 @@
      Colores: gris común · VERDE · AZUL · VIOLETA · NARANJA (casi épico) · ÉPICO (solo MVPs, nunca se rompe) */
   const RAR = { g: ['COMÚN', '#a0a0a0'], v: ['VERDE', '#47d16a'], a: ['AZUL', '#3fa2ff'], p: ['VIOLETA', '#b26cff'], n: ['NARANJA', '#ff9a2a'], e: ['ÉPICO', '#ff3b5c'] };
   const TIERS = ['v', 'a', 'p', 'n'], TKEY = (b, t) => t === 'v' ? b : b + '_' + t, TB = { v: [0, 1, 1], a: [1, 1.15, 1.45], p: [2, 1.32, 1.95], n: [4, 1.55, 2.7] }, TADJ = { v: '', a: ' azul', p: ' violeta', n: ' naranja' };
-  const IMG_OK = {}; 'botas botas_n zapatos zapatos_a borcegos borcegos_p guantes_cuero nudilleras guantes_tac guantes_en gorro capucha casco_moto gafas gafas_p mascara_g brz_impulso brz_fuerza brz_energia mate cafe locro empanada alfajor te isotonica vendas_mano chocolate galletitas atun zapas_lona anteojos gafas_st pancho hamburguesa pollo barbijo boina gaseosa manaos gomitas chipa pizza'.split(' ').forEach(k => IMG_OK[k] = 1); /* dibujos de objetos nuevos ya subidos */
+  const IMG_OK = {}; 'botas botas_n zapatos zapatos_a borcegos borcegos_p guantes_cuero nudilleras guantes_tac guantes_en gorro capucha casco_moto gafas gafas_p mascara_g brz_impulso brz_fuerza brz_energia mate cafe locro empanada alfajor te isotonica vendas_mano chocolate galletitas atun zapas_lona anteojos gafas_st pancho hamburguesa pollo barbijo boina zapas_running botas_goma borcegos_trek botas_ignifugas gaseosa manaos gomitas chipa pizza'.split(' ').forEach(k => IMG_OK[k] = 1); /* dibujos de objetos nuevos ya subidos */
   const ICO = (k, f) => { if (ICONS[k] && ICONS[k].src && ICONS[k].src.endsWith('/' + f + '.png')) return; const i = new Image(); i.src = '/a/it/' + f + '.png'; ICONS[k] = i; };
   const tierOf = k => (ITEMS[k] && ITEMS[k].r) || 'g', baseOf = k => (ITEMS[k] && ITEMS[k].base) || k;
   /* cuerpo a cuerpo: se rompen (podés juntar varias) */
@@ -348,6 +348,12 @@
   /* chalecos (se gastan: podés juntar muchos) */
   Object.assign(ITEMS.campera, { r: 'g' }); Object.assign(ITEMS.armadura, { r: 'a' }); Object.assign(ITEMS.chaleco_t, { r: 'p' });
   [['v', 60], ['a', 110], ['p', 180], ['n', 300]].forEach(([t, s]) => { const k = TKEY('chaleco', t); ITEMS[k] = { n: 'Chaleco' + TADJ[t], t: 'Ropa · ' + RAR[t][0] + ' · escudo ' + s, d: 'Absorbe ' + s + ' de daño antes que tu vida. Cuando se gasta, se rompe.', eq: 'ropa', shield: s, r: t, base: 'chaleco' }; ICO(k, 'chaleco'); });
+  /* chalecos especiales: más escudo, o escudo + resistencia mientras lo tengas puesto */
+  const CHX = { chaleco_ref: ['Chaleco reforzado', 1.4, null, 'Más relleno: aguanta más que el común.'], chaleco_bombero: ['Chaleco de bombero', 1, 'rFuego', 'Mientras lo tenés puesto, el fuego te hace un % menos.'],
+    chaleco_quimico: ['Chaleco químico', 1, 'rGas', 'Mientras lo tenés puesto, el veneno y el gas te hacen un % menos.'], chaleco_anticorte: ['Chaleco anticorte', 1, 'rCorte', 'Mientras lo tenés puesto, los cuchillos te cortan un % menos y sangrás menos tiempo.'] };
+  const CHXV = { v: .2, a: .3, p: .45, n: .6 };
+  Object.entries(CHX).forEach(([b, [nm, mul, rs, dd]]) => [['v', 60], ['a', 110], ['p', 180], ['n', 300]].forEach(([t, s0]) => { const k = TKEY(b, t), s = Math.round(s0 * mul / 5) * 5;
+    ITEMS[k] = { n: nm + TADJ[t], t: 'Ropa · ' + RAR[t][0] + ' · escudo ' + s + (rs ? ' · -' + Math.round(CHXV[t] * 100) + '%' : ''), d: 'Absorbe ' + s + ' de daño antes que tu vida. ' + (rs ? dd.replace('un %', 'un ' + Math.round(CHXV[t] * 100) + '%') : dd) + ' Cuando se gasta, se rompe.', eq: 'ropa', shield: s, r: t, base: b }; if (rs) ITEMS[k][rs] = CHXV[t]; ICO(k, b); }));
   /* vendas: curan de a poco durante 3 segundos */
   [['v', 22], ['a', 35], ['p', 50], ['n', 75]].forEach(([t, v]) => { const k = TKEY('vendas', t); ITEMS[k] = { n: 'Venda' + TADJ[t], t: 'Consumible · ' + RAR[t][0], d: 'Cura el ' + v + '% de tu vida de a poco durante 3 segundos.', use: 'venda', v, pct: v / 100, r: t, base: 'vendas' }; ICO(k, 'vendas'); });
   /* pociones de velocidad */
@@ -367,13 +373,15 @@
     mascara_g: ['Máscara de gas mejorada', 'cabeza', 'rGas', 'El gas y el veneno te hacen un % menos.', 'mascara_gas', 2],
     vendas_mano: ['Vendas de boxeo', 'brazo', 'mdmg', 'Pegás un % más fuerte cuerpo a cuerpo.', 'guantes'], zapas_lona: ['Zapatillas de lona', 'pies', 'spd', 'Caminás y corrés un % más rápido.', 'zapatillas'],
     anteojos: ['Anteojos de sol', 'cabeza', 'gdmg', 'Las armas de fuego pegan un % más.', 'casco'], gafas_st: ['Gafas de cobre', 'cabeza', 'vis', 'En los lugares oscuros ves un % más lejos.', 'casco', 2.5],
-    barbijo: ['Barbijo', 'cabeza', 'rCont', 'El contagio te avanza un % más lento.', 'casco', 2], boina: ['Boina', 'cabeza', 'hp', 'Tenés un % más de vida máxima.', 'casco'] };
+    barbijo: ['Barbijo', 'cabeza', 'rCont', 'El contagio te avanza un % más lento.', 'casco', 2], boina: ['Boina', 'cabeza', 'hp', 'Tenés un % más de vida máxima.', 'casco'],
+    zapas_running: ['Zapatillas de running', 'pies', 'spd', 'Caminás y corrés un % más rápido.', 'zapatillas', .6], botas_goma: ['Botas de goma', 'pies', 'rMoco', 'El moco te frena y te lastima un % menos.', 'botas', 4],
+    borcegos_trek: ['Borcegos de trekking', 'pies', 'rGas', 'El veneno y el gas te hacen un % menos.', 'borcegos', 2.5], botas_ignifugas: ['Botas ignífugas', 'pies', 'rFuego', 'El fuego y las quemaduras te hacen un % menos.', 'botas', 2.5] };
   /* según la rareza, el equipo suma una resistencia: VIOLETA 15%, NARANJA 30% */
   const RESB = { botas: 'rFuego', zapatos: 'rGas', borcegos: 'rFuego', zapatillas: 'rGas', zapas_lona: 'rGas', guantes: 'rFuego', guantes_cuero: 'rFuego', nudilleras: 'rCont', guantes_tac: 'rGas', guantes_en: 'rFuego', vendas_mano: 'rCont',
-    casco: 'rFuego', gorro: 'rCont', capucha: 'rGas', casco_moto: 'rFuego', gafas: 'rGas', gafas_st: 'rFuego', mascara_g: 'rCont', anteojos: 'rFuego', barbijo: 'rGas', boina: 'rCont', rodilleras: 'rFuego', amuleto: 'rCont', mira: 'rGas' };
+    casco: 'rFuego', gorro: 'rCont', capucha: 'rGas', casco_moto: 'rFuego', gafas: 'rGas', gafas_st: 'rFuego', mascara_g: 'rCont', anteojos: 'rFuego', barbijo: 'rGas', boina: 'rCont', zapas_running: 'rGas', botas_goma: 'rGas', borcegos_trek: 'rFuego', botas_ignifugas: 'rGas', rodilleras: 'rFuego', amuleto: 'rCont', mira: 'rGas' };
   const RESN = { rFuego: 'del fuego', rGas: 'del gas y el veneno', rCont: 'del contagio' }, RESV = { p: .15, n: .3 };
   const ACCSV = { v: .06, a: .12, p: .18, n: .26 };
-  Object.entries(ACCS).forEach(([b, [nm, sl, st, d, img, mul]]) => TIERS.forEach(t => { const k = TKEY(b, t), v = Math.round((st === 'spd' ? ACCSV[t] * .8 : ACCSV[t]) * (mul || 1) * 100) / 100;
+  Object.entries(ACCS).forEach(([b, [nm, sl, st, d, img, mul]]) => TIERS.forEach(t => { const k = TKEY(b, t), v = Math.min(st === 'rMoco' ? 1 : 9, Math.round((st === 'spd' ? ACCSV[t] * .8 : ACCSV[t]) * (mul || 1) * 100) / 100);
     ITEMS[k] = { n: nm + TADJ[t], t: (sl === 'acc' ? 'Accesorio' : sl === 'pies' ? 'Pies' : sl === 'brazo' ? 'Manos' : 'Cabeza') + ' · ' + RAR[t][0] + ' · +' + Math.round(v * 100) + '%', d: d.replace('un %', 'un ' + Math.round(v * 100) + '%') + ' No se rompe.', eq: sl, [st]: v, r: t, base: b }; const rk = RESB[b]; if (rk && RESV[t]) { ITEMS[k][rk] = (ITEMS[k][rk] || 0) + RESV[t]; ITEMS[k].d = ITEMS[k].d.replace(' No se rompe.', ' Además te protege ' + Math.round(RESV[t] * 100) + '% ' + RESN[rk] + '. No se rompe.'); }
     ICO(k, IMG_OK[k] ? k : IMG_OK[b] ? b : img || b); }));
   ITEMS.mascara.eq = 'cabeza';
@@ -456,8 +464,9 @@
   function resolveLoot(k, w) { if (!k || k.length > 2 || !/^[A-Z]$/.test(k)) return k; const t = pickT(w || (MAP && (MAP.lv || [1, 3])[1] > 30 ? 'alto' : 'mapa'));
     if (k === 'W') return TKEY(pickW([['barra', 2], ['cuchillo', 2], ['bate', 2], ['lanza', 1], ['katana', 1], ['hacha', 1.4], ['machete', 1.6], ['martillo', 1], ['cadena', 1.2], ['tubo', 1.3]]), t);
     if (k === 'G') return TKEY(pickW([['pistola', 3], ['ballesta', 1.2], ['escopeta', 1], ['metralleta', .8], ['lanzallamas', .4]]), t);
-    if (k === 'C') return TKEY('chaleco', t); if (k === 'V') return TKEY('vendas', t); if (k === 'P') return TKEY('pocion', t);
-    if (k === 'A') return TKEY(pickW([['guantes', 1], ['rodilleras', 1], ['amuleto', 1], ['mira', .7], ['zapatillas', 1], ['casco', 1], ['botas', 1], ['zapatos', .8], ['borcegos', .7], ['guantes_cuero', 1], ['nudilleras', .8], ['guantes_tac', .6], ['guantes_en', .5], ['gorro', 1], ['capucha', .8], ['casco_moto', .7], ['gafas', .6], ['mascara_g', .5], ['vendas_mano', .8], ['zapas_lona', 1], ['anteojos', .7], ['gafas_st', .5], ['barbijo', .8], ['boina', .8]]), t);
+    if (k === 'C') return TKEY(pickW([['chaleco', 2], ['chaleco_ref', 1.2], ['chaleco_bombero', 1], ['chaleco_quimico', 1], ['chaleco_anticorte', .9]]), t);
+    if (k === 'Z') return TKEY(pickW([['zapatillas', 1], ['zapas_lona', 1], ['zapas_running', 1.2], ['botas', 1], ['zapatos', .8], ['borcegos', .8], ['botas_goma', 1], ['borcegos_trek', 1], ['botas_ignifugas', 1]]), t); if (k === 'V') return TKEY('vendas', t); if (k === 'P') return TKEY('pocion', t);
+    if (k === 'A') return TKEY(pickW([['guantes', 1], ['rodilleras', 1], ['amuleto', 1], ['mira', .7], ['zapatillas', 1], ['casco', 1], ['botas', 1], ['zapatos', .8], ['borcegos', .7], ['guantes_cuero', 1], ['nudilleras', .8], ['guantes_tac', .6], ['guantes_en', .5], ['gorro', 1], ['capucha', .8], ['casco_moto', .7], ['gafas', .6], ['mascara_g', .5], ['vendas_mano', .8], ['zapas_lona', 1], ['anteojos', .7], ['gafas_st', .5], ['barbijo', .8], ['boina', .8], ['zapas_running', .8], ['botas_goma', .6], ['borcegos_trek', .6], ['botas_ignifugas', .6]]), t);
     if (k === 'M') return pickW([['balas', 3], ['cart_itaka', 1.2], ['cargador', 1.2], ['nafta', .6], ['virotes', 1]]);
     if (k === 'X') return pickW([['molotov', 2], ['granada', 1]]);
     if (k === 'B') return TKEY(pickW([['brz_impulso', 1], ['brz_fuerza', 1], ['brz_energia', .7]]), t);
@@ -632,7 +641,7 @@
     else if (n.bot === 'caps_azul') { if (Math.random() < 2 / 3) add('jeringa'); else add(pickW([['vendas_a', 2], ['venda_q', 1]])); if (Math.random() < .25) add(pickW([['vendas', 2], ['antiveneno', 1]])); }
     else if (n.bot === 'caps_roja') { add(resolveLoot('W')); if (Math.random() < .6) add(pickW([['balas', 2], ['cargador', 1], ['cart_itaka', 1], ['virotes', .8]])); if (Math.random() < .3) add(pickW([['molotov', 1], ['granada', .7]])); }
     else if (n.bot === 'caps_amarilla') { add(pickW([['vendas', 3], ['venda_q', 2], ['vendas_a', 1]])); add(pickW([['manzana', 2], ['pilas', 1.5], ['cigarrillo', 1]])); add(resolveLoot('F')); if (Math.random() < .3) add('antiveneno'); }
-    else { add(resolveLoot(pickW([['A', 2], ['C', 1.4], ['B', .8]]))); if (Math.random() < .4) add(pickW([['vendas', 2], ['pilas', 1]])); }
+    else { add(resolveLoot(pickW([['A', 2], ['C', 1.8], ['Z', 1.2], ['B', .8]]))); if (Math.random() < .4) add(pickW([['vendas', 2], ['pilas', 1]])); }
     SND.pick(); buzz(30); toast(got.length ? n.nm.charAt(0) + n.nm.slice(1).toLowerCase() + ': ' + got.join(', ') + '.' : 'Estaba vacío.'); quickBtns(); persist(); }
   function placeCas() { CAS = []; placeCaps(); placeBotin(); placePods(); if (!grid || MAP.safeAll || MAP.base || EXP || hashStr(mapKey) % 2) return; const r = seeded(hashStr(mapKey) * 31 + 7); let tries = 0;
     while (CAS.length < 1 && tries++ < 4000) { const c = (r() * grid.length) | 0; if (!grid[c]) continue; const x = (c % GW + .5) * CW, y = (((c / GW) | 0) + .5) * CW; if (inSafe(x, y) || CAS.some(o => Math.hypot(o.x * WS - x, o.y * WS - y) < 900)) continue;
@@ -906,7 +915,7 @@
   function hitPlayer(d, knockFrom, knock, byId, mk, melee) { if (P.dead || P.inv > 0 || P.furia > 0 || (!byId && inSafe(P.x, P.y))) return false; if (d < 999) P.lastHitT = Date.now();
     if (!byId && mk && d < 999 && MOB[mk]) { if (MOB[mk].burn) d = Math.max(1, Math.round(d * (1 - Math.min(.7, gearSum('rFuego'))))); if (MOB[mk].poison) d = Math.max(1, Math.round(d * (1 - Math.min(.7, gearSum('rGas'))))); } if (!byId && mk && d < 999 && MOB[mk]) { if (MOB[mk].burn && !(P.burn > 0)) { P.burn = 5; toast('¡Te prendiste fuego! 5 segundos de quemadura (la venda para quemaduras lo corta).'); } if (MOB[mk].poison && !(P.poison > 0)) { P.poison = 25; toast('Te envenenaron. Usá antiveneno.'); } }
     if (melee && !byId && mk && d < 999 && MOB[mk] && !MOB[mk].passive && !MOB[mk].npc && !MOB[mk].fac) contagiar(MOB[mk].cont); /* solo contagian los Oscuros que pegan cuerpo a cuerpo */
-    if (P.goo > 0) d *= 2; if (P.stunT > 0 && mk && MOB[mk] && MOB[mk].mvp) d *= 2.5;
+    if (P.goo > 0) d *= 2 - Math.min(1, gearSum('rMoco')); if (P.stunT > 0 && mk && MOB[mk] && MOB[mk].mvp) d *= 2.5;
     if (mk && MOB[mk] && MOB[mk].pois5 && d < 999) { P.poison = Math.max(P.poison || 0, 5); P.poisonK = MOB[mk].pois5; }
     d = Math.max(1, Math.round(d * dmgMult() * classMult(mk || (knockFrom && knockFrom.kind) || (byId ? null : 'oscuro'))));
     P.lastHitT = performance.now(); if (P.gorro) { P.gorro = 0; P.ghost = 0; toast('Te pegaron: volviste a aparecer.'); }
@@ -1205,7 +1214,7 @@
     if (P.dead) { P.dead = false; P.hp = maxHp(lvlOf(P.xp)) * .5; $('#ov-dead').hidden = true; }
     /* premio para todos los que estén: oro + 2 cosas comunes */
     const ORO = 200; INV.coins += ORO; const got = [ORO + ' monedas'];
-    for (let i = 0; i < 2; i++) { const k = resolveLoot(pickW([['W', 2], ['C', 2], ['A', 2], ['V', 3], ['P', 2], ['M', 2]]), 'evento'); const g = takeItem(k); if (g) got.push(ITEMS[g].n); }
+    for (let i = 0; i < 2; i++) { const k = resolveLoot(pickW([['W', 2], ['C', 2], ['Z', 1.5], ['A', 2], ['V', 3], ['P', 2], ['M', 2]]), 'evento'); const g = takeItem(k); if (g) got.push(ITEMS[g].n); }
     hud(); quickBtns();
     /* ítem único: lo tira una sola vez el host. 10%: si sale, le toca a uno de los presentes al azar; si no, a nadie */
     if (mk === 'lilia') { if (!hasItem('joystick_lilia')) { addItem('joystick_lilia', 1); setTimeout(() => banner('¡OBJETO ÉPICO!', 'Te ganaste el Joystick de Lilia', 4200, '#ff5ac8'), 2600); } else setTimeout(() => toast('Ya tenés el Joystick de Lilia.'), 2600); }
@@ -1357,9 +1366,9 @@
     else if (p.kind === 'sombra' && r < .2) spawnPickup('pagina', at);
     else if (p.kind === 'mole' && r < .5) spawnPickup(pickW([['armadura', 1], ['C', 2]]), at);
     else if (r < .15) spawnPickup('V', at);
-    else if (r < .19) spawnPickup(pickW([['pilas', 3], ['campera', 1], ['C', .5], ['M', 1.2], ['X', .3]]), at);
+    else if (r < .19) spawnPickup(pickW([['pilas', 3], ['campera', 1], ['C', 1.3], ['Z', .8], ['M', 1.2], ['X', .3]]), at);
     if (T.fac && T.fac !== me.faction) { const rj = Math.random(); if (rj < .04) spawnPickup('jeringa_max', [p.x - 30, p.y + 10]); else if (rj < .3) spawnPickup('jeringa', [p.x - 30, p.y + 10]); } /* vacunas: las tiran los del otro bando */
-    if (T.boss && !T.mvp) { const n_ = T.world ? 3 : 2; for (let j = 0; j < n_; j++) spawnPickup(pickW([['W', 3], ['C', 2], ['A', 2], ['G', 1], ['V', 1.5], ['P', 1], ['X', 1]]), [p.x + rnd(-80, 80), p.y + rnd(-40, 40)], 'jefe'); }
+    if (T.boss && !T.mvp) { const n_ = T.world ? 3 : 2; for (let j = 0; j < n_; j++) spawnPickup(pickW([['W', 3], ['C', 2.5], ['Z', 1.5], ['A', 2], ['G', 1], ['V', 1.5], ['P', 1], ['X', 1]]), [p.x + rnd(-80, 80), p.y + rnd(-40, 40)], 'jefe'); }
     const r2 = Math.random();
     if (r2 < .05) spawnPickup(pickW(mL >= 10 ? [['W', 4], ['G', 1], ['A', 1]] : [['W', 4], ['A', .5]]), [p.x + 30, p.y]); /* armas cuerpo a cuerpo: se rompen rápido, que aparezcan más */
     else if (r2 < .021) spawnPickup('pista', [p.x - 30, p.y]);
@@ -1425,9 +1434,9 @@
   function updateMobShots(dt) {
     for (let i = mshots.length - 1; i >= 0; i--) { const b = mshots[i]; b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt; let gone = b.life <= 0 || !walkable(b.x, b.y);
       if (b.k === 'fire' && Math.random() < .7) parts.push({ x: b.x + rnd(-6, 6), y: b.y - 70 + rnd(-6, 6), vx: rnd(-20, 20), vy: rnd(-40, -10), life: .4, s: rnd(3, 6), c: 200, fire: 1 });
-      if (!gone && !P.dead && Math.abs(b.x - P.x) < 40 && Math.abs(b.y - P.y) < 34) { gone = true; hitPlayer(b.d, { x: b.x - b.vx * .1, y: b.y - b.vy * .1 }, b.k === 'fire' || b.k === 'vacio' ? 40 : 0, null, b.mk || 'oscuro'); if (b.k === 'cuchillo') { if (!(P.sangra > 0)) toast('¡Sangrás! Vas perdiendo vida unos segundos.'); P.sangra = 5; } if (b.k === 'fire') for (let j = 0; j < 14; j++) parts.push({ x: P.x, y: P.y - 80, vx: rnd(-90, 90), vy: rnd(-90, 0), life: .5, s: 4, c: 200, fire: 1 }); }
+      if (!gone && !P.dead && Math.abs(b.x - P.x) < 40 && Math.abs(b.y - P.y) < 34) { gone = true; hitPlayer(b.k === 'cuchillo' ? Math.max(1, Math.round(b.d * (1 - Math.min(.6, gearSum('rCorte'))))) : b.d, { x: b.x - b.vx * .1, y: b.y - b.vy * .1 }, b.k === 'fire' || b.k === 'vacio' ? 40 : 0, null, b.mk || 'oscuro'); if (b.k === 'cuchillo') { if (!(P.sangra > 0)) toast('¡Sangrás! Vas perdiendo vida unos segundos.'); P.sangra = 5 * (1 - Math.min(.8, gearSum('rCorte'))); } if (b.k === 'fire') for (let j = 0; j < 14; j++) parts.push({ x: P.x, y: P.y - 80, vx: rnd(-90, 90), vy: rnd(-90, 0), life: .5, s: 4, c: 200, fire: 1 }); }
       if (gone) { if (b.k === 'moco') goos.push({ x: b.x, y: b.y, r: 95, ttl: 6 }); mshots.splice(i, 1); } }
-    for (let i = goos.length - 1; i >= 0; i--) { const g_ = goos[i]; g_.ttl -= dt; if (g_.ttl <= 0) { goos.splice(i, 1); continue; } if (!P.dead && Math.hypot(P.x - g_.x, (P.y - g_.y) * 1.5) < g_.r) { if (!(P.goo > 0)) toast('¡Pisaste moco! Vas lento y te pegan el doble.'); P.goo = .3; P.slow = Math.max(P.slow || 0, .3); } }
+    for (let i = goos.length - 1; i >= 0; i--) { const g_ = goos[i]; g_.ttl -= dt; if (g_.ttl <= 0) { goos.splice(i, 1); continue; } if (!P.dead && Math.hypot(P.x - g_.x, (P.y - g_.y) * 1.5) < g_.r) { if (!(P.goo > 0)) toast(gearSum('rMoco') >= 1 ? 'Moco en el piso: las botas de goma te cubren.' : gearSum('rMoco') > 0 ? 'Pisaste moco: las botas aguantan un poco.' : '¡Pisaste moco! Vas lento y te pegan el doble.'); P.goo = .3; P.slow = Math.max(P.slow || 0, .3); } }
     if (P.goo > 0) P.goo -= dt;
     for (let i = clouds.length - 1; i >= 0; i--) { const c0 = clouds[i]; c0.ttl -= dt; if (c0.ttl <= 0) { clouds.splice(i, 1); continue; }
       if (!P.dead && Math.hypot(P.x - c0.x, (P.y - c0.y) * 1.4) < c0.r) { c0.tick -= dt; if (c0.tick <= 0) { c0.tick = .5; hitPlayer(6, null, 0, null, 'sofia'); } } } }
@@ -1884,7 +1893,7 @@
     const wantRun = (runHeld || keys.shift) && P.mv && !P.tired && P.stam > 0; P.running = wantRun;
     if (wantRun) { if (!eqHas('brz_chino')) P.stam = Math.max(0, P.stam - dt); if (P.stam <= 0) { P.tired = true; toast('Te cansaste. Esperá a recuperar el aire.'); } } else { P.stam = Math.min(3, P.stam + dt * .55 * (1 + gearSum('stamR')) * (P.bAire > 0 ? 2 : 1) * (bendOn('bendI') ? 1.8 : 1)); if (P.stam >= 3) P.tired = false; }
     const sb_ = $('#h-st'); if (sb_) { sb_.style.width = (P.stam / 3 * 100) + '%'; sb_.style.background = P.tired ? '#7a3a34' : ''; }
-    if (P.mv) { const sp = 175 * Math.min(1, mag) * (P.slow > 0 ? .45 : 1) * (P.fast > 0 ? (P.potion ? 1.6 : 1.3) : 1) * (1 + gearSum('spd')) * (P.smoke > 0 ? .75 : 1) * (P.bImp > 0 ? 1.45 : 1) * (P.bVel > 0 ? 1.12 : 1) * (eqHas('brz_chino') ? 1.2 : 1) * (bendOn('bendN') ? 1.1 : 1) * (wantRun ? (me.faction === 'rebel' ? 1.9 : 1.65) : 1); const vx = ix / mag * sp * dt, vy = iy / mag * sp * dt;
+    if (P.mv) { const sp = 175 * Math.min(1, mag) * (P.slow > 0 ? (P.goo > 0 && !(P.stunT > 0) ? .45 + .55 * Math.min(1, gearSum('rMoco')) : .45) : 1) * (P.fast > 0 ? (P.potion ? 1.6 : 1.3) : 1) * (1 + gearSum('spd')) * (P.smoke > 0 ? .75 : 1) * (P.bImp > 0 ? 1.45 : 1) * (P.bVel > 0 ? 1.12 : 1) * (eqHas('brz_chino') ? 1.2 : 1) * (bendOn('bendN') ? 1.1 : 1) * (wantRun ? (me.faction === 'rebel' ? 1.9 : 1.65) : 1); const vx = ix / mag * sp * dt, vy = iy / mag * sp * dt;
       if (walkable(P.x + vx, P.y)) P.x += vx; if (walkable(P.x, P.y + vy)) P.y += vy;
       P.dir = Math.abs(ix) > Math.abs(iy) ? (ix < 0 ? 'l' : 'r') : (iy < 0 ? 'u' : 'd'); if (Math.abs(ix) > .2) P.face = ix < 0 ? -1 : 1;
       P.walkT += dt * 9 * Math.min(1, mag) * (wantRun ? 1.6 : 1); P.stepT -= dt; if (P.stepT <= 0) { P.stepT = wantRun ? .22 : .36; SND.step(); } if (wantRun && Math.random() < .5) parts.push({ x: P.x + rnd(-14, 14), y: P.y - rnd(0, 10), vx: rnd(-30, 30), vy: rnd(-30, -5), life: .4, s: rnd(2, 4), c: 120 }); }
