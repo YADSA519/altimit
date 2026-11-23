@@ -1646,7 +1646,7 @@
     D[n.k] = dayN(); INV.bendEnd = INV.bendEnd || {}; INV.bendEnd[B[0]] = Date.now() + 3600e3; persist(); SND.level(); bendHud(); npcSay(n, B[3]); setTimeout(() => banner('BENDICIÓN · ' + B[1], B[2] + ' Por 1 hora.', 3200, '#f5e6a8'), 600); }
   function lucreTalk(n) { const D = INV.bendDia = INV.bendDia || {}; if (D.lucre === dayN()) return npcSay(n, '¡Guau! (Lucre se echa panza arriba. Hoy ya cavó bastante.)');
     D.lucre = dayN(); addItem('vendas_a', 10); persist(); SND.pick(); npcSay(n, '¡Guau! (Lucre desenterró algo y te lo trae moviendo la cola: 10 vendas azules.)'); }
-  function bendHud() { let el = $('#h-bend'); if (!el) { el = document.createElement('div'); el.id = 'h-bend'; const cb = $('#h-cb'); if (!cb) return; cb.after(el); }
+  function bendHud() { let el = $('#h-bend'); if (!el) { el = document.createElement('div'); el.id = 'h-bend'; const tr = document.querySelector('.topr'); (tr ? tr.parentElement : document.body).appendChild(el); }
     const on = INV && INV.bendEnd ? Object.values(BEND).filter(B => bendOn(B[0])) : []; el.hidden = !on.length;
     el.innerHTML = on.map(B => '<span title="' + B[1] + '">✝' + B[1].slice(0, 4) + ' ' + Math.ceil((INV.bendEnd[B[0]] - Date.now()) / 60000) + '′</span>').join(''); }
   setInterval(() => { try { bendHud(); } catch (e) {} }, 5000);
