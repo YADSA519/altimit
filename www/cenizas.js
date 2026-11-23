@@ -1085,7 +1085,7 @@
   MOB.mvp_bruja = Object.assign({}, MB, { name: 'LA BRUJA PODRIDA', sheet: 'mvp_bruja', hp: 2800, dmg: 45, sp: 80, aura: '140,220,60', pspeed: 380, fdmg: 30, pois5: 25 });
   MOB.mvp_dama = Object.assign({}, MB, { name: 'LA DAMA TRISTE', sheet: 'mvp_dama', hp: 3200, dmg: 52, ph: 46, sp: 150, aura: '120,180,255' });
   MOB.mvp_demonio = Object.assign({}, MB, { name: 'EL DEMONIO DEL PALO', sheet: 'mvp_demonio', hp: 4400, dmg: 70, ph: 48, pw: 34, sp: 165, aura: '255,110,30' });
-  MOB.sofia_mala = Object.assign({}, MOB.jefe, { name: 'SOFÍA', npc: 'sofia_mala2', aura: '200,40,40', hp: 900, dmg: 16, sp: 300, xp: 3000, coins: 30, shot: 'cuchillo', fdmg: 14, respawn: 0 });
+  MOB.sofia_mala = Object.assign({}, MOB.jefe, { name: 'SOFÍA', npc: 'sofia_npc', sheet: 'sofia_npc', aura: '200,40,40', hp: 900, dmg: 16, sp: 300, xp: 3000, coins: 30, shot: 'cuchillo', fdmg: 14, respawn: 0 });
   MOB.mvp_lilia = Object.assign({}, MB, { name: 'LILIA', sheet: 'lilia_f1', hp: 4200, dmg: 46, sp: 90, aura: '255,80,200', pspeed: 430, fdmg: 34 });
   MOB.mvp_clon = Object.assign({}, MB, { name: 'CLON', sheet: 'mvp_demonio', hp: 120, dmg: 40, boss: false, mvp: false, clon: true, sp: 200, xp: 0, coins: 0, aura: '255,110,30' });
   const SKN = [null, 'mvp_cs_grito', 'mvp_cs_salto', 'mvp_galera_humo', 'mvp_galera_golpe', 'mvp_bruja_poder', 'mvp_bruja_salto', 'mvp_dama_azul', 'mvp_dama_roja', 'mvp_dama_humo', 'mvp_demonio_humo', 'mvp_demonio_fuego', 'lilia_f1', 'lilia_f2', 'lilia_f3'];
@@ -1594,14 +1594,14 @@
   const sofSt = () => (INV && INV.sof) || 0, sayL = (L, cb) => { if (window.CZ_STORY && CZ_STORY.say && !EXP) CZ_STORY.say(L, cb); else { toast(L.map(l => l[1]).join(' ')); cb && setTimeout(cb, 400); } };
   function sofUnlock() { if (EXP || !INV || sofSt()) return; const done = INV.story && (INV.story.done || []).includes('r05'); if (!done && lvlOf(P.xp) < 30) return; INV.sof = 1; persist(); setTimeout(() => banner('LO QUE QUEDÓ DE ELLA', 'Dicen que vieron a Sofía con los Lumen, en la iglesia', 4200, '#d8b4ff'), 1500); }
   const sofOcultos = n => (mapKey === 'patio' && (n.k === 'sam' || n.k === 'renzo') && sofSt() >= 3) || (mapKey === 'lezama' && n.k === 'leti' && sofSt() >= 6);
-  const SOFP = { iglesia: 'sofia_buena', terminal_once: 'sofia_buena', municipal: 'sofia_buena', lezama: 'sofia_mala2' };
+  const SOFP = { iglesia: 'sofia_buena', terminal_once: 'sofia_buena', municipal: 'sofia_buena', lezama: 'sofia_npc' };
   function sofNpcs() { const st = sofSt(); if (!st || EXP) return []; const out = [], at = (seed, k, nm, extra) => { const [x, y] = spotNear(seed, 200, 420); out.push(Object.assign({ k, nm, x, y, sof: 1 }, extra || {})); };
     if (st === 1 && mapKey === 'iglesia') at('sof1', 'sofia_buena', 'SOFÍA', { stp: 1 });
     if (st === 2 && mapKey === 'terminal_once') at('sof2', 'sofia_buena', 'SOFÍA', { stp: 2 });
     if (st === 3 && mapKey === 'municipal') { at('sof3', 'sofia_buena', 'SOFÍA', { stp: 3 }); at('sof3s', 'sam', 'SAM', { stp: 3, sam: 1 }); at('sof3r', 'renzo', 'RENZO', { stp: 3 }); }
     if (st === 4 && mapKey === 'plaza_ruinas') { at('sof4s', 'sam', 'SAM', { stp: 4, tendido: 1 }); at('sof4r', 'renzo', 'RENZO', { stp: 4, tendido: 1 }); }
-    if (st === 5 && mapKey === 'lezama') at('sof5', 'sofia_mala2', 'SOFÍA', { stp: 5 });
-    if (st >= 6 && mapKey === 'lezama') at('sof6', 'sofia_mala2', 'CAPITANA SOFÍA', { stp: 6, fac: 'ork' });
+    if (st === 5 && mapKey === 'lezama') at('sof5', 'sofia_npc', 'SOFÍA', { stp: 5 });
+    if (st >= 6 && mapKey === 'lezama') at('sof6', 'sofia_npc', 'CAPITANA SOFÍA', { stp: 6, fac: 'ork' });
     return out; }
   function sofTalk(n) { const st = sofSt();
     if (n.stp === 1) { const need = { linterna: 1, galletitas: 2 }, falta = Object.entries(need).filter(([k, c]) => (INV.items[k] || 0) < c);
@@ -1618,14 +1618,14 @@
   /* la plaza de la niebla: al entrar en la etapa 4 aparece Sofía mala */
   function sofTick(dt) { const st = sofSt(); if (!st || EXP || !P || P.dead) return; if (!st) sofUnlock();
     if (st === 4 && mapKey === 'plaza_ruinas') { const so = mobs.find(o => o.kind === 'sofia_mala');
-      if (!so && !INV.sofFight) { INV.sofFight = 1; sayL([['VOS', '¡Sam! ¡Renzo!'], ['sofia_mala2', '¿Así que esto era amor...?'], ['sofia_mala2', 'Creyeron que encontrar a Pablo les iba a dar respuestas sobre Jem. Jem ya está muerta. No hay respuestas.'], ['sofia_mala2', 'Y vos... vos tenés algo de él.']], () => {
+      if (!so && !INV.sofFight) { INV.sofFight = 1; sayL([['VOS', '¡Sam! ¡Renzo!'], ['sofia_npc', '¿Así que esto era amor...?'], ['sofia_npc', 'Creyeron que encontrar a Pablo les iba a dar respuestas sobre Jem. Jem ya está muerta. No hay respuestas.'], ['sofia_npc', 'Y vos... vos tenés algo de él.']], () => {
           const [x, y] = spotNear('sofm', 260, 380); const o = spawnMob('sofia_mala', 0, [x * WS, y * WS]); banner('NIEBLA Y CUCHILLOS', 'Sofía', 2600, '#ff5a6a'); if (o) { o.story = 1; o.chasing = true; } else { INV.sof = 5; INV.sofFight = 0; persist(); toast('Sofía se perdió en la niebla, rumbo al sur.'); } }); }
       if (so && so.hp <= (so.mhp || MOB.sofia_mala.hp) * .3) { const i = mobs.indexOf(so); if (i >= 0) mobs.splice(i, 1); net('mdie', { id: so.id, kind: so.kind, x: Math.round(so.x), y: Math.round(so.y), f: so.face, by: [] });
-        INV.sof = 5; INV.sofFight = 0; P.xp += 2500; persist(); hud(); sayL([['sofia_mala2', '(Se arranca un papel arrugado del bolsillo de Renzo.) Leti... estas coordenadas... al sur. Tal vez ahí...'], ['VOS', '¡Sofía!']], () => toast('Sofía se perdió en la niebla. Las coordenadas apuntan a Parque Lezama.')); } }
+        INV.sof = 5; INV.sofFight = 0; P.xp += 2500; persist(); hud(); sayL([['sofia_npc', '(Se arranca un papel arrugado del bolsillo de Renzo.) Leti... estas coordenadas... al sur. Tal vez ahí...'], ['VOS', '¡Sofía!']], () => toast('Sofía se perdió en la niebla. Las coordenadas apuntan a Parque Lezama.')); } }
     if (st === 5 && mapKey === 'lezama' && !INV.sofLeti) { INV.sofLeti = 1; persist();
-      sayL([['leti', 'Vos la conocés, ¿no? A la de pelo corto. Llegó hace unos días. En este campamento están haciendo cosas raras: inyectan gente.'], ['sofia_mala2', 'Yo lo vi. Se llamaba Pablo. Cruzó una plaza...'], ['leti', 'Sofía, escuchame, tenemos que...'], ['sofia_mala2', '...'], ['VOS', '¡NO!']], () => {
+      sayL([['leti', 'Vos la conocés, ¿no? A la de pelo corto. Llegó hace unos días. En este campamento están haciendo cosas raras: inyectan gente.'], ['sofia_npc', 'Yo lo vi. Se llamaba Pablo. Cruzó una plaza...'], ['leti', 'Sofía, escuchame, tenemos que...'], ['sofia_npc', '...'], ['VOS', '¡NO!']], () => {
         shake = .6; SND.hurt(); INV.sof = 6; persist(); banner('LETI', 'Sofía ya había actuado. Fue un segundo.', 3600, '#ff5a6a');
-        setTimeout(() => sayL([['ignacio2', 'Ayudame, Sofía. Lideralos. Devolveles un propósito.'], ['ignacio2', 'Capitana Sofía. Hoy comienza tu nueva vida.'], ['sofia_mala2', '...']], () => banner('CAPITANA DE SOMBRAS', 'Sofía ahora pertenece a ORK', 4200, '#ff5a6a')), 3800); }); } }
+        setTimeout(() => sayL([['ignacio2', 'Ayudame, Sofía. Lideralos. Devolveles un propósito.'], ['ignacio2', 'Capitana Sofía. Hoy comienza tu nueva vida.'], ['sofia_npc', '...']], () => banner('CAPITANA DE SOMBRAS', 'Sofía ahora pertenece a ORK', 4200, '#ff5a6a')), 3800); }); } }
   /* Mercedes oscura: una vez por semana aparece en un laboratorio (al azar); al entrar la ves un instante y desaparece */
   const MERC_MAPS = ['lab', 'lab_cuarentena', 'centro_ork'], semana = () => Math.floor(dayN() / 7), mercMap = () => MERC_MAPS[hashStr('merc' + semana()) % MERC_MAPS.length];
   let MERC = null;
