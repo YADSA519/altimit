@@ -411,6 +411,9 @@
     baston_oscuro: { n: 'BASTÓN OSCURO', dmg: 5, range: 145, cd: .55, kb: 170, mul: 1.6 }, baston_resina: { n: 'BASTÓN DE RESINA', dmg: 6, range: 140, cd: .5, kb: 50, mul: 1.7 }, espada_lamentos: { n: 'LAMENTOS', dmg: 7, range: 140, cd: .3, kb: 30, mul: 1.9 } });
   /* fotos propias para los que antes compartían o no tenían */
   ['brz_ork', 'brz_reb', 'b_contencion', 'b_resonancia', 'brz_jefe', 'campera', 'chaleco_t', 'armadura', 'botiquin', 'venda_q', 'kit', 'canister', 'baston', 'pista_ork', 'pista_reb', 'pista', 'fragmento', 'trampa', 'antiveneno', 'linterna', 'receptor', 'pilas', 'jeringa', 'jeringa_max'].forEach(k => ICO(k, k));
+  /* Los Lumen: cuidan la última llama de la ciudad en la Iglesia */
+  ITEMS.cera = { n: 'Cera de vela', t: 'Misión · Lumen', d: 'Cera negra que llevan encima los Oscuros cerca del Congreso. La Anciana Lumen la junta para las velas del Ojo Solar.', r: 'v' }; ICO('cera', 'nota_naranja');
+  ITEMS.vela_lumen = { n: 'Vela del Ojo Solar', t: 'Accesorio · ÉPICO · no se rompe', d: 'Regalo de los Lumen. En los lugares oscuros ves 80% más lejos y pegás 15% más fuerte. Va en ACC.', eq: 'acc', vis: .8, dmg: .15, r: 'e', epic: 1 }; ICO('vela_lumen', 'joystick_lilia');
   ITEMS.joystick_lilia = { n: 'Joystick de Lilia', t: 'Accesorio · ÉPICO · no se rompe', d: 'Con HABILIDAD tirás 3 joysticks en línea hacia donde mirás: explotan como granadas y prenden fuego. Se recarga en 5 segundos, para siempre.', eq: 'acc', act: 'joystick', cd: 5, r: 'e', epic: 1 }; ICO('joystick_lilia', 'joystick_lilia');
   /* armas ÉPICAS de Luna: no se rompen y no gastan balas */
   ITEMS.pistola_veneno = { n: 'Pistola de veneno', t: 'Arma · ÉPICO · de Luna', d: 'Dispara veneno violeta: daña, envenena y deja un charco que sigue envenenando. No se rompe y nunca se queda sin balas.', eq: 'arma', r: 'e', epic: 1 }; ICO('pistola_veneno', 'pistola_veneno');
@@ -1082,6 +1085,7 @@
   MOB.mvp_bruja = Object.assign({}, MB, { name: 'LA BRUJA PODRIDA', sheet: 'mvp_bruja', hp: 2800, dmg: 45, sp: 80, aura: '140,220,60', pspeed: 380, fdmg: 30, pois5: 25 });
   MOB.mvp_dama = Object.assign({}, MB, { name: 'LA DAMA TRISTE', sheet: 'mvp_dama', hp: 3200, dmg: 52, ph: 46, sp: 150, aura: '120,180,255' });
   MOB.mvp_demonio = Object.assign({}, MB, { name: 'EL DEMONIO DEL PALO', sheet: 'mvp_demonio', hp: 4400, dmg: 70, ph: 48, pw: 34, sp: 165, aura: '255,110,30' });
+  MOB.sofia_mala = Object.assign({}, MOB.jefe, { name: 'SOFÍA', npc: 'sofia_mala2', aura: '200,40,40', hp: 900, dmg: 16, sp: 300, xp: 3000, coins: 30, shot: 'cuchillo', fdmg: 14, respawn: 0 });
   MOB.mvp_lilia = Object.assign({}, MB, { name: 'LILIA', sheet: 'lilia_f1', hp: 4200, dmg: 46, sp: 90, aura: '255,80,200', pspeed: 430, fdmg: 34 });
   MOB.mvp_clon = Object.assign({}, MB, { name: 'CLON', sheet: 'mvp_demonio', hp: 120, dmg: 40, boss: false, mvp: false, clon: true, sp: 200, xp: 0, coins: 0, aura: '255,110,30' });
   const SKN = [null, 'mvp_cs_grito', 'mvp_cs_salto', 'mvp_galera_humo', 'mvp_galera_golpe', 'mvp_bruja_poder', 'mvp_bruja_salto', 'mvp_dama_azul', 'mvp_dama_roja', 'mvp_dama_humo', 'mvp_demonio_humo', 'mvp_demonio_fuego', 'lilia_f1', 'lilia_f2', 'lilia_f3'];
@@ -1343,6 +1347,7 @@
     if (T.boss) { shake = .6; toast(T.name + ' cayó.'); }
     if (T.mvp) mvpWon(p.kind);
     if (!p.by.includes(me.id)) return;
+    if (CERA_MAPS.includes(mapKey) && !(INV.quests || {}).lumen_velas && Math.random() < .3) { addItem('cera', 1); floats.push({ x: p.x, y: p.y - T.h - 40, t: 1.2, txt: '+ CERA', c: '#f5d27a' }); }
     INV.racha = 0; if (window.CZ_STORY && STORY) CZ_STORY.kill(p.kind, p.x, p.y);
     const lvBefore = lvlOf(P.xp), mL = mobLevel(p.id, p.kind), gx = Math.round(T.xp * (T.boss ? 1.5 + (mL || 10) / 15 : mL ? lvXp(mL) : .4) * (EXP ? 3 : 1)), gc = (T.coins || 1) + Math.floor((T.boss ? 0 : mL) / 8); P.kills++; P.xp += gx; INV.coins += gc; buzz(30);
     floats.push({ x: p.x, y: p.y - T.h - 10, t: 1.4, txt: '+' + gx + ' XP · +' + gc + ' $', c: '#e8e4da' });
@@ -1500,7 +1505,7 @@
   const NPCS = {}; Object.entries(MAPS).forEach(([k, m]) => { if (m.npcs) NPCS[k] = m.npcs.map(n => Object.assign({}, n, n.act === 'heal' ? { heal: n.fac, act: null } : {}, n.k === 'mercedes' ? { brz: 'ork' } : {}, n.act === 'brazalete' ? { brz: n.fac, act: null } : {})); });
   if (EXP) { NPCS.pvp_azul = [{ k: 'ex10', nm: 'INTENDENTE', line: 'Kit de combate. Elegí bien.', x: 640, y: 330, act: 'kit', fac: 'rebel' }]; NPCS.pvp_rojo = [{ k: 'instructor_ork', nm: 'INSTRUCTOR', line: 'Equipate, recluta.', x: 760, y: 330, act: 'kit', fac: 'ork' }]; }
   const damaNpcs = () => mobs.filter(o => o.T.passive && o.hp > 0).map(o => ({ k: o.T.sheet, nm: o.T.name, line: '…', x: o.x / WS, y: o.y / WS, dama: o.id }));
-  const npcsHere = () => CAS.concat(mercNpcs(), notaNpcs(), joyNpcs(), gatoNpcs(), libNpcs(), NPCS[mapKey] || [], damaNpcs()).filter(n => !n.cada || ((minOfDay() + hashStr(n.k) % 60) % 60) < 20 || (STORY && window.CZ_STORY && CZ_STORY.wants && CZ_STORY.wants(n.k))).concat(STORY && window.CZ_STORY ? CZ_STORY.npcs(mapKey) : []);
+  const npcsHere = () => CAS.concat(sofNpcs(), mercNpcs(), notaNpcs(), joyNpcs(), gatoNpcs(), libNpcs(), (NPCS[mapKey] || []).filter(n => !sofOcultos(n)), damaNpcs()).filter(n => !n.cada || ((minOfDay() + hashStr(n.k) % 60) % 60) < 20 || (STORY && window.CZ_STORY && CZ_STORY.wants && CZ_STORY.wants(n.k))).concat(STORY && window.CZ_STORY ? CZ_STORY.npcs(mapKey) : []);
   function nearNpc() { let best = null, bd = 150; npcsHere().forEach(n => { if (n.fantasma) return; const d = Math.hypot(n.x * WS - P.x, (n.y * WS - P.y) * 1.2); if (d < bd) { bd = d; best = n; } }); return best; }
   const healCd = {};
   /* el bando contrario no te atiende: te maldicen, te insultan o te lastiman */
@@ -1584,6 +1589,43 @@
     ov.querySelector('[data-a=ok]').onclick = () => { if (tx === 'LILIA') { ov.hidden = true; paused = false; net('mvpgo', { mk: 'lilia', from: mapKey, by: me.nick }); goMvp('lilia', me.nick); }
       else { scr.textContent = 'ERROR'; buzz([40]); SND.hurt(); tx = ''; setTimeout(upd, 700); } };
     ov.hidden = false; }
+  /* ===== "Lo que quedó de ella": cómo Sofía se convierte en Sofía mala (paralelo al libro 1, caps. 10 a 13) =====
+     1 Iglesia de los Lumen · 2 depósito de Once · 3 detrás del Congreso con Sam y Renzo · 4 niebla y cuchillos en la plaza · 5 Lezama: Leti · 6 Capitana de sombras */
+  const sofSt = () => (INV && INV.sof) || 0, sayL = (L, cb) => { if (window.CZ_STORY && CZ_STORY.say && !EXP) CZ_STORY.say(L, cb); else { toast(L.map(l => l[1]).join(' ')); cb && setTimeout(cb, 400); } };
+  function sofUnlock() { if (EXP || !INV || sofSt()) return; const done = INV.story && (INV.story.done || []).includes('r05'); if (!done && lvlOf(P.xp) < 30) return; INV.sof = 1; persist(); setTimeout(() => banner('LO QUE QUEDÓ DE ELLA', 'Dicen que vieron a Sofía con los Lumen, en la iglesia', 4200, '#d8b4ff'), 1500); }
+  const sofOcultos = n => (mapKey === 'patio' && (n.k === 'sam' || n.k === 'renzo') && sofSt() >= 3) || (mapKey === 'lezama' && n.k === 'leti' && sofSt() >= 6);
+  const SOFP = { iglesia: 'sofia_buena', terminal_once: 'sofia_buena', municipal: 'sofia_buena', lezama: 'sofia_mala2' };
+  function sofNpcs() { const st = sofSt(); if (!st || EXP) return []; const out = [], at = (seed, k, nm, extra) => { const [x, y] = spotNear(seed, 200, 420); out.push(Object.assign({ k, nm, x, y, sof: 1 }, extra || {})); };
+    if (st === 1 && mapKey === 'iglesia') at('sof1', 'sofia_buena', 'SOFÍA', { stp: 1 });
+    if (st === 2 && mapKey === 'terminal_once') at('sof2', 'sofia_buena', 'SOFÍA', { stp: 2 });
+    if (st === 3 && mapKey === 'municipal') { at('sof3', 'sofia_buena', 'SOFÍA', { stp: 3 }); at('sof3s', 'sam', 'SAM', { stp: 3, sam: 1 }); at('sof3r', 'renzo', 'RENZO', { stp: 3 }); }
+    if (st === 4 && mapKey === 'plaza_ruinas') { at('sof4s', 'sam', 'SAM', { stp: 4, tendido: 1 }); at('sof4r', 'renzo', 'RENZO', { stp: 4, tendido: 1 }); }
+    if (st === 5 && mapKey === 'lezama') at('sof5', 'sofia_mala2', 'SOFÍA', { stp: 5 });
+    if (st >= 6 && mapKey === 'lezama') at('sof6', 'sofia_mala2', 'CAPITANA SOFÍA', { stp: 6, fac: 'ork' });
+    return out; }
+  function sofTalk(n) { const st = sofSt();
+    if (n.stp === 1) { const need = { linterna: 1, galletitas: 2 }, falta = Object.entries(need).filter(([k, c]) => (INV.items[k] || 0) < c);
+      if (falta.length) return sayL([['sofia_buena', 'No hablo. No sueño. Como, entreno y obedezco. Como todos los que no tienen a dónde ir.'], ['sofia_buena', '(En voz baja) Si me conseguís una linterna y algo de comida seca, me voy de acá antes de que amanezca. (Linterna ' + Math.min(1, INV.items.linterna || 0) + '/1 · Galletitas ' + Math.min(2, INV.items.galletitas || 0) + '/2)']]);
+      Object.entries(need).forEach(([k, c]) => { INV.items[k] -= c; if (INV.items[k] <= 0) delete INV.items[k]; }); INV.sof = 2; persist(); SND.level();
+      return sayL([['sofia_buena', 'Me acordé de Nacho contando chistes estúpidos para hacerme reír. Y de Jem sirviendo mate en medio del caos.'], ['sofia_buena', 'No puedo seguir así. Al amanecer me voy. No le digas a nadie.'], ['VOS', 'Cuidate, Sofía.']], () => toast('Sofía se escapó de los Lumen. Dicen que se esconde en un depósito de Once.')); }
+    if (n.stp === 2) { INV.sof = 3; addItem('vendas_a', 5); persist(); SND.level();
+      return sayL([['sofia_buena', 'Me corté el pelo. Mechones de otra vida. Esto lo hago por mí, y por el que lo dio todo por mí.'], ['sofia_buena', 'Me voy con las patrullas. Rescatar gente no me cura, pero me da una excusa para levantarme cada mañana.'], ['sofia_buena', 'Tomá, para el camino. Si me buscás, voy a estar detrás del Congreso.']], () => toast('Sofía te dio 5 vendas azules.')); }
+    if (n.stp === 3) { if (!n.sam) return sayL([['sofia_buena', 'Los encontré escondidos en un local saqueado, abrazados como si el mundo todavía se pudiera aguantar. Eso es amor. Los voy a cuidar.']]);
+      INV.sof = 4; persist();
+      return sayL([['sam', 'Una vez, en una fábrica, todo se fue al carajo. Jem nos dijo que no hiciéramos ruido... y no la escuchamos.'], ['renzo', 'No fue a propósito. Gritó que huyéramos. Y lo hicimos.'], ['sam', 'Ella no salió. No pudimos ayudarla.'], ['sofia_buena', '...'], ['sofia_buena', 'Me voy a dormir temprano.']], () => { SND.mob('hiss', .3); banner('ALGO SE ROMPIÓ', 'Sofía no dijo nada. Pero por dentro, algo se quebró.', 4000, '#ff5a6a'); }); }
+    if (n.stp === 4) return sayL([[n.k, n.k === 'sam' ? '(Sam ya no respira. Su mano sigue apretando la de Renzo.)' : '(Renzo no soltó a Sam. Ni siquiera al final.)']]);
+    if (n.stp === 5) return; if (n.stp === 6) return npcSay(n, me.faction === 'ork' ? 'Capitana de sombras. Ya no busco a nadie. Solo cumplo órdenes.' : 'Vos tenés algo de él. De Pablo. Andate antes de que me acuerde de qué.'); }
+  /* la plaza de la niebla: al entrar en la etapa 4 aparece Sofía mala */
+  function sofTick(dt) { const st = sofSt(); if (!st || EXP || !P || P.dead) return; if (!st) sofUnlock();
+    if (st === 4 && mapKey === 'plaza_ruinas') { const so = mobs.find(o => o.kind === 'sofia_mala');
+      if (!so && !INV.sofFight) { INV.sofFight = 1; sayL([['VOS', '¡Sam! ¡Renzo!'], ['sofia_mala2', '¿Así que esto era amor...?'], ['sofia_mala2', 'Creyeron que encontrar a Pablo les iba a dar respuestas sobre Jem. Jem ya está muerta. No hay respuestas.'], ['sofia_mala2', 'Y vos... vos tenés algo de él.']], () => {
+          const [x, y] = spotNear('sofm', 260, 380); const o = spawnMob('sofia_mala', 0, [x * WS, y * WS]); banner('NIEBLA Y CUCHILLOS', 'Sofía', 2600, '#ff5a6a'); if (o) { o.story = 1; o.chasing = true; } else { INV.sof = 5; INV.sofFight = 0; persist(); toast('Sofía se perdió en la niebla, rumbo al sur.'); } }); }
+      if (so && so.hp <= (so.mhp || MOB.sofia_mala.hp) * .3) { const i = mobs.indexOf(so); if (i >= 0) mobs.splice(i, 1); net('mdie', { id: so.id, kind: so.kind, x: Math.round(so.x), y: Math.round(so.y), f: so.face, by: [] });
+        INV.sof = 5; INV.sofFight = 0; P.xp += 2500; persist(); hud(); sayL([['sofia_mala2', '(Se arranca un papel arrugado del bolsillo de Renzo.) Leti... estas coordenadas... al sur. Tal vez ahí...'], ['VOS', '¡Sofía!']], () => toast('Sofía se perdió en la niebla. Las coordenadas apuntan a Parque Lezama.')); } }
+    if (st === 5 && mapKey === 'lezama' && !INV.sofLeti) { INV.sofLeti = 1; persist();
+      sayL([['leti', 'Vos la conocés, ¿no? A la de pelo corto. Llegó hace unos días. En este campamento están haciendo cosas raras: inyectan gente.'], ['sofia_mala2', 'Yo lo vi. Se llamaba Pablo. Cruzó una plaza...'], ['leti', 'Sofía, escuchame, tenemos que...'], ['sofia_mala2', '...'], ['VOS', '¡NO!']], () => {
+        shake = .6; SND.hurt(); INV.sof = 6; persist(); banner('LETI', 'Sofía ya había actuado. Fue un segundo.', 3600, '#ff5a6a');
+        setTimeout(() => sayL([['ignacio2', 'Ayudame, Sofía. Lideralos. Devolveles un propósito.'], ['ignacio2', 'Capitana Sofía. Hoy comienza tu nueva vida.'], ['sofia_mala2', '...']], () => banner('CAPITANA DE SOMBRAS', 'Sofía ahora pertenece a ORK', 4200, '#ff5a6a')), 3800); }); } }
   /* Mercedes oscura: una vez por semana aparece en un laboratorio (al azar); al entrar la ves un instante y desaparece */
   const MERC_MAPS = ['lab', 'lab_cuarentena', 'centro_ork'], semana = () => Math.floor(dayN() / 7), mercMap = () => MERC_MAPS[hashStr('merc' + semana()) % MERC_MAPS.length];
   let MERC = null;
@@ -1592,6 +1634,7 @@
     if (!MERC || MERC.m !== mapKey) return []; const el = (performance.now() - MERC.t0) / 1000; if (el > 4.2) { MERC = null; return []; }
     if (el > 2.4 && !MERC.puf) { MERC.puf = 1; for (let j = 0; j < 26; j++) parts.push({ x: MERC.x * WS + rnd(-30, 30), y: MERC.y * WS - rnd(20, 200), vx: rnd(-40, 40), vy: rnd(-90, -20), life: rnd(.6, 1.2), s: rnd(3, 6), c: 30 }); SND.mob('hiss', .25); }
     return [{ k: 'mercedes_oscura', nm: '', x: MERC.x + Math.min(el, 2.4) * 22, y: MERC.y, face: 'r', mv: el < 2.4, walkT: el * 1.3, alpha: el < 2.4 ? 1 : 1 - (el - 2.4) / 1.6, fantasma: 1 }]; }
+  const CERA_MAPS = ['congreso', 'senado', 'municipal', 'rivadavia', 'express', 'cuadra_llamas', 'plaza_ruinas'];
   /* bendiciones de la familia del campamento: una vez por día cada una, 1 hora, se pierden al morir */
   const BEND = { daniel: ['bendD', 'FUERZA', 'Pegás 25% más fuerte.', 'Esforzate y sé valiente. No temas ni desmayes, porque Yeshúa está con vos dondequiera que vayas. Que Él fortalezca tus manos.'],
     gisella: ['bendG', 'SANACIÓN', 'Recuperás vida cada 10 segundos.', 'Él sana a los quebrantados de corazón y venda sus heridas. Que Yeshúa te cuide el cuerpo y el alma.'],
@@ -1635,6 +1678,7 @@
     persist(); npcSay(n, line); }
   function talkNpc(n) { SND.pick();
     if ((n.k === 'mary' && me.faction !== 'ork') || (n.k === 'mercedes' && me.faction === 'ork')) { if (giveKit(n)) return; }
+    if (n.sof) return sofTalk(n);
     if (n.nota) return leerNota(n);
     if (n.joy) return openJoy();
     if (BEND[n.k] && mapKey === 'campamento') return bendTalk(n);
@@ -1846,7 +1890,7 @@
     P.atk = Math.max(0, P.atk - dt); P.cd = Math.max(0, P.cd - dt); P.hurtT = Math.max(0, P.hurtT - dt); P.inv = Math.max(0, P.inv - dt); if (P.sayT > 0) P.sayT -= dt;
     if (P.furia > 0) { P.furia -= dt; if ((t % .2) < dt) parts.push({ x: P.x + rnd(-20, 20), y: P.y - rnd(40, 160), vx: 0, vy: -60, life: .5, s: 4, c: 200, fire: 1 }); if (P.furia <= 0) { P.furia = 0; P.aturd = 2.5; fx('onda', P.x, P.y - 110, { w: 320, T: .5, grow: .5 }); SND.hurt(); buzz([80, 40, 80]); toast('La furia se terminó. Quedaste aturdido unos segundos.'); hud(); } }
     if (P.jefe > 0) { P.jefe -= dt; if ((t % .25) < dt) parts.push({ x: P.x + rnd(-24, 24), y: P.y - rnd(30, 180), vx: 0, vy: -50, life: .6, s: 4, c: 200, fire: 1 }); if (P.jefe <= 0) { P.jefe = 0; P.hp = Math.min(P.hp, maxHp(lvlOf(P.xp))); toast('El poder de jefe se apagó.'); hud(); } }
-    if (P.slow > 0) P.slow -= dt; if (P.stunT > 0) P.stunT -= dt; if (P.dead && P.downFin) { P.downT -= dt; downHud(); if (P.downT <= 0) finCaida(false); } ['bAire', 'bFuerza', 'bRes', 'bImp', 'bFz', 'bVel', 'bRegen'].forEach(b_ => { if (P[b_] > 0) P[b_] -= dt; }); if (bendOn('bendG')) { P.bgT = (P.bgT || 0) + dt; if (P.bgT >= 10) { P.bgT = 0; const mx_ = maxHp(lvlOf(P.xp)); if (P.hp < mx_) { P.hp = Math.min(mx_, P.hp + Math.round(mx_ * .06)); floats.push({ x: P.x, y: P.y - 200, t: .8, txt: '✝ +' + Math.round(mx_ * .06), c: '#f5e6a8' }); hud(); } } } if (P.bRegen > 0 && !P.dead) { P.rgT = (P.rgT || 0) + dt; if (P.rgT >= 3) { P.rgT = 0; P.hp = Math.min(maxHp(lvlOf(P.xp)), P.hp + 2); hud(); } } { const rs = gearSum('res'); if (rs) { if (P.poison > 0) P.poison -= dt * rs; if (P.burn > 0) P.burn -= dt * rs; if (P.slow > 0) P.slow -= dt * rs; if (P.stunT > 0) P.stunT -= dt * rs; } }
+    if (P.slow > 0) P.slow -= dt; if (P.stunT > 0) P.stunT -= dt; if (!sofSt()) { P.sofChk = (P.sofChk || 0) - dt; if (P.sofChk <= 0) { P.sofChk = 5; sofUnlock(); } } else sofTick(dt); if (P.dead && P.downFin) { P.downT -= dt; downHud(); if (P.downT <= 0) finCaida(false); } ['bAire', 'bFuerza', 'bRes', 'bImp', 'bFz', 'bVel', 'bRegen'].forEach(b_ => { if (P[b_] > 0) P[b_] -= dt; }); if (bendOn('bendG')) { P.bgT = (P.bgT || 0) + dt; if (P.bgT >= 10) { P.bgT = 0; const mx_ = maxHp(lvlOf(P.xp)); if (P.hp < mx_) { P.hp = Math.min(mx_, P.hp + Math.round(mx_ * .06)); floats.push({ x: P.x, y: P.y - 200, t: .8, txt: '✝ +' + Math.round(mx_ * .06), c: '#f5e6a8' }); hud(); } } } if (P.bRegen > 0 && !P.dead) { P.rgT = (P.rgT || 0) + dt; if (P.rgT >= 3) { P.rgT = 0; P.hp = Math.min(maxHp(lvlOf(P.xp)), P.hp + 2); hud(); } } { const rs = gearSum('res'); if (rs) { if (P.poison > 0) P.poison -= dt * rs; if (P.burn > 0) P.burn -= dt * rs; if (P.slow > 0) P.slow -= dt * rs; if (P.stunT > 0) P.stunT -= dt * rs; } }
     if (chgReady() && (t % .12) < dt) parts.push({ x: P.x + rnd(-30, 30), y: P.y - rnd(20, 150), vx: 0, vy: -50, life: .4, s: 3, c: 45, fire: 1 }); if (P.sangra > 0 && !P.dead) { P.sangra -= dt; P.sgT = (P.sgT || 0) - dt; if (P.sgT <= 0) { P.sgT = .5; const d_ = Math.max(1, Math.round(maxHp(lvlOf(P.xp)) * .02)); P.hp -= d_; floats.push({ x: P.x + rnd(-20, 20), y: P.y - 190, t: .7, txt: '-' + d_, c: '#ff4040' }); for (let j = 0; j < 4; j++) parts.push({ x: P.x + rnd(-15, 15), y: P.y - rnd(60, 120), vx: rnd(-30, 30), vy: rnd(20, 80), life: .5, s: 3, c: 0 }); if (P.hp <= 0) hitPlayer(1, null, 0, null, 'mvp_lilia'); hud(); } } if (P.bImp > 0) { P.stam = 3; P.tired = false; } if (P.aturd > 0) { P.aturd -= dt; if ((t % .25) < dt) parts.push({ x: P.x + rnd(-22, 22), y: P.y - rnd(150, 175), vx: rnd(-30, 30), vy: -10, life: .4, s: 4, c: 50 }); } if (P.fast > 0) P.fast -= dt; if (P.smoke > 0) P.smoke -= dt;
     if (P.burn > 0 && !P.dead) { P.burn -= dt; P.dotT = (P.dotT || 0) + dt; if (Math.random() < dt * 8) parts.push({ x: P.x + rnd(-18, 18), y: P.y - rnd(20, 150), vx: rnd(-10, 10), vy: -60, life: .5, s: 4, c: 200, fire: 1 }); }
     if (P.poison > 0 && !P.dead) { P.poison -= dt; P.dotT = (P.dotT || 0) + dt; if (Math.random() < dt * 4) parts.push({ x: P.x + rnd(-14, 14), y: P.y - rnd(40, 150), vx: 0, vy: -30, life: .7, s: 3, c: 120 }); }
@@ -2142,7 +2186,7 @@
       if (n.obj) { const [ox, oy] = W2S(n.x * WS, n.y * WS); if (n.lib) { const im = img(LIBS[n.lib].img), h = 70 * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, 26); c.save(); c.shadowColor = n.lib === 'pablo' ? '#ff4060' : '#ff9ad0'; c.shadowBlur = 16 + Math.sin(t * 3) * 8; c.drawImage(im, ox - w / 2, oy - h - 10 + Math.sin(t * 2) * 3, w, h); c.restore(); } } if (n.cas) { const im = img('/a/ob/casillero.png'), h = 150 * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, 30); if (INV.cas && INV.cas[n.id] === dayN()) c.globalAlpha = .55; c.drawImage(im, ox - w / 2, oy - h, w, h); c.globalAlpha = 1; } }
         if (!n.cas && !n.lib && n.k) { const im = img('/a/ob/' + (n.bot && BOT_IMG[n.bot] && ok(img('/a/ob/' + BOT_IMG[n.bot] + '.png')) ? BOT_IMG[n.bot] : n.k) + '.png'), h = (n.oh || (n.bot || n.caps ? 66 : n.pod ? 150 : 170)) * zoom; if (ok(im)) { const w = im.naturalWidth / im.naturalHeight * h; shadow(ox, oy, n.bot || n.caps ? 24 : 40); if ((n.quest && (INV.quests || {})[n.quest.id]) || ((n.bot || n.caps) && INV.cas && INV.cas[n.id] === dayN())) c.globalAlpha = .45; c.drawImage(im, ox - w / 2, oy - h, w, h); c.globalAlpha = 1; } }
         if (nearNpc() === n) { c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; c.fillStyle = '#e8c070'; c.fillText(n.nm + ' · A', ox, oy - 40 * zoom); } return; } const [sx, sy] = W2S(n.x * WS + (n.ox || 0), n.y * WS + (n.oy || 0)); if (sx < -200 || sx > VW + 200 || sy < -50 || sy > VH + 300) return; const S = 6.4 * zoom; shadow(sx, sy, 28);
-      const dir = n.face || (Math.abs(P.x - n.x * WS) > 120 ? (P.x < n.x * WS ? 'l' : 'r') : 'd'), wp = walkPose(n.walkT, n.mv), fr = wp.fr; if (n.alpha != null) c.globalAlpha = Math.max(0, n.alpha); blitChar(c, charSprite({ npc: n.k }, dir, fr, n.atkT > 0), sx, sy + wp.bob * zoom, S, n.sc ? HD_K * n.sc : undefined); c.globalAlpha = 1; c.imageSmoothingEnabled = true; if (n.fantasma) return;
+      const dir = n.face || (Math.abs(P.x - n.x * WS) > 120 ? (P.x < n.x * WS ? 'l' : 'r') : 'd'), wp = walkPose(n.walkT, n.mv), fr = wp.fr; if (n.alpha != null) c.globalAlpha = Math.max(0, n.alpha); if (n.tendido) { c.save(); c.translate(sx, sy - 18 * zoom); c.rotate(-Math.PI / 2); blitChar(c, charSprite({ npc: n.k }, 'd', 0, false), 0, 70 * zoom, S); c.restore(); } else blitChar(c, charSprite({ npc: n.k }, dir, fr, n.atkT > 0), sx, sy + wp.bob * zoom, S, n.sc ? HD_K * n.sc : undefined); c.globalAlpha = 1; c.imageSmoothingEnabled = true; if (n.fantasma) return;
       const near = nearNpc() === n; LBL.push(() => { c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; const nm = n.nm + (near ? ' · A' : ''); const w = c.measureText(nm).width + 10, ny = sy - (n.lblH || LBL_H) * S;
       c.fillStyle = 'rgba(0,0,0,.6)'; c.fillRect(sx - w / 2, ny - 12, w, 15); c.fillStyle = '#e8c070'; c.fillText(nm, sx, ny); });
       }
