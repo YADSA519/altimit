@@ -19,7 +19,7 @@
 body.cine #st-dlg{display:block}
 #st-por{position:absolute;left:5.4%;top:15.5%;width:15%;height:59%;object-fit:cover;image-rendering:auto;background:#111}
 #st-nm{position:absolute;left:23%;top:13%;font-family:Bebas,sans-serif;font-size:clamp(16px,3.2vh,24px);letter-spacing:.18em;color:#e8c070}
-#st-tx{position:absolute;left:23%;right:7%;top:26%;bottom:20%;font-family:Elite,monospace;font-size:clamp(13px,2.7vh,18px);line-height:1.4;color:#ece8de;overflow:hidden}
+#st-tx{position:absolute;left:23%;right:7%;top:26%;bottom:20%;font-family:Elite,monospace;font-size:clamp(12px,2.5vh,17px);line-height:1.32;color:#ece8de;overflow:hidden}
 #st-nx{position:absolute;right:8%;bottom:14%;font-size:11px;letter-spacing:.14em;color:#8e8b84;animation:stb 1s infinite}
 @keyframes stb{50%{opacity:.25}}
 #st-card{position:fixed;inset:0;z-index:28;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(0,0,0,.86);text-align:center;pointer-events:none}
@@ -75,7 +75,7 @@ body.cine #st-dlg{display:block}
   let queue = [], onDone = null, typing = null;
   function say(lines, cb) { if (!lines || !lines.length) { cb && cb(); return; } queue = lines.slice(); onDone = cb; A.setPaused(true); document.body.classList.add('cine'); show(); }
   function show() { const [k, txt, nm_] = queue[0]; $('#st-nm').textContent = nm_ || nameOf(k); $('#st-por').src = portrait(k);
-    const el = $('#st-tx'); el.textContent = ''; let i = 0; clearInterval(typing); typing = setInterval(() => { i += 2; el.textContent = txt.slice(0, i); if (i >= txt.length) { clearInterval(typing); typing = null; } }, 22); A.SND && A.SND.pick && A.SND.pick(); }
+    const el = $('#st-tx'); el.style.fontSize = ''; el.textContent = txt; { let fs = parseFloat(getComputedStyle(el).fontSize) || 16; while (el.scrollHeight > el.clientHeight + 1 && fs > 9) { fs -= .5; el.style.fontSize = fs + 'px'; } } el.textContent = ''; let i = 0; clearInterval(typing); typing = setInterval(() => { i += 2; el.textContent = txt.slice(0, i); if (i >= txt.length) { clearInterval(typing); typing = null; } }, 22); A.SND && A.SND.pick && A.SND.pick(); }
   function next() { if (!queue.length) return; if (typing) { clearInterval(typing); typing = null; $('#st-tx').textContent = queue[0][1]; return; }
     queue.shift(); if (queue.length) return show(); document.body.classList.remove('cine'); A.setPaused(false); const cb = onDone; onDone = null; cb && setTimeout(cb, 250); }
   function card(small, big, sub, cb) { const c = $('#st-card'); $('#st-cs').textContent = small; $('#st-cb').textContent = big; $('#st-ci').textContent = sub || ''; c.classList.remove('on'); void c.offsetWidth; c.classList.add('on'); A.SND && A.SND.zone && A.SND.zone(); setTimeout(() => { c.classList.remove('on'); cb && cb(); }, 3200); }
