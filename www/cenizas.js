@@ -1086,7 +1086,7 @@
   MOB.mvp_dama = Object.assign({}, MB, { name: 'LA DAMA TRISTE', sheet: 'mvp_dama', hp: 3200, dmg: 52, ph: 46, sp: 150, aura: '120,180,255' });
   MOB.mvp_demonio = Object.assign({}, MB, { name: 'EL DEMONIO DEL PALO', sheet: 'mvp_demonio', hp: 4400, dmg: 70, ph: 48, pw: 34, sp: 165, aura: '255,110,30' });
   MOB.sofia_mala = Object.assign({}, MOB.jefe, { name: 'SOFÍA', npc: 'sofia_npc', sheet: 'sofia_npc', aura: '200,40,40', hp: 900, dmg: 16, sp: 300, xp: 3000, coins: 30, shot: 'cuchillo', fdmg: 14, respawn: 0 });
-  MOB.mvp_lilia = Object.assign({}, MB, { name: 'LILIA', sheet: 'lilia_f1', hp: 4200, dmg: 46, sp: 90, aura: '255,80,200', pspeed: 430, fdmg: 34 });
+  MOB.mvp_lilia = Object.assign({}, MB, { name: 'LILIA', sheet: 'lilia_f1', hp: 4200, dmg: 46, sp: 160, aura: '255,80,200', pspeed: 430, fdmg: 34 });
   MOB.mvp_clon = Object.assign({}, MB, { name: 'CLON', sheet: 'mvp_demonio', hp: 120, dmg: 40, boss: false, mvp: false, clon: true, sp: 200, xp: 0, coins: 0, aura: '255,110,30' });
   const SKN = [null, 'mvp_cs_grito', 'mvp_cs_salto', 'mvp_galera_humo', 'mvp_galera_golpe', 'mvp_bruja_poder', 'mvp_bruja_salto', 'mvp_dama_azul', 'mvp_dama_roja', 'mvp_dama_humo', 'mvp_demonio_humo', 'mvp_demonio_fuego', 'lilia_f1', 'lilia_f2', 'lilia_f3'];
   /* camillas del hospital (detrás de una, el grito no te aturde) */
@@ -1169,7 +1169,7 @@
       if (tg) moveMob(o, tg.x, tg.y, T.sp, dt); return; }
     if (o.kind === 'mvp_lilia') { const ph = hpK > .66 ? 1 : hpK > .33 ? 2 : 3;
       if (ph !== A.ph) { A.ph = ph; A.t1 = 1.5; if (ph > 1) { const tt = ph === 2 ? 'LILIA SE ENOJA' : 'LILIA ESTÁ FURIOSA', ss = ph === 2 ? 'Bombas por todos lados' : 'Cuchillos: te hacen sangrar'; net('mvpban', { t: tt, s: ss, c: '#ff5ac8', big: 1 }); banner(tt, ss, 2000, '#ff5ac8'); shake = .6; SND.mob('roar', .7); } }
-      o.sk = 'lilia_f' + ph; const T2 = Object.assign({}, T, { sp: ph === 1 ? 90 : ph === 2 ? 150 : 175, dmg: ph === 3 ? Math.round(T.dmg * 1.4) : T.dmg });
+      o.sk = 'lilia_f' + ph; const T2 = Object.assign({}, T, { sp: ph === 1 ? 160 : ph === 2 ? 215 : 250, dmg: ph === 3 ? Math.round(T.dmg * 1.4) : T.dmg });
       /* bombas del piso: titilan y explotan */
       mvpObjs.filter(q => q.t === 'bomba').forEach(q => { q.tt = (q.tt == null ? 1.5 : q.tt) - dt; if (q.tt <= 0) { mvpObjs.splice(mvpObjs.indexOf(q), 1); fx('explosion', q.x, q.y - 60, { w: 260, T: .5, grow: .2 }); net('mvpfx', { k: 'explosion', x: Math.round(q.x), y: Math.round(q.y) });
           live.forEach(p => { if (near2(p, q, 135)) { hit(p, Math.round(T.dmg * .9), 50); fxOn(p, { burn: 3 }); } }); objNet(); } });
@@ -1648,15 +1648,15 @@
     D.lucre = dayN(); addItem('vendas_a', 10); persist(); SND.pick(); npcSay(n, '¡Guau! (Lucre desenterró algo y te lo trae moviendo la cola: 10 vendas azules.)'); }
   function bendHud() { let el = $('#h-bend'); if (!el) { el = document.createElement('div'); el.id = 'h-bend'; const cb = $('#h-cb'); if (!cb) return; cb.after(el); }
     const on = INV && INV.bendEnd ? Object.values(BEND).filter(B => bendOn(B[0])) : []; el.hidden = !on.length;
-    el.innerHTML = on.map(B => '<span>✝ ' + B[1] + ' ' + Math.ceil((INV.bendEnd[B[0]] - Date.now()) / 60000) + 'm</span>').join(''); }
+    el.innerHTML = on.map(B => '<span title="' + B[1] + '">✝' + B[1].slice(0, 4) + ' ' + Math.ceil((INV.bendEnd[B[0]] - Date.now()) / 60000) + '′</span>').join(''); }
   setInterval(() => { try { bendHud(); } catch (e) {} }, 5000);
   /* gatos secretos de El Nogal: a la 01:00 (hasta 01:59), una noche Chino y la siguiente Bianca. 10 charlas = premio + brazalete épico */
   const GATO_H = () => new Date().getHours() === 1;
   function gatoNpcs() { if (!GATO_H() || !INV) return []; if (mapKey === lunaMap() && !(INV.gatos && INV.gatos.lunaOk)) { const p_ = lunaPos(); return (mapKey === 'lezama' ? [{ k: 'chita', nm: 'CHITA', x: 700, y: 610, gato: 'chita', lblH: 9, face: 'd' }] : []).concat([{ k: 'luna', nm: 'LUNA', x: p_[0], y: p_[1], gato: 'luna', lblH: 9, face: 'd' }]); } if (mapKey === 'lezama') return [{ k: 'chita', nm: 'CHITA', x: 700, y: 610, gato: 'chita', lblH: 9, face: 'd' }]; if (mapKey !== 'nogal') return []; const k = dayN() % 2 ? 'bianca' : 'chino';
-    return [{ k, nm: k === 'chino' ? 'CHINO' : 'BIANCA', x: k === 'chino' ? 560 : 1180, y: k === 'chino' ? 640 : 610, gato: k, lblH: 9, face: 'd' }]; }
+    return [{ k, nm: k === 'chino' ? 'CHINO' : 'BIANCA', x: k === 'chino' ? 700 : 1180, y: k === 'chino' ? 690 : 610, gato: k, lblH: 9, face: 'd' }]; }
   /* Luna: una noche está en Plaza del Árbol Muerto y otra en Lezama (al azar). Corre 3 veces y a la cuarta ronronea y te deja un arma épica al azar */
   const lunaMap = () => (hashStr('luna' + dayN()) % 2 ? 'plazaArbol' : 'lezama');
-  let LUNA_P = null; function lunaPos(re) { if (LUNA_P && !re && LUNA_P.m === mapKey) return LUNA_P.p; for (let i = 0; i < 80; i++) { const x = 150 + Math.random() * ((MAP.w || 1670) - 300), y = 250 + Math.random() * ((MAP.h || 940) - 400);
+  let LUNA_P = null; function lunaPos(re) { if (LUNA_P && !re && LUNA_P.m === mapKey) return LUNA_P.p; if (!re) setTimeout(() => toast('Algo negro cruzó corriendo entre las ruinas…'), 1200); for (let i = 0; i < 80; i++) { const x = 150 + Math.random() * ((MAP.w || 1670) - 300), y = 250 + Math.random() * ((MAP.h || 940) - 400);
       if (walkable(x * WS, y * WS) && (!P || Math.hypot(x * WS - P.x, y * WS - P.y) > 380)) { LUNA_P = { m: mapKey, p: [Math.round(x), Math.round(y)] }; return LUNA_P.p; } } LUNA_P = { m: mapKey, p: [800, 600] }; return LUNA_P.p; }
   const GATO_L = { chino: ['Chino te mira y parpadea despacio.', 'Chino hace "mrrp" y se te acerca.', 'Chino ronronea bajito.', 'Chino se frota contra tu pierna.', 'Chino ronronea más fuerte.', 'Chino se tira panza arriba.', 'Chino hace "prrrr" y amasa el piso.', 'Chino te sigue la mano con la cabeza.', 'Chino ronronea como un motorcito.', 'Chino está contento con vos. Te deja un regalo y un brazalete plateado azul.'],
     chita: ['Chita te mira de reojo.', 'Chita mueve la punta de la cola.', 'Chita se aleja un pasito.', 'Chita aplasta las orejas.', 'Chita gruñe bajito.', 'Chita te muestra los dientes.', 'Chita bufa fuerte.', 'Chita se agacha, lista para saltar.', 'Chita te avisa por última vez...', '¡Chita te salta encima, te muerde y te deja herido! Pero respeta que la hayas enfrentado: te deja su brazalete.'],
