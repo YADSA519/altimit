@@ -612,7 +612,7 @@
         let c = 0; if (n[0] >= 3) c = 0; else { c = 1; for (const t of [2, 4, 3, 5]) if (n[t] >= 2) { c = t; break; } } out[j * gw + i] = c; }
       out.gw = gw; out.gh = gh; MASK[k] = out; } catch (e) { console.warn('máscara', k, e); } res(); }; im.onerror = () => { console.warn('no cargó la máscara', m.mask); res(); }; im.src = m.mask; }); }
   /* dónde aparecés al cruzar: el punto caminable más cercano a la salida de llegada, un poco hacia adentro */
-  function arrivalOf(k, exitId) { const m = MAPS[k], cls = MASK[k]; const e = m && (m.exits || []).find(x => x.id === exitId); if (!e) return m ? m.spawn : [0, 0];
+  function arrivalOf(k, exitId) { const m = MAPS[k], cls = MASK[k]; const e = m && (m.exits || []).find(x => x.id === exitId); if (!e) return m ? m.spawn : [0, 0]; if (e.arr) return e.arr;
     const cx = (e.r[0] + e.r[2]) / 2, cy = (e.r[1] + e.r[3]) / 2; if (!cls) return [cx, cy];
     const ok = (x, y) => { const i = Math.floor(x / C), j = Math.floor(y / C); if (i < 0 || j < 0 || i >= cls.gw || j >= cls.gh) return false; const v = cls[j * cls.gw + i]; return v && v !== 2; };
     const outside = (x, y) => x < e.r[0] - 130 || x > e.r[2] + 130 || y < e.r[1] - 130 || y > e.r[3] + 130;
