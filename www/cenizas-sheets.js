@@ -29,7 +29,11 @@
     joker_base: { w: 320, h: 320, fy: 300, n: 4 },
     joker_cartas: { w: 320, h: 320, fy: 300, n: 4, fps: 5, once: 1 },
     joker_cintas: { w: 320, h: 320, fy: 300, n: 4, fps: 6, once: 1, side: 1 },
-    joker_muerte: { w: 320, h: 320, fy: 300, n: 4, fps: 3.5, dirs: 1, hold: 14 }
+    joker_muerte: { w: 320, h: 320, fy: 300, n: 4, fps: 3.5, dirs: 1, hold: 14 },
+    /* Rocío (MVP) */
+    rocio_base: { w: 524, h: 315, fy: 294, n: 4 },
+    rocio_barrido: { w: 524, h: 315, fy: 294, n: 4, fps: 3.2, once: 1, side: 1 },
+    rocio_tormenta: { w: 524, h: 315, fy: 294, n: 4, fps: 4, once: 1 }
   };
   const specOf = src => { const m = typeof src === 'string' && src.match(/\/([\w]+)\.png$/); return m ? BIG[m[1]] : null; };
   function cut(src, dir, col, id, row) {

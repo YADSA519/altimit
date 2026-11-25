@@ -1212,7 +1212,7 @@
   /* ===== MVPs FINALES · élites (fusibles) y los que se llaman con un objeto ===== */
   SKN.push('joker', 'joker_baile', 'joker_oro', 'joker_lazo', 'baston', 'baston_atk', 'tiempo', 'tiempo_atk', 'tiempo_stop', 'tiempo_stop2', 'virtuoso', 'virt_elec', 'virt_voz', 'virt_libro',
     'reina', 'reina_nigro', 'reina_rayo', 'reina_sombra', 'reina_hielo', 'reina_fuego', 'distorsion', 'distorsion_atk', 'gemela', 'gemela_atk', 'gemelo', 'gemelo_atk', 'mosca', 'mosca_real', 'muerte', 'muerte_f2',
-    'carbon_m', 'carbon_h', 'slave', 'slave_rep', 'slave_garra', 'gordo', 'gordo_atk', 'flaco', 'flaco_atk', 'enano', 'enano_atk', 'rosa_mvp', 'rosa_cuervos', 'rosa_sombra', 'rocio_mvp', 'rocio_fuego', 'natsume_mvp', 'natsume_inv', 'natsume_dash', 'corredor_sup', 'corredor_run', 'corredor_smash', 'corredor_pinchos', 'corredor_salto', 'corredor_zarpazo', 'demonio_clones', 'demonio_especial_1', 'demonio_especial_2', 'joker_cartas', 'joker_cintas');
+    'carbon_m', 'carbon_h', 'slave', 'slave_rep', 'slave_garra', 'gordo', 'gordo_atk', 'flaco', 'flaco_atk', 'enano', 'enano_atk', 'rosa_mvp', 'rosa_cuervos', 'rosa_sombra', 'rocio_mvp', 'rocio_fuego', 'natsume_mvp', 'natsume_inv', 'natsume_dash', 'corredor_sup', 'corredor_run', 'corredor_smash', 'corredor_pinchos', 'corredor_salto', 'corredor_zarpazo', 'demonio_clones', 'demonio_especial_1', 'demonio_especial_2', 'joker_cartas', 'joker_cintas', 'rocio_barrido', 'rocio_tormenta');
   const AURP = ['aura_roja', 'aura_luna', 'aura_mariposa', 'aura_azul'].map(k => [k, .25]);
   Object.assign(MVPS, {
     joker: { kind: 'mvp_joker', map: 'salon_joker', n: 'LA JOKER', gate: 'reto', elite: 1, fus: 'fusible_oscuro', oro: 800, dropP: .05, drops: [['gorro_joker', 1], ['lazo_dorado', 1]].concat(AURP),
@@ -1262,9 +1262,9 @@
   mvpM('mvp_carbon_h', { name: 'EL CARBÓN', sheet: 'carbon_h', hp: 3200, dmg: 50, sp: 150, aura: '120,120,140', pspeed: 520, fdmg: 34 });
   mvpM('mvp_carbon_m', { name: 'LA CARBONA', sheet: 'carbon_m', hp: 2800, dmg: 44, sp: 175, aura: '170,150,200' });
   mvpM('mvp_slave', { name: 'EL SLAVE', sheet: 'slave', hp: 5000, dmg: 52, sp: 185, aura: '160,90,255' });
-  mvpM('mvp_rosa', { name: 'ROSA', sheet: 'rosa_mvp', hp: 2600, dmg: 40, sp: 170, aura: '150,60,200', pspeed: 440, fdmg: 30, next: 'mvp_rocio' });
-  mvpM('mvp_rocio', { name: 'ROCÍO', sheet: 'rocio_mvp', hp: 2600, dmg: 46, sp: 160, aura: '255,90,40', next: 'mvp_natsume' });
-  mvpM('mvp_natsume', { name: 'NATSUME', sheet: 'natsume_mvp', hp: 2200, dmg: 36, sp: 250, aura: '255,120,200', pspeed: 620, fdmg: 26 });
+  mvpM('mvp_rosa', { name: 'ROSA', sheet: 'rosa_mvp', hp: 2600, dmg: 40, sp: 170, aura: '255,50,50', pspeed: 440, fdmg: 30, next: 'mvp_rocio' });
+  mvpM('mvp_rocio', { name: 'ROCÍO', sheet: 'rocio_base', hp: 2600, dmg: 46, sp: 160, aura: '190,90,255', next: 'mvp_natsume' });
+  mvpM('mvp_natsume', { name: 'NATSUME', sheet: 'natsume_mvp', hp: 2200, dmg: 36, sp: 250, aura: '255,105,190', pspeed: 620, fdmg: 26 });
   mvpM('mvp_gordo', { name: 'EL GORDO', sheet: 'gordo', hp: 2400, dmg: 48, sp: 140, aura: '140,210,255', trap: 1 });
   mvpM('mvp_flaco', { name: 'EL FLACO', sheet: 'flaco', hp: 2000, dmg: 40, sp: 190, aura: '255,240,120', trap: 1 });
   mvpM('mvp_enano', { name: 'EL ENANO', sheet: 'enano', hp: 1800, dmg: 36, sp: 210, aura: '200,120,255', trap: 1 });
@@ -1489,10 +1489,22 @@
       if (A.sz <= 0) { A.sz = rnd(7, 9); A.skT = 1; o.sk = 'rosa_sombra'; live.forEach(p => addObj('sombra', p.x, p.y, 4)); return; }
       if (A.ds <= 0) { A.ds = rnd(8, 11); const q = randomNear(tg.x, tg.y, 260); if (q) { o.x = q[0]; o.y = q[1]; } for (let i = 0; i < 20; i++) parts.push({ x: o.x + rnd(-40, 40), y: o.y - rnd(0, 120), vx: rnd(-60, 60), vy: rnd(-90, -10), life: .7, s: 5, c: 280 }); return; }
       return X.melee(); },
-    mvp_rocio(o, dt, live, X) { const { A, T, hit } = X; A.fl = (A.fl == null ? 5 : A.fl) - dt; const tg = X.tg; o.sk = A.ch > 0 ? 'rocio_fuego' : 'rocio_mvp';
-      if (A.ch > 0) { A.ch -= dt; o.moving = false; o.face = A.dir; if (A.ch <= 0) { shake = .7; SND.shot(); for (let i = 0; i < 50; i++) parts.push({ x: o.x + A.dir * rnd(40, 900), y: o.y - rnd(0, 160) + rnd(-200, 200), vx: A.dir * rnd(60, 200), vy: rnd(-80, 20), life: rnd(.3, .7), s: rnd(4, 8), c: 220, fire: 1 });
+    mvp_rocio(o, dt, live, X) { const { A, T, hpK, hit } = X; A.fl = (A.fl == null ? 5 : A.fl) - dt; A.tm = (A.tm == null ? 8 : A.tm) - dt; A.fx = Math.max(0, (A.fx || 0) - dt); const tg = X.tg; o.sk = null;
+      const quema = (x, y, tt) => { if (objsOf('fuegoc').length < 48) { const f_ = addObj('fuegoc', x, y, 0); f_.tt = tt; } };
+      /* después del disparo se queda unos instantes con el lanzallamas encendido */
+      if (A.fx > 0 && A.fxk) { o.sk = A.fxk; o.moving = false; o.face = A.dir || o.face; return; }
+      /* LANZALLAMAS (barrido): carga, dispara y deja todo incinerado hacia ese lado */
+      if (A.ch > 0) { A.ch -= dt; o.sk = 'rocio_barrido'; o.moving = false; o.face = A.dir; if (A.ch <= 0) { shake = .7; SND.shot(); A.fx = .7; A.fxk = 'rocio_barrido';
+          for (let i = 0; i < 70; i++) parts.push({ x: o.x + A.dir * rnd(60, 950), y: o.y - rnd(0, 140) + rnd(-160, 160), vx: A.dir * rnd(80, 260), vy: rnd(-120, 10), life: rnd(.35, .8), s: rnd(5, 10), c: 220, fire: 1 });
+          for (let k = 1; k <= 9; k++) [-110, 0, 110].forEach(dy => { if (dy === 0 || k % 2) quema(o.x + A.dir * k * 105, o.y + dy + rnd(-20, 20), 4 + Math.random() * 2); });
           live.forEach(p => { if ((p.x - o.x) * A.dir > -20 && Math.abs(p.x - o.x) < 1100) { hit(p, Math.round(T.dmg * 2.4), 0); fxOn(p, { burn: 4 }); } }); dropObj(objsOf('llama')[0]); } return; }
+      /* TORMENTA DE FUEGO: si la rodean, se prende fuego alrededor */
+      if (A.ts > 0) { A.ts -= dt; o.sk = 'rocio_tormenta'; o.moving = false; if (A.ts <= .3 && !A.th) { A.th = 1; shake = .6; SND.shot(); fx('onda', o.x, o.y - 40, { w: 440, T: .55, grow: .6 });
+          live.forEach(p => { if (near2(p, o, 230)) { hit(p, Math.round(T.dmg * 1.5), 110); fxOn(p, { burn: 3 }); } });
+          for (let i = 0; i < 8; i++) { const a_ = i / 8 * 6.283; quema(o.x + Math.cos(a_) * 150, o.y + Math.sin(a_) * 85, 4); } }
+        if (A.ts <= 0) { A.th = 0; A.fx = .4; A.fxk = 'rocio_tormenta'; } return; }
       if (A.fl <= 0 && tg) { A.fl = rnd(6, 8); A.ch = 1.3; A.dir = tg.x < o.x ? -1 : 1; addObj('llama', o.x, o.y, A.dir); say('¡LANZALLAMAS!', 'Ponete detrás de ella', '#ff7a30', 1); return; }
+      if (A.tm <= 0 && live.some(p => near2(p, o, 230))) { A.tm = hpK < .5 ? 7 : 10; A.ts = 1.0; A.th = 0; say('¡TORMENTA DE FUEGO!', 'Alejate de ella', '#ff8a30'); return; }
       if (tg && X.bd < 360 && o.cd <= 0) { o.cd = 1.1; o.lunge = 1; fireMob(o, tg, 'fire'); }
       return X.melee(); },
     mvp_natsume(o, dt, live, X) { const { A, T, hit } = X; A.iv = (A.iv == null ? 2 : A.iv) - dt; A.sh = (A.sh == null ? 2 : A.sh) - dt; if (A.iv <= 0) { A.iv = A.hid ? rnd(2, 3) : rnd(4, 6); A.hid = !A.hid; }
@@ -1721,7 +1733,7 @@
       if (o.t === 'seguro') { c.save(); c.fillStyle = 'rgba(255,230,90,' + (.1 + .08 * Math.sin(t * 14)) + ')'; c.fillRect(0, 0, VW, VH); c.globalCompositeOperation = 'destination-out'; c.restore(); c.save(); c.strokeStyle = '#7dffb0'; c.lineWidth = 5 * zoom; c.setLineDash([16 * zoom, 10 * zoom]); c.beginPath(); c.ellipse(x, y, o.hp * zoom, o.hp * .8 * zoom, 0, 0, 7); c.stroke(); c.restore(); c.font = 'bold ' + Math.round(14 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; c.fillStyle = '#7dffb0'; c.fillText('ZONA SEGURA', x, y + 6); }
       if (o.t === 'oz') { const bl = .5 + .5 * Math.sin(t * 10); c.save(); c.fillStyle = 'rgba(255,40,70,' + (.15 + bl * .2) + ')'; c.strokeStyle = 'rgba(255,80,110,.95)'; c.lineWidth = 3 * zoom; c.beginPath(); c.ellipse(x, y, 175 * zoom, 140 * zoom, 0, 0, 7); c.fill(); c.stroke(); c.restore(); const im = iconOf('oz_muerte'), w = 80 * zoom; try { c.drawImage(im, x - w / 2, y - w, w, w); } catch (e) {} }
       if (o.t === 'clon') { c.save(); c.globalAlpha = .75; c.fillStyle = '#140818'; c.beginPath(); c.ellipse(x, y - 70 * zoom, 30 * zoom, 70 * zoom, 0, 0, 7); c.fill(); c.shadowColor = '#b080ff'; c.shadowBlur = 20; c.strokeStyle = '#b080ff'; c.lineWidth = 2 * zoom; c.stroke(); c.restore(); c.font = 'bold ' + Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; c.fillStyle = '#d8b0ff'; c.fillText('CLON', x, y - 150 * zoom); for (let i = 0; i < (o.hp || 1); i++) { c.fillRect(x - 14 + i * 8, y + 6, 6, 4); } }
-      if (o.t === 'llama') { const d_ = o.hp || 1, bl = .5 + .5 * Math.sin(t * 16); c.save(); c.fillStyle = 'rgba(255,110,30,' + (.12 + bl * .14) + ')'; if (d_ > 0) c.fillRect(x, 0, VW - x, VH); else c.fillRect(0, 0, x, VH); c.restore(); }
+      if (o.t === 'llama') { const d_ = o.hp || 1, bl = .5 + .5 * Math.sin(t * 16), L_ = 1100 * zoom, x2 = x + d_ * L_; c.save(); const g_ = c.createLinearGradient(x, 0, x2, 0); g_.addColorStop(0, 'rgba(255,90,20,' + (.22 + bl * .12) + ')'); g_.addColorStop(.6, 'rgba(255,60,10,' + (.08 + bl * .06) + ')'); g_.addColorStop(1, 'rgba(255,40,0,0)'); c.fillStyle = g_; c.fillRect(Math.min(x, x2), 0, L_, VH); c.strokeStyle = 'rgba(255,120,40,' + (.5 + bl * .4) + ')'; c.lineWidth = 3 * zoom; c.setLineDash([14 * zoom, 10 * zoom]); c.beginPath(); c.moveTo(x, 0); c.lineTo(x, VH); c.stroke(); c.restore(); }
       if (o.t === 'grieta') { const im = img('/a/ob/fx_erupcion.png'), w = 230 * zoom; try { c.drawImage(im, x - w / 2, y - w * .62, w, w * .66); } catch (e) {} }
       if (o.t === 'fuegoc') { const fl = .85 + Math.sin(performance.now() / 90 + o.x) * .15, life = Math.min(1, (o.tt == null ? 5 : o.tt) / 1.2);
         c.save(); c.fillStyle = 'rgba(18,10,6,' + (.55 * life) + ')'; c.beginPath(); c.ellipse(x, y, 78 * zoom, 30 * zoom, 0, 0, 7); c.fill(); c.restore(); /* piso quemado */
