@@ -1212,7 +1212,7 @@
   /* ===== MVPs FINALES · élites (fusibles) y los que se llaman con un objeto ===== */
   SKN.push('joker', 'joker_baile', 'joker_oro', 'joker_lazo', 'baston', 'baston_atk', 'tiempo', 'tiempo_atk', 'tiempo_stop', 'tiempo_stop2', 'virtuoso', 'virt_elec', 'virt_voz', 'virt_libro',
     'reina', 'reina_nigro', 'reina_rayo', 'reina_sombra', 'reina_hielo', 'reina_fuego', 'distorsion', 'distorsion_atk', 'gemela', 'gemela_atk', 'gemelo', 'gemelo_atk', 'mosca', 'mosca_real', 'muerte', 'muerte_f2',
-    'carbon_m', 'carbon_h', 'slave', 'slave_rep', 'slave_garra', 'gordo', 'gordo_atk', 'flaco', 'flaco_atk', 'enano', 'enano_atk', 'rosa_mvp', 'rosa_cuervos', 'rosa_sombra', 'rocio_mvp', 'rocio_fuego', 'natsume_mvp', 'natsume_inv', 'natsume_dash', 'corredor_sup', 'corredor_run', 'corredor_smash', 'corredor_pinchos', 'corredor_salto', 'corredor_zarpazo', 'demonio_clones', 'demonio_especial_1', 'demonio_especial_2');
+    'carbon_m', 'carbon_h', 'slave', 'slave_rep', 'slave_garra', 'gordo', 'gordo_atk', 'flaco', 'flaco_atk', 'enano', 'enano_atk', 'rosa_mvp', 'rosa_cuervos', 'rosa_sombra', 'rocio_mvp', 'rocio_fuego', 'natsume_mvp', 'natsume_inv', 'natsume_dash', 'corredor_sup', 'corredor_run', 'corredor_smash', 'corredor_pinchos', 'corredor_salto', 'corredor_zarpazo', 'demonio_clones', 'demonio_especial_1', 'demonio_especial_2', 'joker_cartas', 'joker_cintas');
   const AURP = ['aura_roja', 'aura_luna', 'aura_mariposa', 'aura_azul'].map(k => [k, .25]);
   Object.assign(MVPS, {
     joker: { kind: 'mvp_joker', map: 'salon_joker', n: 'LA JOKER', gate: 'reto', elite: 1, fus: 'fusible_oscuro', oro: 800, dropP: .05, drops: [['gorro_joker', 1], ['lazo_dorado', 1]].concat(AURP),
@@ -1249,7 +1249,7 @@
   const MB2 = Object.assign({}, MB, { coins: 0, xp: 60000 });
   const mvpM = (k, o) => MOB[k] = Object.assign({}, MB2, o);
   mvpM('mvp_corredor', { name: 'EL CORREDOR SUPREMO', sheet: 'corredor_sup', death: 'corredor_muerte', hp: 4600, dmg: 52, sp: 165, aura: '255,120,40', burn: 1 });
-  mvpM('mvp_joker', { name: 'LA JOKER', sheet: 'joker', hp: 4800, dmg: 48, sp: 175, aura: '200,80,255', dodge: .33 });
+  mvpM('mvp_joker', { name: 'LA JOKER', sheet: 'joker_base', death: 'joker_muerte', hp: 4800, dmg: 48, sp: 175, aura: '200,80,255', dodge: .33 });
   mvpM('mvp_virtuoso', { name: 'EL VIRTUOSO', sheet: 'virtuoso', hp: 4600, dmg: 44, sp: 170, aura: '255,220,90', pspeed: 460, fdmg: 34 });
   mvpM('mvp_tiempo', { name: 'EL HOMBRE DEL TIEMPO', sheet: 'tiempo', hp: 5400, dmg: 58, sp: 190, reach: 115, cd: .75, aura: '255,200,80' });
   mvpM('mvp_baston', { name: 'EL DEL BASTÓN', sheet: 'baston', hp: 5200, dmg: 54, sp: 200, reach: 125, aura: '255,210,120', dodge: .3 });
@@ -1406,12 +1406,15 @@
   const phaseSay = (o, A, hpK, t, s, c) => { if (hpK < .5 && !A.p2) { A.p2 = 1; say(t, s, c, 1); shake = .6; SND.mob('roar', .7); } return !!A.p2; };
   const goTo = (o, tg, sp, dt) => { if (tg) moveMob(o, tg.x, tg.y, sp, dt); };
   const MVP2 = {
-    mvp_joker(o, dt, live, X) { const { A, T, hpK, hit } = X; let tg = X.tg, bd = X.bd; o.sk = o.moving ? 'joker_baile' : 'joker';
+    mvp_joker(o, dt, live, X) { const { A, T, hpK, hit } = X; let tg = X.tg, bd = X.bd; o.sk = null;
       A.lv = (A.lv == null ? 12 : A.lv) - dt; A.lr = (A.lr == null ? 5 : A.lr) - dt;
-      if (A.ctrl > 0) { A.ctrl -= dt; A.inv = 1; o.sk = 'joker_lazo'; o.moving = false; if (!objsOf('piedra').length || A.ctrl <= 0) { A.ctrl = 0; A.inv = 0; allFx(live, { free: 1 }); say(A.ctrl <= 0 && objsOf('piedra').length ? 'SE CORTÓ EL HILO' : '¡ROMPIERON LA PIEDRA!', 'Vuelven a ser ustedes', '#d8a0ff'); objsOf('piedra').forEach(dropObj); } return; }
+      if (A.ctrl > 0) { A.ctrl -= dt; A.inv = 1; o.sk = 'joker_cartas'; o.moving = false; if (!objsOf('piedra').length || A.ctrl <= 0) { A.ctrl = 0; A.inv = 0; allFx(live, { free: 1 }); say(A.ctrl <= 0 && objsOf('piedra').length ? 'SE CORTÓ EL HILO' : '¡ROMPIERON LA PIEDRA!', 'Vuelven a ser ustedes', '#d8a0ff'); objsOf('piedra').forEach(dropObj); } return; }
       if (A.lv <= 0) { A.lv = rnd(16, 20); A.ctrl = 10; const solo = live.length < 2; say('LAZO VIOLETA', solo ? 'Todo al revés: rompé la piedra' : 'Se van a pelear entre ustedes: rompan la piedra', '#c070ff', 1);
         allFx(live, solo ? { rev: 10 } : { manip: 10 }); const far = live[(Math.random() * live.length) | 0]; const q = randomNear(far.x, far.y, 520) || [o.x, o.y]; addObj('piedra', q[0], q[1], 12); return; }
-      if (A.lr <= 0 && tg && bd < 420) { A.lr = rnd(5, 7); o.sk = 'joker_oro'; o.lunge = 1; hit(tg, Math.round(T.dmg * 1.6), 50); if (Math.random() < .22) { fxOn(tg, { casi: 1, mk: o.kind }); say('¡LAZO CRÍTICO!', null, '#ff4060'); } return; }
+      /* LAZO DORADO: baila con las cintas y el latigazo pega en el tercer cuadro */
+      if (A.lo > 0) { A.lo -= dt; o.sk = 'joker_cintas'; o.moving = false; const v = live.find(p => p.id === A.lvic); if (v) o.face = v.x < o.x ? -1 : 1;
+        if (A.lo <= .3 && !A.lh) { A.lh = 1; if (v && Math.hypot(v.x - o.x, v.y - o.y) < 460) { o.lunge = 1; hit(v, Math.round(T.dmg * 1.6), 50); if (Math.random() < .22) { fxOn(v, { casi: 1, mk: o.kind }); say('¡LAZO CRÍTICO!', null, '#ff4060'); } } } return; }
+      if (A.lr <= 0 && tg && bd < 420) { A.lr = rnd(5, 7); A.lo = .75; A.lh = 0; A.lvic = tg.id; o.sk = 'joker_cintas'; return; }
       return X.melee(); },
     mvp_virtuoso(o, dt, live, X) { const { A, T, hpK, hit } = X; const p2 = phaseSay(o, A, hpK, 'SE VUELVE INSOPORTABLE', 'Todo más rápido', '#ffd860'), k = p2 ? .6 : 1; o.sk = 'virtuoso';
       A.bk = (A.bk == null ? 6 : A.bk) - dt; A.rn = (A.rn == null ? 9 : A.rn) - dt;

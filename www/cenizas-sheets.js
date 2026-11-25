@@ -24,7 +24,12 @@
     demonio_clones: { w: 326, h: 314, fy: 289, n: 4, fps: 5, once: 1, aura: '190,90,255' },
     demonio_especial_1: { w: 326, h: 314, fy: 289, n: 4, fps: 4, once: 1 },
     demonio_especial_2: { w: 326, h: 314, fy: 289, n: 4, fps: 4.5, once: 1, side: 1, aura: '190,90,255' },
-    demonio_muerte: { w: 326, h: 314, fy: 289, n: 4, fps: 3.5, dirs: 1, hold: 14 }
+    demonio_muerte: { w: 326, h: 314, fy: 289, n: 4, fps: 3.5, dirs: 1, hold: 14 },
+    /* La Joker */
+    joker_base: { w: 320, h: 320, fy: 300, n: 4 },
+    joker_cartas: { w: 320, h: 320, fy: 300, n: 4, fps: 5, once: 1 },
+    joker_cintas: { w: 320, h: 320, fy: 300, n: 4, fps: 6, once: 1, side: 1 },
+    joker_muerte: { w: 320, h: 320, fy: 300, n: 4, fps: 3.5, dirs: 1, hold: 14 }
   };
   const specOf = src => { const m = typeof src === 'string' && src.match(/\/([\w]+)\.png$/); return m ? BIG[m[1]] : null; };
   function cut(src, dir, col, id, row) {
