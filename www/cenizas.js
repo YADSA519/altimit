@@ -1200,7 +1200,7 @@
   const MVP_BY_MAP = {}; Object.entries(MVPS).forEach(([k, v]) => MVP_BY_MAP[v.map] = k);
   const LIBS = { pablo: { map: 'casa_pablo', nm: 'LIBRETA DE PABLO', img: '/a/ob/libreta_pablo.png', list: ['cs', 'galera', 'bruja'] }, sofia: { map: 'nueveJulio', nm: 'LIBRETA DE SOFÍA', img: '/a/ob/libreta_sofia.png', list: ['dama', 'demonio'] } };
   const MB = { art: 'jefe', aura: '255,40,60', pw: 30, ph: 44, sp: 150, wsp: 60, sight: 2400, wind: .35, cd: .9, reach: 95, heavy: true, boss: true, mvp: true, respawn: 99999999, coins: 300, xp: 40000, snd: 'roar', ai: 'mvp' };
-  MOB.mvp_cs = Object.assign({}, MB, { name: 'EL COME SUEÑOS', sheet: 'mvp_cs', hp: 3000, dmg: 55, sp: 175 });
+  MOB.mvp_cs = Object.assign({}, MB, { name: 'EL COME SUEÑOS', sheet: 'cs_base', death: 'cs_muerte', hp: 3000, dmg: 55, sp: 175 });
   MOB.mvp_galera = Object.assign({}, MB, { name: 'EL HOMBRE DE GALERA', sheet: 'mvp_galera', hp: 2500, dmg: 50, ph: 48, sp: 140, aura: '170,120,255' });
   MOB.mvp_bruja = Object.assign({}, MB, { name: 'LA BRUJA PODRIDA', sheet: 'mvp_bruja', hp: 2800, dmg: 45, sp: 80, aura: '140,220,60', pspeed: 380, fdmg: 30, pois5: 25 });
   MOB.mvp_dama = Object.assign({}, MB, { name: 'LA DAMA TRISTE', sheet: 'mvp_dama', hp: 3200, dmg: 52, ph: 46, sp: 150, aura: '120,180,255' });
@@ -1212,7 +1212,7 @@
   /* ===== MVPs FINALES · élites (fusibles) y los que se llaman con un objeto ===== */
   SKN.push('joker', 'joker_baile', 'joker_oro', 'joker_lazo', 'baston', 'baston_atk', 'tiempo', 'tiempo_atk', 'tiempo_stop', 'tiempo_stop2', 'virtuoso', 'virt_elec', 'virt_voz', 'virt_libro',
     'reina', 'reina_nigro', 'reina_rayo', 'reina_sombra', 'reina_hielo', 'reina_fuego', 'distorsion', 'distorsion_atk', 'gemela', 'gemela_atk', 'gemelo', 'gemelo_atk', 'mosca', 'mosca_real', 'muerte', 'muerte_f2',
-    'carbon_m', 'carbon_h', 'slave', 'slave_rep', 'slave_garra', 'gordo', 'gordo_atk', 'flaco', 'flaco_atk', 'enano', 'enano_atk', 'rosa_mvp', 'rosa_cuervos', 'rosa_sombra', 'rocio_mvp', 'rocio_fuego', 'natsume_mvp', 'natsume_inv', 'natsume_dash', 'corredor_sup', 'corredor_run', 'corredor_smash', 'corredor_pinchos', 'corredor_salto', 'corredor_zarpazo', 'demonio_clones', 'demonio_especial_1', 'demonio_especial_2', 'joker_cartas', 'joker_cintas', 'rocio_barrido', 'rocio_tormenta');
+    'carbon_m', 'carbon_h', 'slave', 'slave_rep', 'slave_garra', 'gordo', 'gordo_atk', 'flaco', 'flaco_atk', 'enano', 'enano_atk', 'rosa_mvp', 'rosa_cuervos', 'rosa_sombra', 'rocio_mvp', 'rocio_fuego', 'natsume_mvp', 'natsume_inv', 'natsume_dash', 'corredor_sup', 'corredor_run', 'corredor_smash', 'corredor_pinchos', 'corredor_salto', 'corredor_zarpazo', 'demonio_clones', 'demonio_especial_1', 'demonio_especial_2', 'joker_cartas', 'joker_cintas', 'rocio_barrido', 'rocio_tormenta', 'cs_rugido', 'cs_mordida');
   const AURP = ['aura_roja', 'aura_luna', 'aura_mariposa', 'aura_azul'].map(k => [k, .25]);
   Object.assign(MVPS, {
     joker: { kind: 'mvp_joker', map: 'salon_joker', n: 'LA JOKER', gate: 'reto', elite: 1, fus: 'fusible_oscuro', oro: 800, dropP: .05, drops: [['gorro_joker', 1], ['lazo_dorado', 1]].concat(AURP),
@@ -1328,9 +1328,10 @@
     if (!live.length) { o.moving = false; return; }
     if (MVP2[o.kind]) return MVP2[o.kind](o, dt, live, { tg, bd, hpK, hit, melee, A, T });
     if (o.kind === 'mvp_cs') {
-      if (A.act === 'grito') { o.sk = SKN[1]; o.moving = false; if (A.at <= 0) { A.act = null; shake = .6; SND.mob('roar', .6); fx('onda', o.x + 60, o.y - 140, { w: 520, T: .7, grow: .5 }); net('mvpban', { t: '¡GRITO!', c: '#ffb070' });
+      A.fx = Math.max(0, (A.fx || 0) - dt); if (A.fx > 0) { o.sk = 'cs_mordida'; o.moving = false; return; }
+      if (A.act === 'grito') { o.sk = 'cs_rugido'; o.moving = false; if (A.at <= 0) { A.act = null; shake = .6; SND.mob('roar', .6); fx('onda', o.x + 60, o.y - 140, { w: 520, T: .7, grow: .5 }); net('mvpban', { t: '¡GRITO!', c: '#ffb070' });
           live.forEach(p => { if (behindCamilla(p, o)) { if (p.me) floats.push({ x: P.x, y: P.y - 220, t: 1.2, txt: 'A SALVO', c: '#9fe0b0' }); return; } fxOn(p, { stun: 3.2, vuln: 1 }); }); A.fast = 5; } return; }
-      if (A.act === 'salto') { o.sk = SKN[2]; const k = 1 - A.at / .8; o.x = A.x0 + (A.x1 - A.x0) * k; o.y = A.y0 + (A.y1 - A.y0) * k; if (A.at <= 0) { A.act = null; shake = .5; for (let i = 0; i < 30; i++) parts.push({ x: o.x + rnd(-60, 60), y: o.y, vx: rnd(-160, 160), vy: rnd(-120, -10), life: .6, s: 5, c: 70 }); live.forEach(p => { if (near2(p, o, 190)) hit(p, T.dmg * 1.4, 120); }); } return; }
+      if (A.act === 'salto') { o.sk = 'cs_mordida'; o.face = A.x1 < A.x0 ? -1 : 1; const k = 1 - A.at / .8; o.x = A.x0 + (A.x1 - A.x0) * k; o.y = A.y0 + (A.y1 - A.y0) * k; if (A.at <= 0) { A.act = null; A.fx = .35; shake = .5; for (let i = 0; i < 30; i++) parts.push({ x: o.x + rnd(-60, 60), y: o.y, vx: rnd(-160, 160), vy: rnd(-120, -10), life: .6, s: 5, c: 70 }); live.forEach(p => { if (near2(p, o, 190)) hit(p, T.dmg * 1.4, 120); }); } return; }
       if (A.t2 <= 0) { A.t2 = hpK < .5 ? 9 : 13; A.act = 'grito'; A.at = 1.6; net('mvpban', { t: '¡VA A GRITAR!', s: 'Escondete detrás de una camilla', c: '#ffb070' }); banner('¡VA A GRITAR!', 'Escondete detrás de una camilla', 1600, '#ffb070'); return; }
       if (A.t1 <= 0 && tg && bd > 160) { A.t1 = rnd(5, 8); A.act = 'salto'; A.at = .8; A.x0 = o.x; A.y0 = o.y; let x1 = tg.x, y1 = tg.y; if (!mobWalk(x1, y1)) { x1 = o.x; y1 = o.y; } A.x1 = x1; A.y1 = y1; return; }
       return melee(); }
