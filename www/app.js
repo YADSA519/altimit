@@ -360,30 +360,29 @@
   /* ================= NEWS ================= */
   let news = [], newsTabCur = 'all';
   const CAT = { general: 'NOTICIA', informe: 'INFORME', evento: 'EVENTO' };
-  /* avisos fijos del juego (no están en la base) */
-  const PINNED = [
-    { id: -1, category: 'informe', title: 'THE O|F · versión de prueba', body: 'Estás jugando una versión de prueba, todavía sin el final. El viernes 14 de noviembre se estrena el juego con una versión OFF LINE, para jugar cuando no tengas internet (si no tenés conexión no vas a poder jugar el mundo abierto ni cruzarte con otros players). El domingo 16 de noviembre se estrena la versión final del juego.', source: 'Red THE O|F', created_at: '2026-11-11T02:00:00Z' },
-    { id: -2, category: 'evento', title: 'Estreno de THE O|F · versión OFF LINE', body: 'Para jugar sin internet.', source: 'Red THE O|F', event_at: '2026-11-14T12:00:00-03:00', created_at: '2026-11-11T02:00:00Z' },
-    { id: -3, category: 'evento', title: 'Estreno de THE O|F · versión final', body: 'Llega el juego completo.', source: 'Red THE O|F', event_at: '2026-11-16T12:00:00-03:00', created_at: '2026-11-11T02:00:00Z' }];
   async function loadNews() {
     const { data, error } = await sb.from('news').select('id,author,category,title,body,source,event_at,faction,created_at').order('created_at', { ascending: false }).limit(80);
-    if (error) return; news = PINNED.concat(data || []); countNews(); if (cur === 'news') renderNews(); renderEvents();
+    if (error) return; news = data || []; countNews(); if (cur === 'news') renderNews(); renderEvents();
   }
-  function countNews() { const seen = store.get('newsSeen', 0); const n = news.filter(x => x.id > seen).length; setBadge('news', cur === 'news' ? 0 : n); $('#news-meta').textContent = n ? n + ' nuevas' : ''; }
+  function countNews() { const seen = store.get('newsSeen', 0); const n = news.filter(x => x.id > seen).length; setBadge('news', cur === 'news' ? 0 : n); $('#news-meta').textContent = n ? n + (n === 1 ? ' nueva' : ' nuevas') : ''; }
   function markNewsSeen() { renderNews(); if (news.length) store.set('newsSeen', Math.max(...news.map(n => n.id))); setBadge('news', 0); }
   $$('[data-ntab]').forEach(b => b.onclick = () => { newsTabCur = b.dataset.ntab; $$('[data-ntab]').forEach(x => x.setAttribute('aria-selected', String(x === b))); renderNews(); });
   const upcoming = () => news.filter(n => n.event_at && new Date(n.event_at) > new Date(Date.now() - 3 * 3600e3)).sort((a, b) => a.event_at.localeCompare(b.event_at));
-  function eventRow(n, withBtn) {
+  function eventRow(n, withBtn, withAdm) {
     const d = new Date(n.event_at); const r = el('div', 'event');
     r.innerHTML = '<div class="d"></div><div style="min-width:0"><div class="t"></div><div class="s"></div></div><div></div>';
     r.querySelector('.d').innerHTML = pad(d.getDate()) + '<small>' + MES[d.getMonth()] + '</small>'; r.querySelector('.t').textContent = n.title; r.querySelector('.s').textContent = hhmm(d) + ' · ' + (n.source || 'la red');
+    if (withAdm && me.role === 'admin') { r.lastChild.appendChild(delBtn(n)); r.lastChild.style.cssText = 'display:flex;flex-direction:column;gap:6px;align-items:stretch'; }
     if (withBtn) { const on = store.get('evAlert', []).includes(n.id); const b = el('button', 'btn small' + (on ? ' solid' : ''), on ? 'TE AVISO' : 'AVISARME'); b.onclick = () => toggleEventAlert(n, b); r.lastChild.appendChild(b); }
     return r;
   }
+  /* botón de borrar del admin: toca una vez y pide confirmar */
+  function delBtn(n) { const del = el('button', 'btn small red', 'BORRAR');
+    del.onclick = async () => { if (del.dataset.sure !== '1') { del.dataset.sure = '1'; del.textContent = '¿SEGURO?'; return; } const { error } = await sb.from('news').delete().eq('id', n.id); if (error) return toast('No se pudo borrar: ' + error.message); news = news.filter(x => x !== n); renderNews(); renderEvents(); toast('Borrado.'); }; return del; }
   function renderNews() {
     const box = $('#news-body'); box.innerHTML = ''; const seen = store.get('newsSeen', 0);
-    if (newsTabCur === 'evs') { const ev = news.filter(n => n.category === 'evento' || n.event_at).sort((a, b) => (b.event_at || b.created_at).localeCompare(a.event_at || a.created_at)); if (!ev.length) box.appendChild(el('div', 'empty', 'Todavía no hubo eventos.')); ev.forEach(n => box.appendChild(n.event_at ? eventRow(n, new Date(n.event_at) > new Date()) : el('div', 'empty', n.title))); return; }
-    if (newsTabCur === 'ev') { const ev = upcoming(); if (!ev.length) box.appendChild(el('div', 'empty', 'No hay eventos anunciados.')); ev.forEach(n => box.appendChild(eventRow(n, true))); return; }
+    if (newsTabCur === 'evs') { const ev = news.filter(n => n.category === 'evento' || n.event_at).sort((a, b) => (b.event_at || b.created_at).localeCompare(a.event_at || a.created_at)); if (!ev.length) box.appendChild(el('div', 'empty', 'Todavía no hubo eventos.')); ev.forEach(n => box.appendChild(n.event_at ? eventRow(n, new Date(n.event_at) > new Date(), true) : el('div', 'empty', n.title))); return; }
+    if (newsTabCur === 'ev') { const ev = upcoming(); if (!ev.length) box.appendChild(el('div', 'empty', 'No hay eventos anunciados.')); ev.forEach(n => box.appendChild(eventRow(n, true, true))); return; }
     if (!news.length) { box.appendChild(el('div', 'empty', 'Todavía no llegaron noticias a tu red.')); return; }
     news.forEach(n => { const a = el('article', 'news' + (n.id > seen ? ' new' : ''));
       const top = el('div', 'top'); top.appendChild(el('span', 'pill' + (n.category === 'evento' ? ' red' : ''), CAT[n.category] || 'NOTICIA'));
@@ -391,8 +390,7 @@
       if (n.event_at) top.appendChild(el('span', null, '· ' + stamp(n.event_at)));
       a.append(top, el('h3', null, n.title), el('p', null, n.body));
       const src = el('div', 'src'); src.append(el('span', null, '— ' + (n.source || 'Red THE O|F')), el('span', null, stamp(n.created_at))); a.appendChild(src);
-      if (me.role === 'admin' && n.id > 0) { const del = el('button', 'btn small red', 'BORRAR'); del.style.marginTop = '8px';
-        del.onclick = async () => { if (del.dataset.sure !== '1') { del.dataset.sure = '1'; del.textContent = '¿SEGURO?'; return; } const { error } = await sb.from('news').delete().eq('id', n.id); if (error) return toast('No se pudo borrar.'); news = news.filter(x => x !== n); renderNews(); }; a.appendChild(del); }
+      if (me.role === 'admin') { const del = delBtn(n); del.style.marginTop = '8px'; a.appendChild(del); }
       box.appendChild(a); });
   }
 
