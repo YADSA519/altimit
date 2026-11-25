@@ -99,3 +99,11 @@ body.ork .hud .pf{background-image:url(/a/ui/h_perfil_ork.webp)}
 #ov-down .dn-s{font:13px TechMono,monospace;color:#e8ddd0;margin:4px 0 10px}
 #ov-down .dn-s b{color:#ffb070}
 #ov-down button{font:700 14px TechMono,monospace;color:#fff;background:#5a1a22;border:1px solid #a03040;border-radius:8px;padding:9px 14px;cursor:pointer}
+
+.pads #btn-k2,.pads #btn-k3,.pads #btn-k4{width:50px;height:50px}
+.pads #btn-k2{right:calc(var(--sr) + 96px);bottom:calc(var(--sb) + 166px)}
+.pads #btn-k3{right:calc(var(--sr) + 152px);bottom:calc(var(--sb) + 166px)}
+.pads #btn-k4{right:calc(var(--sr) + 22px);bottom:calc(var(--sb) + 214px)}
+.qs.hab.mini canvas{width:28px;height:28px}
+.qs.hab.mini i{font-size:10px}
+.qs.hab.mini.cd{filter:grayscale(.7) brightness(.8)}
