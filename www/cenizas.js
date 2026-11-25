@@ -585,6 +585,9 @@
     else for (let j = 0; j < GH; j++) for (let i = 0; i < GW; i++) { const x = i * C + C / 2, y = j * C + C / 2; g[j * GW + i] = (MAP.walk || []).some(p => inPoly(x, y, p)) && !(MAP.block || []).some(p => inPoly(x, y, p)) ? 1 : 0; }
     // sólo lo conectado al punto de inicio
     grid = new Uint8Array(GW * GH); const s = cellOf(MAP.spawn[0] * WS, MAP.spawn[1] * WS); const q = [s]; grid[s] = 1;
+    /* también lo conectado a cada pase: hay zonas que solo se alcanzan entrando por su salida (ej. la rampa del garaje) */
+    (MAP.exits || []).forEach(e => { const pts = [[(e.r[0] + e.r[2]) / 2, (e.r[1] + e.r[3]) / 2]].concat(e.arr ? [e.arr] : []); for (let yy = e.r[1]; yy <= e.r[3]; yy += C / WS) for (let xx = e.r[0]; xx <= e.r[2]; xx += C / WS) pts.push([xx, yy]);
+      pts.forEach(([px, py]) => { const c0 = cellOf(px * WS, py * WS); if (c0 >= 0 && c0 < g.length && g[c0] && !grid[c0]) { grid[c0] = 1; q.push(c0); } }); });
     while (q.length) { const c = q.pop(), x = c % GW, y = (c / GW) | 0; for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= GW || ny >= GH) continue; const n = ny * GW + nx; if (g[n] && !grid[n]) { grid[n] = 1; q.push(n); } } }
     // por donde pueden andar los Oscuros: sin zonas seguras
     mgrid = new Uint8Array(grid); if (MAP.safeAll && !MAP.safeFac) mgrid.fill(0);
@@ -2675,6 +2678,6 @@
     const lv = lvlOf(P.xp); if (!P.dead && P.hp < maxHp(lv) * .25) { c.fillStyle = 'rgba(120,10,5,' + (.12 + Math.sin(t * 5) * .08) + ')'; c.fillRect(0, 0, VW, VH); }
   }
 
-    window.__cz = { EXP, t2: { callMvp, q2Talk, ev: () => mvpEv, MVPS, objs: () => mvpObjs, openLib, applyPfx, gearHit, useHab2 }, npcs: () => npcsHere(), talk: () => { const n = nearNpc(); if (n) talkNpc(n); return n && n.k; }, get skins() { return mySkins; }, get look() { return look; }, get net() { return { mode: netMode, peers, sent: NETC.sent, recv: NETC.recv, gotFull }; }, get host() { return isHost; }, get hostId() { return hostId; }, set unlocks(v) { unlocks = v; }, get unlocks() { return unlocks; }, mshots, clouds, killMob, get suero() { return suero; }, get P() { return P; }, get INV() { return INV; }, pickups, mobs, ITEMS, ICONS, walkable: (x, y) => walkable(x, y), othersMap: others, spawnMob, spawnPickup, useItem, useHab, attack, takeItem, get map() { return mapKey; }, warp: k => enterMap(k, 0, 0) };
+    window.__cz = { EXP, t2: { walkable, callMvp, q2Talk, ev: () => mvpEv, MVPS, objs: () => mvpObjs, openLib, applyPfx, gearHit, useHab2 }, npcs: () => npcsHere(), talk: () => { const n = nearNpc(); if (n) talkNpc(n); return n && n.k; }, get skins() { return mySkins; }, get look() { return look; }, get net() { return { mode: netMode, peers, sent: NETC.sent, recv: NETC.recv, gotFull }; }, get host() { return isHost; }, get hostId() { return hostId; }, set unlocks(v) { unlocks = v; }, get unlocks() { return unlocks; }, mshots, clouds, killMob, get suero() { return suero; }, get P() { return P; }, get INV() { return INV; }, pickups, mobs, ITEMS, ICONS, walkable: (x, y) => walkable(x, y), othersMap: others, spawnMob, spawnPickup, useItem, useHab, attack, takeItem, get map() { return mapKey; }, warp: k => enterMap(k, 0, 0) };
   boot().catch(e => { $('#load-t').textContent = 'Error al cargar: ' + (e.message || e); });
 })();
