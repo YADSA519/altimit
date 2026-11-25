@@ -1,4 +1,4 @@
-/* THE O|F 2.1 · MODO HISTORIA (?modo=historia) y PVP (?modo=pvp) */
+/* THE O|F · MODO HISTORIA (?modo=historia) y PVP (?modo=pvp) */
 (function () {
   'use strict';
   const $ = s => document.querySelector(s);
@@ -494,8 +494,23 @@
   ITEMS.venda_oscura = { n: 'Venda Oscura', t: 'Cura · ÉPICO', d: 'Te saca los estados oscuros (veneno, sangrado, polen) y te cura 40%.', use: 'vendaE', r: 'e' }; ICO('venda_oscura', 'venda_oscura');
   ITEMS.venda_lumen = { n: 'Venda de Lumen', t: 'Cura · ÉPICO', d: 'Te saca los estados de luz y de fuego y te cura 40%.', use: 'vendaE', r: 'e' }; ICO('venda_lumen', 'venda_lumen');
   ITEMS.cristales_elem = { n: 'Cristales Elementales', t: 'Consumible · ÉPICO', d: '15 minutos con un elemento al azar en tu arma (fuego, hielo, tierra, luz, agua u oscuridad), hasta que cambies de arma.', use: 'elemento', r: 'e' }; ICO('cristales_elem', 'cristales_elem');
-  const AURAS = { aura_roja: ['Pergamino de Aura Roja', '255,60,60'], aura_luna: ['Pergamino de Aura Luna', '170,90,255'], aura_mariposa: ['Pergamino de la Mariposa', '255,120,200'], aura_azul: ['Pluma del Espacio', '80,160,255'] };
+  const AURAS = { aura_roja: ['Pergamino de Aura Roja', '255,60,60'], aura_luna: ['Pergamino de Aura Luna', '170,90,255'], aura_mariposa: ['Pergamino de la Mariposa', '255,120,200'], aura_azul: ['Pluma del Espacio', '80,160,255'], cenizas_corredor: ['Cenizas del Corredor', '255,140,40'] };
   Object.entries(AURAS).forEach(([k, [n]]) => { ITEMS[k] = { n, t: 'Aura · solo visual', d: 'Le da un aura de color a tu personaje para siempre. Solo una activa: la podés cambiar por otra pasadas 24 horas. Se rompe al usarlo.', use: 'aura', r: 'e' }; ICO(k, k); });
+  /* el Corredor Supremo (garaje abandonado) */
+  const EPC = {
+    garra_ardiente: ['Garra Ardiente', 'arma', { oh: [{ n: 3, fx: { dot: 4, dpsK: .4, c: 'f' }, bonus: .09, txt: 'ARDE' }] }, 'Pega más rápido que cualquier arma. Cada 3 golpes quema, y cada quemadura suma 3% de daño (hasta 3 veces).'],
+    espada_corredor: ['Espada del Corredor', 'arma', { oh: [{ n: 3, bola: 1, txt: 'BOLA DE FUEGO' }] }, 'Cada 3 golpes lanza una bola de fuego al Oscuro más cercano.'],
+    calavera_corredor: ['Calavera del Corredor', 'cabeza', { noBurn: 1, rFuego: .9, thorns: .03, thornsBurn: .1 }, 'Inmune al fuego. El que te pega recibe 3% del daño y tiene 10% de quemarse.'],
+    chaleco_corredor: ['Chaleco del Corredor', 'ropa', { shield: 440, regen: 1, spd: .3, noSlow: 1, noBurn: 1, crit: .1, act: 'impulso', cd: 12 }, '30% más rápido, nada te frena, inmune al fuego y 10% de crítico. HABILIDAD: impulso en línea recta que lastima a todo lo que cruza.'],
+    capa_corredor: ['Capa del Corredor', 'acc', { spd: .15, oh: [{ n: 1, fx: { dot: 5, dpsK: .25, c: 'f' } }] }, '15% más rápido y tu arma tiene fuego: cada golpe quema 5 segundos.'],
+    collar_corredor: ['Collar del Corredor', 'cara', { crit: .2, oh: [{ n: 1, fx: { dot: 5, dpsK: .2, c: 'f' } }] }, '20% de crítico y cada golpe quema 5 segundos.'],
+    colgante_corredor: ['Colgante del Corredor', 'acc', { rFuego: .5, rTierra: .5, critW: .15 }, 'Protege del fuego y de la tierra. 15% de crítico con espada, garra, cuchillo o equipo del Corredor.'],
+    anillo_corredor: ['Anillo del Corredor', 'acc', { act: 'carrera', cd: 25 }, 'HABILIDAD: corrés 5 segundos dejando fuego a tu paso.'],
+    garras_corredor: ['Garras del Corredor', 'brazo', { act: 'pinchot', cd: 15 }, 'Elemento tierra. HABILIDAD: un pincho de tierra sale bajo el enemigo, le pega fuerte y lo hace sangrar 5 segundos.'],
+    zapatillas_corredor: ['Zapatillas del Corredor', 'pies', { hp: .3, noBurn: 1, rMoco: 1, oh: [{ n: 3, fx: { dot: 3, dpsK: .35, c: 's' }, txt: 'TIERRA' }] }, '30% más de vida, inmune al fuego y al moco. Tu arma tiene tierra: cada 3 golpes hace sangrar.'] };
+  Object.entries(EPC).forEach(([k, [n, eq, st, d]]) => { ITEMS[k] = Object.assign({ n, eq, d, t: { arma: 'Arma', ropa: 'Ropa', acc: 'Accesorio', pies: 'Pies', cabeza: 'Cabeza', cara: 'Cara', brazo: 'Manos' }[eq] + ' · ÉPICO · MVP', r: 'e', epic: 1 }, st); ICO(k, k); });
+  Object.assign(WEAP, { garra_ardiente: { n: 'GARRA ARDIENTE', dmg: 4, range: 120, cd: .16, kb: 10, mul: 2 }, espada_corredor: { n: 'ESPADA DEL CORREDOR', dmg: 7, range: 150, cd: .34, kb: 30, mul: 2.1 } });
+  ITEMS.foto_nacho = { n: 'Foto de Nacho', t: 'Misión · Sofía', d: 'Una foto vieja y doblada de Nacho. Sofía la está buscando en Plaza de Mayo.', r: 'a' }; ICO('foto_nacho', 'foto_nacho');
   /* fusibles, invocaciones y cosas de las misiones finales */
   const FUSN = { fusible_oscuro: 'Fusible de Oscuridad', fusible_oro: 'Fusible de Oro', fusible_tiempo: 'Fusible del Tiempo', fusible_luz: 'Fusible de Luz' };
   Object.entries(FUSN).forEach(([k, n]) => { ITEMS[k] = { n, t: 'Misión · Tablero ORK', d: 'Va en el tablero del Centro Operativo ORK. Se gasta al usarlo. Solo podés tener uno de cada uno.', r: 'p' }; ICO(k, k); });
@@ -506,7 +521,8 @@
     matamoscas: ['Matamoscas especial', 'mosca', 'Regalo de la tía Alba. Usalo en la Cueva del Complejo 8C.'],
     madera_tinta: ['Madera cristalizada con tinta', 'carbones', 'De Darío. Usala en el Laboratorio Prisión para llamar a Los Carbones.'],
     lapices: ['Estuche de lápices de colores', 'slave', 'De Pol. Usalo en la Casa del Callejón para llamar al Slave.'],
-    sellos_trio: ['Tres sellos pegados', 'trio', 'De Bong. Usalos en el Laboratorio Maldito del Puente para llamar al Trío.'] };
+    sellos_trio: ['Tres sellos pegados', 'trio', 'De Bong. Usalos en el Laboratorio Maldito del Puente para llamar al Trío.'],
+    ojo_corredor: ['Ojo del Corredor', 'corredor', 'De Sofía. Usalo adentro del Garaje Abandonado… y no hagas ruido.'] };
   Object.entries(INVOC).forEach(([k, [n, mk, d]]) => { ITEMS[k] = { n, t: 'Invocación · MVP', d: d + ' Se gasta al usarlo.', use: 'invocar', mvp: mk, r: 'p' }; ICO(k, k); });
   ITEMS.lapiz = { n: 'Lápiz de color', t: 'Misión · Pol', d: 'Pol necesita 5. Andan tirados por el teatro de Mariano, Cintia y Romina.', r: 'v' }; ICO('lapiz', 'lapices');
   ITEMS.libreta_sam = { n: 'Libreta de Sam', t: 'Misión · Sam', d: 'Marrón chocolate, con una A y una foto de la ciudad. Devolvésela a Sam.', r: 'a' }; ICO('libreta_sam', 'libreta_sam');
@@ -845,7 +861,7 @@
     /* reinicio general (lo marca el SQL en game_state 'reglas'.reset): mochila, nivel, misiones y lugar a cero */
     if (RULES.reset && INV.reset !== RULES.reset) { const sk = INV.skins; INV = { items: { vendas: 3 }, eq: { arma: 'palo', luz: null, cara: null, brazo: null, ropa: null }, bat: 0, dur: {}, lost: {}, coins: 10, ab: [], q: { cura: 'vendas', esp: null }, ver: VER, reset: RULES.reset }; if (sk) INV.skins = sk;
       P.xp = 0; P.kills = 0; P.best = 0; P.hp = maxHp(1); gc = Object.assign({}, gc, { zone: null }); setTimeout(() => toast('Reinicio general: arrancás de cero, nivel 1, en la base de tu bando.'), 1800); }
-    if (INV.ver !== VER) { if (INV.ver !== '2.1') { P.xp = 0; P.kills = 0; INV.ab = []; P.hp = maxHp(1); } INV.ver = VER; gc = Object.assign({}, gc, { zone: null }); setTimeout(() => toast('THE O|F 2.1 · nivel reiniciado: arrancás en la base de tu bando.'), 1800); }
+    if (INV.ver !== VER) { if (INV.ver !== '2.1') { P.xp = 0; P.kills = 0; INV.ab = []; P.hp = maxHp(1); } INV.ver = VER; gc = Object.assign({}, gc, { zone: null }); setTimeout(() => toast('THE O|F · nivel reiniciado: arrancás en la base de tu bando.'), 1800); }
     INV.q = INV.q || { cura: 'vendas', esp: null };
     $('#h-nick').textContent = me.nick; ['#hud', '#topr', '#pads', '#hintL', '#stick'].forEach(s => $(s).hidden = false); if (EXP) $('#d-fac').hidden = true;
     document.body.classList.add('playing'); document.body.classList.toggle('ork', me.faction === 'ork'); $('#snd-b').classList.toggle('off', !SND.on); $('#m-snd').textContent = 'SONIDO: ' + (SND.on ? 'SÍ' : 'NO');
@@ -1014,7 +1030,7 @@
     const rk = INV.eq.ropa; if (rk && ITEMS[rk]) { if (INV.dur[rk] == null) INV.dur[rk] = ITEMS[rk].shield; const take = Math.min(INV.dur[rk], d); INV.dur[rk] -= take; d -= take;
       if (take > 0) floats.push({ x: P.x + 26, y: P.y - 210, t: .8, txt: 'escudo -' + take, c: '#a9b4c0' }); if (INV.dur[rk] <= 0 && !ITEMS[rk].epic) breakItem(rk); else if (INV.dur[rk] < 0) INV.dur[rk] = 0; }
     if (ITEMS[INV.eq.ropa] && ITEMS[INV.eq.ropa].espinas && knockFrom && knockFrom.T && knockFrom.hp > 0) mobFx(knockFrom, { dot: 5, dps: 6 + lvlOf(P.xp) / 4, c: 'p' });
-    if (knockFrom && knockFrom.T && knockFrom.hp > 0 && gearSum('thorns') && d < 999) hitMob(knockFrom, Math.max(1, Math.round(d * gearSum('thorns'))), 0, 0);
+    if (knockFrom && knockFrom.T && knockFrom.hp > 0 && gearSum('thorns') && d < 999) hitMob(knockFrom, Math.max(1, Math.round(d * gearSum('thorns'))), 0, 0, Math.random() < gearSum('thornsBurn') ? { dot: 3, dps: Math.max(2, Math.round(d * .2)), c: 'f' } : undefined);
     P.hp -= d; if (P.hp <= 0 && deathSave(knockFrom)) return true; P.hurtT = .3; SND.hurt(); buzz(knock ? [60, 30, 60] : 40); shake = Math.max(shake, knock ? .35 : .15);
     floats.push({ x: P.x, y: P.y - 190, t: .9, txt: '-' + d, c: '#ff6a5c' });
     if (knock && knockFrom) { const dx = P.x - knockFrom.x, dy = P.y - knockFrom.y, l = Math.hypot(dx, dy) || 1; for (let i = 0; i < 6; i++) { const nx = P.x + dx / l * knock / 6, ny = P.y + dy / l * knock / 6; if (walkable(nx, ny)) { P.x = nx; P.y = ny; } } }
@@ -1196,7 +1212,7 @@
   /* ===== MVPs FINALES · élites (fusibles) y los que se llaman con un objeto ===== */
   SKN.push('joker', 'joker_baile', 'joker_oro', 'joker_lazo', 'baston', 'baston_atk', 'tiempo', 'tiempo_atk', 'tiempo_stop', 'tiempo_stop2', 'virtuoso', 'virt_elec', 'virt_voz', 'virt_libro',
     'reina', 'reina_nigro', 'reina_rayo', 'reina_sombra', 'reina_hielo', 'reina_fuego', 'distorsion', 'distorsion_atk', 'gemela', 'gemela_atk', 'gemelo', 'gemelo_atk', 'mosca', 'mosca_real', 'muerte', 'muerte_f2',
-    'carbon_m', 'carbon_h', 'slave', 'slave_rep', 'slave_garra', 'gordo', 'gordo_atk', 'flaco', 'flaco_atk', 'enano', 'enano_atk', 'rosa_mvp', 'rosa_cuervos', 'rosa_sombra', 'rocio_mvp', 'rocio_fuego', 'natsume_mvp', 'natsume_inv', 'natsume_dash');
+    'carbon_m', 'carbon_h', 'slave', 'slave_rep', 'slave_garra', 'gordo', 'gordo_atk', 'flaco', 'flaco_atk', 'enano', 'enano_atk', 'rosa_mvp', 'rosa_cuervos', 'rosa_sombra', 'rocio_mvp', 'rocio_fuego', 'natsume_mvp', 'natsume_inv', 'natsume_dash', 'corredor_sup', 'corredor_run', 'corredor_smash', 'corredor_pinchos');
   const AURP = ['aura_roja', 'aura_luna', 'aura_mariposa', 'aura_azul'].map(k => [k, .25]);
   Object.assign(MVPS, {
     joker: { kind: 'mvp_joker', map: 'salon_joker', n: 'LA JOKER', gate: 'reto', elite: 1, fus: 'fusible_oscuro', oro: 800, dropP: .05, drops: [['gorro_joker', 1], ['lazo_dorado', 1]].concat(AURP),
@@ -1226,10 +1242,13 @@
       txt: 'Rosa, con sombras. Después Rocío: ponete detrás de ella cuando tira fuego. Después Natsume, invisible: las granadas y molotov le pegan mucho más.' },
     trio: { kind: 'mvp_gordo', kinds: ['mvp_gordo', 'mvp_flaco', 'mvp_enano'], map: 'lab_maldito', n: 'EL TRÍO MONSTRUOSO', gate: 'item', oro: 800, dropP: .08, drops: [['anillo_ele', 1], ['anillo_hie', 1], ['anillo_fue', 1], ['cristales_elem', 1.5]],
       txt: 'Juntos casi no les entra daño: sepárenlos. Cada uno sigue al último que le pegó. Las trampas los frenan.' } });
+  MVPS.corredor = { kind: 'mvp_corredor', map: 'mvp_garaje', via: 'garaje', n: 'EL CORREDOR SUPREMO', oro: 900, dropP: .07, drops: ['garra_ardiente', 'espada_corredor', 'calavera_corredor', 'chaleco_corredor', 'capa_corredor', 'collar_corredor', 'colgante_corredor', 'anillo_corredor', 'garras_corredor', 'zapatillas_corredor', 'cenizas_corredor'].map(k => [k, 1]),
+    txt: 'Corre rapidísimo y deja fuego. Clava las manos en el piso y atonta a uno… y a veces corre a rematarlo. Sus golpes queman.' };
   Object.entries(MVPS).forEach(([k, v]) => MVP_BY_MAP[v.map] = k);
   LIBS.tablero = { map: 'centro_ork', nm: 'TABLERO DE FUSIBLES', img: '/a/ob/teclado_ork.png', list: ['tiempo', 'baston', 'reina'], tab: 1 };
   const MB2 = Object.assign({}, MB, { coins: 0, xp: 60000 });
   const mvpM = (k, o) => MOB[k] = Object.assign({}, MB2, o);
+  mvpM('mvp_corredor', { name: 'EL CORREDOR SUPREMO', sheet: 'corredor_sup', hp: 4600, dmg: 52, sp: 165, aura: '255,120,40', burn: 1 });
   mvpM('mvp_joker', { name: 'LA JOKER', sheet: 'joker', hp: 4800, dmg: 48, sp: 175, aura: '200,80,255', dodge: .33 });
   mvpM('mvp_virtuoso', { name: 'EL VIRTUOSO', sheet: 'virtuoso', hp: 4600, dmg: 44, sp: 170, aura: '255,220,90', pspeed: 460, fdmg: 34 });
   mvpM('mvp_tiempo', { name: 'EL HOMBRE DEL TIEMPO', sheet: 'tiempo', hp: 5400, dmg: 58, sp: 190, reach: 115, cd: .75, aura: '255,200,80' });
@@ -1461,6 +1480,15 @@
       o.vis = A.hid ? .15 : 1; o.sk = A.hid ? 'natsume_inv' : 'natsume_mvp'; const tg = X.tg; if (!tg) return;
       if (A.sh <= 0) { A.sh = rnd(1.6, 2.4); o.lunge = 1; [-.18, 0, .18].forEach(s_ => fireMob(o, tg, 'cuchillo', s_)); }
       return X.melee(); },
+    mvp_corredor(o, dt, live, X) { const { A, T, hpK, hit } = X; A.rn = (A.rn == null ? 6 : A.rn) - dt; A.gt = (A.gt == null ? 9 : A.gt) - dt; A.tor = Math.max(0, (A.tor || 0) - dt);
+      if (A.tor > 0) { o.sk = 'corredor_sup'; o.moving = false; return; }
+      if (A.cast > 0) { A.cast -= dt; o.sk = 'corredor_smash'; o.moving = false; if (A.cast <= 0) { const v = live.find(p => p.id === A.vic) || live[0]; if (v) { shake = .7; SND.shot(); addObj('grieta', v.x, v.y, 0); hit(v, Math.round(T.dmg * 1.5), 0); fxOn(v, { stun: 2.6 }); if (Math.random() < .4) { A.lock = v.id; A.rn = 0; say('¡VA A REMATARLO!', null, '#ff7a30', 1); } } } return; }
+      if (A.run > 0) { A.run -= dt; o.sk = 'corredor_run'; const tg = live.find(p => p.id === A.lock) || X.tg; if (tg) { moveMob(o, tg.x, tg.y, T.sp * 2.7, dt); if (Math.hypot(tg.x - o.x, tg.y - o.y) < 80 && !A.hitR) { A.hitR = 1; o.lunge = 1; hit(tg, Math.round(T.dmg * (A.lock === tg.id ? 2.6 : 1.3)), 120); fxOn(tg, { burn: 3 }); } }
+        A.tr = (A.tr || 0) - dt; if (A.tr <= 0) { A.tr = .22; if (objsOf('fuegoc').length < 40) { const f_ = addObj('fuegoc', o.x, o.y + 6, 0); f_.tt = 5; } }
+        if (A.run <= 0) { A.lock = null; A.hitR = 0; if (Math.random() < .5) { A.tor = 1.4; floats.push({ x: o.x, y: o.y - 260, t: 1, txt: '¡SE TROPEZÓ!', c: '#ffb070' }); } } return; }
+      if (A.rn <= 0) { A.rn = rnd(7, 10); A.run = 2.6; A.hitR = 0; return; }
+      if (A.gt <= 0 && live.length) { A.gt = rnd(10, 13); A.cast = 1.1; A.vic = live[(Math.random() * live.length) | 0].id; say('CLAVA LAS MANOS EN EL PISO', null, '#ff9a40'); return; }
+      o.sk = o.lunge > .3 ? null : 'corredor_sup'; return X.melee(); },
     mvp_gordo(o, dt, live, X) { return trioAI(o, dt, live, X, { stun: 1.6, k: 'frz' }); },
     mvp_flaco(o, dt, live, X) { return trioAI(o, dt, live, X, { stun: .8 }); },
     mvp_enano(o, dt, live, X) { return trioAI(o, dt, live, X, { stun: 1.3 }); } };
@@ -1501,7 +1529,7 @@
       for (const [id, o] of others) { if (!o.dead && Math.hypot(o.x - nx, (o.y - ny) * 1.2) < 70) { stop = o; break; } } if (stop) break; if (!walkable(nx, ny)) { wall = true; break; } P.x = nx; P.y = ny; }
     sendPos(true); if (stop) { floats.push({ x: P.x, y: P.y - 210, t: 1, txt: 'TE FRENÓ ' + (stop.nick || '').toUpperCase(), c: '#9fe0b0' }); return; }
     if (wall) { P.stunT = Math.max(P.stunT || 0, 2.5); P.aturd = Math.max(P.aturd || 0, 2.5); shake = .5; hitPlayer(Math.round(maxHp(lvlOf(P.xp)) * .08), null, 0, null, 'oscuro'); toast('¡Contra la pared! Quedaste atontado.'); } }
-  function pfxTick(dt) { if (P.sombraT > 0 && !P.dead) { P.sombraT -= dt; P.sombH = (P.sombH || 0) + dt; if (P.sombH > .5) { P.sombH = 0; const d = Math.max(1, Math.round(maxHp(lvlOf(P.xp)) * .025)); P.hp -= d; floats.push({ x: P.x, y: P.y - 190, t: .6, txt: '-' + d, c: '#b080ff' }); if (P.hp <= 0) { P.hp = 1; hitPlayer(99999, null, 0, null, 'tinta'); } hud(); } } if (P.revT > 0) P.revT -= dt; if (P.manipT > 0) P.manipT -= dt; if (P.polen > 0) P.polen -= dt; if (P.osc10 > 0) P.osc10 -= dt; if (P.sprint > 0) P.sprint -= dt; if (P.elemT > 0) { P.elemT -= dt; if (INV.eq.arma !== P.elemW) P.elemT = 0; }
+  function pfxTick(dt) { if (P.fireRun > 0 && !P.dead) { P.fireRun -= dt; P.frT = (P.frT || 0) - dt; if (P.frT <= 0) { P.frT = .3; const d_ = Math.max(2, Math.round(playerDmg() * .15)); for (let i = 0; i < 4; i++) parts.push({ x: P.x + rnd(-20, 20), y: P.y + rnd(-6, 6), vx: rnd(-20, 20), vy: rnd(-120, -50), life: .5, s: 5, c: 30, fire: 1 }); mobs.forEach(o => { if (o.hp > 0 && !o.T.passive && Math.hypot(o.x - P.x, (o.y - P.y) * 1.3) < 100) hitMob(o, d_, 0, 0, { dot: 2, dps: d_, c: 'f' }); }); } } if (P.sombraT > 0 && !P.dead) { P.sombraT -= dt; P.sombH = (P.sombH || 0) + dt; if (P.sombH > .5) { P.sombH = 0; const d = Math.max(1, Math.round(maxHp(lvlOf(P.xp)) * .025)); P.hp -= d; floats.push({ x: P.x, y: P.y - 190, t: .6, txt: '-' + d, c: '#b080ff' }); if (P.hp <= 0) { P.hp = 1; hitPlayer(99999, null, 0, null, 'tinta'); } hud(); } } if (P.revT > 0) P.revT -= dt; if (P.manipT > 0) P.manipT -= dt; if (P.polen > 0) P.polen -= dt; if (P.osc10 > 0) P.osc10 -= dt; if (P.sprint > 0) P.sprint -= dt; if (P.elemT > 0) { P.elemT -= dt; if (INV.eq.arma !== P.elemW) P.elemT = 0; }
     if (P.spinT > 0 && !P.dead) { P.spinT -= dt; P.spinR = (P.spinR || 0) + dt; if (P.spinR > .12) { P.spinR = 0; P.dir = { d: 'l', l: 'u', u: 'r', r: 'd' }[P.dir] || 'd'; } P.spinH = (P.spinH || 0) + dt; if (P.spinH > .5) { P.spinH = 0; const d = Math.round(maxHp(lvlOf(P.xp)) * .03); P.hp -= d; floats.push({ x: P.x, y: P.y - 190, t: .6, txt: '-' + d, c: '#d8a0ff' }); if (P.hp <= 0) { P.hp = 1; hitPlayer(99999, null, 0, null, 'mvp_distorsion'); } hud(); }
       for (const [, o] of others) if (!o.dead && Math.hypot(o.x - P.x, (o.y - P.y) * 1.2) < 90) { P.spinT = 0; toast('Te sacaron de la distorsión.'); break; } } }
   /* muerte evitada por los objetos de la Muerte y del Tiempo */
@@ -1516,8 +1544,9 @@
         let f = h.fx; if (h.rnd) f = h.rnd[(Math.random() * h.rnd.length) | 0]; if (f) { f = Object.assign({}, f); if (f.dpsK) { f.dps = Math.max(2, Math.round(dmg * f.dpsK)); delete f.dpsK; } extra = Object.assign(extra || {}, f); }
         if (h.heal) { const mh = maxHp(lvlOf(P.xp)); P.hp = Math.min(mh, P.hp + Math.round(mh * h.heal)); }
         if (h.push) { const dx = o.x - P.x, dy = o.y - P.y, l = Math.hypot(dx, dy) || 1; kx += dx / l * h.push; ky += dy / l * h.push * .6; }
+        if (h.bola) { const t_ = mobs.filter(m => m !== o && m.hp > 0 && !m.T.passive && Math.hypot(m.x - P.x, m.y - P.y) < 520).sort((a, b) => Math.hypot(a.x - P.x, a.y - P.y) - Math.hypot(b.x - P.x, b.y - P.y))[0] || o; fx('explosion', t_.x, t_.y - 60, { w: 200, T: .4, grow: .3 }); if (t_ !== o) hitMob(t_, Math.round(dmg * 1.4), 0, 0, { dot: 4, dps: Math.round(dmg * .5), c: 'f' }); else mul += .4; }
         if (h.tp) { const bx = o.x + (o.x > P.x ? 90 : -90); if (walkable(bx, o.y)) { P.x = bx; P.y = o.y; P.dir = o.x > P.x ? 'r' : 'l'; } } if (h.txt) txt = h.txt; }); });
-    const cr = gearSum('crit'); if (P.critN > 0 || Math.random() < cr) { mul += .5; txt = 'CRÍTICO'; if (P.critN > 0) P.critN--; }
+    const cr = gearSum('crit') + (gearSum('critW') && /espada|garra|cuchillo|corredor/.test(curW() || '') ? gearSum('critW') : 0); if (P.critN > 0 || Math.random() < cr) { mul += .5; txt = 'CRÍTICO'; if (P.critN > 0) P.critN--; }
     if (P.reloj5) { P.reloj5 = 0; extra = Object.assign(extra || {}, { stun: 5 }); txt = 'INMÓVIL'; }
     if (P.elemT > 0 && P.elemK) { const E = { fuego: { dot: 4, dps: Math.round(dmg * .5), c: 'f' }, hielo: { slow: 2 }, tierra: { stun: .4 }, luz: null, agua: { slow: 1 }, oscuridad: { dot: 3, dps: Math.round(dmg * .4), c: 'p' } }[P.elemK]; mul += .15; if (E) extra = Object.assign(extra || {}, E); }
     const w = curW(); if (w === 'lanzallamas_carmesi') extra = Object.assign(extra || {}, { dot: 4, dps: Math.round(dmg * .6), c: 'f' }); if (w === 'ballesta_lumen' || w === 'arco_lumen') mul += .15;
@@ -1533,7 +1562,8 @@
     if (o.tame) { const ow = o.tame === me.id ? { x: P.x, y: P.y } : others.get(o.tame); if (!ow) { o.tame = null; return false; } if (Math.hypot(ow.x - o.x, ow.y - o.y) > 150) moveMob(o, ow.x - 70, ow.y, T.sp * 1.15, dt); else o.moving = false; } return true; }
   function tameIt(id, by, charm) { const o = mobs.find(m => m.id === id); if (!o || o.T.boss || o.T.mvp) return; if (charm) { o.charm = 10; o.charmBy = by; } else { o.tame = by; o.tameEnd = Date.now() + 3600000; } o.chasing = false; }
   /* objetos del mapa de las misiones finales */
-  function q2Npcs() { if (EXP || !INV || !storyFin()) return []; const Q = INV.q2 || {}, out = [], d = dayN();
+  function q2Npcs() { if (EXP || !INV) return []; const out0 = []; if (mapKey === 'puente') out0.push({ obj: 1, q2o: 'cartel', k: 'cartel_peligro', nm: 'CARTEL', x: 330, y: 862, oh: 70 }); if (!storyFin()) return out0; const Q = INV.q2 || {}, out = out0, d = dayN();
+    if (mapKey === 'oficina_ruina' && Q.nacho && !hasItem('foto_nacho') && !hasItem('ojo_corredor')) { const [x, y] = spotNear('fotonacho', 620, 980); out.push({ obj: 1, q2o: 'foto', k: 'foto_nacho', nm: 'FOTO', x, y, oh: 40 }); }
     if ((mapKey === 'chino_der' || mapKey === 'chino_mercado') && !(INV.velas && INV.velas.d === d && (INV.velas.m || []).includes(mapKey))) { const [x, y] = spotNear('vela', 160, 380); out.push({ obj: 1, q2o: 'vela', k: 'vela_rosa', nm: 'VELA', x, y, oh: 70 }); }
     if (mapKey === 'teatro_int' && Q.pol && !hasItem('lapices')) for (let i = 0; i < 5; i++) { if ((Q.lapGot || []).includes(i)) continue; const [x, y] = spotNear('lapiz' + i + (Q.lapS || 0), 120, 620); out.push({ obj: 1, q2o: 'lapiz', i, k: 'lapices', nm: 'LÁPIZ', x, y, oh: 40 }); }
     if (mapKey === 'callejon_1' && Q.sam && !hasItem('libreta_sam') && !hasItem('tubo_dorado')) { const [x, y] = spotNear('lsam', 200, 520); out.push({ obj: 1, q2o: 'libreta_sam', k: 'libreta_sam', nm: 'LIBRETA', x, y, oh: 46 }); }
@@ -1545,6 +1575,8 @@
     if (n.q2o === 'vela') { const V = INV.velas = INV.velas && INV.velas.d === dayN() ? INV.velas : { d: dayN(), m: [] }; V.m.push(mapKey); persist(); SND.mob('whisper', .4); banner('APAGASTE LA VELA', V.m.length >= 2 ? 'Algo se quejó en el Callejón del Ritual…' : 'Falta otra vela', 2400, '#c070ff'); return; }
     if (n.q2o === 'lapiz') { Q.lapGot = (Q.lapGot || []).concat([n.i]); addItem('lapiz', 1); persist(); toast('Lápiz de color: tenés ' + INV.items.lapiz + ' de 5.'); SND.pick(); return; }
     if (n.q2o === 'libreta_sam' || n.q2o === 'libreta_renzo') { addItem(n.q2o, 1); persist(); toast('Encontraste la ' + ITEMS[n.q2o].n + '.'); return; }
+    if (n.q2o === 'cartel') { banner('PELIGRO', 'No hagas ruido.', 2600, '#ff4a4a'); return; }
+    if (n.q2o === 'foto') { addItem('foto_nacho', 1); persist(); banner('UNA FOTO DE NACHO', 'Sofía la está buscando en Plaza de Mayo.', 3000, '#e8d8b0'); return; }
     if (n.q2o === 'cruz') { INV.cruzD = dayN(); addItem('cruz_leti', 1); persist(); banner('LA CRUZ DE LETI', 'Quedó maldita cuando murió. Llevala al teatro en ruinas.', 3200, '#c090ff'); return; } }
   function q2Talk(n) { if (!INV) return false; if (n.mvpReto) { const mk = n.mvpReto; if (!storyFin()) { npcSay(n, '…'); toast('Ni te mira. Terminá la historia.'); return true; } if (mvpDone(mk)) { npcSay(n, 'Ya jugamos hoy. Volvé mañana.'); return true; }
       npcSay(n, mk === 'joker' ? 'Jajaja… ¿bailamos? Veamos cuánto te dura la cabeza.' : 'Ah, un oyente. Siéntense… o mejor, pónganse en fila.'); setTimeout(() => callMvp(mk), 1400); return true; }
@@ -1558,6 +1590,8 @@
       Q.sam = 1; return say_('Perdí mi libreta. Marrón, con una A y una foto de la ciudad… se me cayó en el fondo de El Callejón.'); }
     if (n.k === 'renzo') { if (hasItem('tubo_rojo')) return say_('Ya tenés el tubo rojo.'); if (hasItem('libreta_renzo')) { take('libreta_renzo', 1); addItem('tubo_rojo', 1); return say_('¡La del gatito! Gracias. Tomá este tubo rojo, Sam tiene el otro.'); }
       Q.renzo = 1; return say_('¿Viste mi libreta? Marrón, con unos auriculares y un sticker de gatito. Creo que quedó en la Calle del Monumento cerrada.'); }
+    if (n.k === 'sofia_buena') { if (hasItem('ojo_corredor')) return say_('El ojo… usalo adentro del garaje. Y no hagas ruido.'); if (hasItem('foto_nacho')) { take('foto_nacho', 1); addItem('ojo_corredor', 1); Q.nacho = 0; return say_('Es él… Gracias. Tomá esto: es el ojo del Corredor. Lo encontré cerca del garaje abandonado. Si lo llevás adentro, va a venir.'); }
+      Q.nacho = 1; return say_('¿Viste a Nacho? Tenía una foto suya… se me quedó en la oficina de YAD, la que quedó en ruinas. Escondida en algún rincón.'); }
     if (n.k === 'marta') { if (hasItem('matamoscas')) return say_('¿Y? ¿La mataste? Está en la cueva del Complejo 8C.'); if (!Q.marta) { Q.marta = 1; return say_('Odio las moscas. Vi una horrible en una cueva del Complejo 8C. Traeme un matamoscas especial… tu tía Alba seguro tiene uno.'); } return say_('El matamoscas. Tu tía Alba tiene uno.'); }
     if (n.k === 'alba' && Q.marta && !hasItem('matamoscas')) { addItem('matamoscas', 1); Q.marta = 0; return say_('¿Un matamoscas? Tomá este, es especial: lo usaba tu tío. Cuidate, nene.'); }
     if (n.k === 'dario') { const c = INV.items.carbon || 0; if (hasItem('madera_tinta')) return say_('Ya tenés la madera. Andá al Laboratorio Prisión, que yo afilo la katana.');
@@ -1574,7 +1608,7 @@
     if (it.use === 'vendaE') { P.poison = 0; P.burn = 0; P.sangra = 0; P.polen = 0; P.hp = Math.min(mh, P.hp + Math.round(mh * .4)); eat(); toast(it.n + ': limpio y +40% de vida.'); SND.level(); return true; }
     if (it.use === 'elemento') { if (WEAP[curW()] && curW() !== 'palo') { P.elemK = ['fuego', 'hielo', 'tierra', 'luz', 'agua', 'oscuridad'][(Math.random() * 6) | 0]; P.elemT = 900; P.elemW = INV.eq.arma; eat(); banner('ELEMENTO: ' + P.elemK.toUpperCase(), '15 minutos en tu arma', 2400, '#9fe0ff'); } else toast('Equipá un arma primero.'); return true; }
     if (it.use === 'aura') { const now = Date.now(); if (INV.aura && INV.auraT && now - INV.auraT < 86400000) { toast('Ya tenés un aura. La podés cambiar en ' + Math.ceil((86400000 - (now - INV.auraT)) / 3600000) + ' horas.'); return true; } INV.aura = k; INV.auraT = now; eat(); banner('AURA NUEVA', it.n, 2200, 'rgb(' + AURAS[k][1] + ')'); sendPos(true); return true; }
-    if (it.use === 'invocar') { const M = MVPS[it.mvp]; if (!M) return true; if (mapKey !== M.map) { toast('Esto se usa en ' + MAPS[M.map].name.split(' · ')[0] + '.'); return true; }
+    if (it.use === 'invocar') { const M = MVPS[it.mvp]; if (!M) return true; if (M.via) { if (mapKey !== M.via) { toast('Esto se usa en ' + MAPS[M.via].name.split(' · ')[0] + '.'); return true; } if (mvpDone(it.mvp)) { toast('Ya lo venciste hoy. Volvé mañana.'); return true; } eat(); startMvp(it.mvp); return true; } if (mapKey !== M.map) { toast('Esto se usa en ' + MAPS[M.map].name.split(' · ')[0] + '.'); return true; }
       if (!mvpEv || mvpEv.act || mobs.some(o => o.T.mvp)) { toast('Ya está pasando algo acá.'); return true; } if (mvpDone(it.mvp)) { toast('Ya lo venciste hoy. Volvé mañana.'); return true; }
       if (it.mvp === 'gemelos') { if (!hasItem('tubo_dorado') || !hasItem('tubo_rojo')) { toast('Necesitás los dos tubos: el dorado (Sam) y el rojo (Renzo).'); return true; } ['tubo_dorado', 'tubo_rojo'].forEach(t => { INV.items[t]--; if (!INV.items[t]) delete INV.items[t]; }); persist(); quickBtns(); }
       else eat(); callMvp(it.mvp); return true; }
@@ -1596,6 +1630,9 @@
       else { mobs.forEach(o => { if (o.hp > 0 && !o.T.passive && Math.hypot(o.x - P.x, o.y - P.y) < 330) hitMob(o, Math.round(dmg), 0, 0, { stun: 3 }); }); P.hp = Math.max(1, P.hp - Math.round(maxHp(lvlOf(P.xp)) * .04)); fxOnda(P.x, P.y - 90); floats.push({ x: P.x, y: P.y - 230, t: 1, txt: 'GRITO', c: '#ffb070' }); } SND.shot(); return true; }
     if (it.act === 'ele' || it.act === 'hie' || it.act === 'fue') { const f = it.act === 'ele' ? { stun: 3 } : it.act === 'hie' ? { stun: 3, k: 'frz' } : { dot: 5, dps: Math.round(dmg * 1.3), c: 'f' }; let n_ = 0;
       mobs.forEach(o => { if (o.hp > 0 && !o.T.passive && Math.hypot(o.x - P.x, o.y - P.y) < 300) { n_++; hitMob(o, Math.round(dmg * 1.2), 0, 0, f); } }); fxOnda(P.x, P.y - 90); if (!n_) toast('No había nadie cerca.'); return true; }
+    if (it.act === 'impulso') { const dir = { l: [-1, 0], r: [1, 0], u: [0, -1], d: [0, 1] }[P.dir] || [1, 0]; let n_ = 0; for (let i = 0; i < 16; i++) { const nx = P.x + dir[0] * 22, ny = P.y + dir[1] * 18; if (!walkable(nx, ny)) break; P.x = nx; P.y = ny; mobs.forEach(o => { if (o.hp > 0 && !o.T.passive && !o.__imp && Math.hypot(o.x - P.x, o.y - P.y) < 90) { o.__imp = 1; n_++; hitMob(o, Math.round(dmg * 1.8), dir[0] * 120, dir[1] * 120); } }); } mobs.forEach(o => delete o.__imp); sendPos(true); fxOnda(P.x, P.y - 90); return true; }
+    if (it.act === 'carrera') { P.sprint = 5; P.fireRun = 5; toast('A correr: dejás fuego a tu paso.'); return true; }
+    if (it.act === 'pinchot') { const o = near(520); if (!o) { toast('No hay nadie cerca.'); return false; } fx('explosion', o.x, o.y - 40, { w: 180, T: .4, grow: .3 }); hitMob(o, Math.round(dmg * 2.2), 0, 0, { dot: 5, dps: Math.round(dmg * .5), c: 's' }); floats.push({ x: o.x, y: o.y - 240, t: 1, txt: 'PINCHO DE TIERRA', c: '#d8a070' }); return true; }
     if (it.act === 'sombra10') { P.osc10 = 10; banner('CUBIERTO DE OSCURIDAD', '10 segundos inmortal', 1800, '#c090ff'); return true; }
     return null; }
   function mvpTick(dt) { if (!mvpEv || !MAP.mvp) return; mvpEv.t += dt;
@@ -1604,12 +1641,12 @@
     if (M0.gate === 'velas' && !mvpEv.act && mvpEv.t > 2 && storyFin() && velasOk() && !mvpDone(mvpEv.mk) && !mvpEv.vz) { mvpEv.vz = 1; banner('¿POR QUÉ APAGAN MIS MALEFICIOS?', null, 2600, '#c070ff'); SND.mob('whisper', .7); setTimeout(() => callMvp('rosa'), 2200); }
     if (isHost && !mvpEv.spawned && mvpEv.t > 3 && roomReady !== false && (!M0.gate || mvpEv.act)) { mvpEv.spawned = true; if (!boss) { const [sx, sy] = MAP.spawn, ks_ = mvpEv.mk === 'rosa' ? [M0.kind] : (M0.kinds || [M0.kind]); ks_.forEach((kd, i) => { const q = [(sx + (i - (ks_.length - 1) / 2) * 180) * WS, (sy - 160) * WS]; const o = spawnMob(kd, 0, mobWalk(q[0], q[1]) ? q : null); if (o) { o.chasing = true; o.alpha = 0; } }); } }
     if (isHost && mvpObjs.length) { const pl = [{ id: me.id, me: true, x: P.x, y: P.y, ok: !P.dead }].concat([...others.entries()].map(([id, o]) => ({ id, me: false, x: o.x, y: o.y, ok: !o.dead }))).filter(p => p.ok), bm = mobs.find(o => o.T.mvp); let ch_ = false;
-      mvpObjs.slice().forEach(q => { if (q.t !== 'elec' && q.t !== 'sombra' && q.t !== 'rosas') return; q.tt = (q.tt == null ? (q.hp || 4) : q.tt) - dt; if (q.tt <= 0) { mvpObjs.splice(mvpObjs.indexOf(q), 1); ch_ = true; return; } if (q.t === 'rosas' || !bm) return; q.tk = (q.tk || 0) - dt; if (q.tk <= 0) { q.tk = .5; pl.forEach(p => { if (Math.hypot(p.x - q.x, (p.y - q.y) * 1.3) < 120) strikeOn(p, Math.round(bm.T.dmg * .18), bm, 0); }); } }); if (ch_) objNet(); }
+      mvpObjs.slice().forEach(q => { if (q.t !== 'elec' && q.t !== 'sombra' && q.t !== 'rosas' && q.t !== 'fuegoc' && q.t !== 'grieta') return; if (q.t === 'grieta' && q.tt == null) q.tt = 2; q.tt = (q.tt == null ? (q.hp || 4) : q.tt) - dt; if (q.tt <= 0) { mvpObjs.splice(mvpObjs.indexOf(q), 1); ch_ = true; return; } if (q.t === 'rosas' || !bm) return; if (q.t === 'grieta') return; q.tk = (q.tk || 0) - dt; if (q.tk <= 0) { q.tk = .5; const R_ = q.t === 'fuegoc' ? 60 : 120; pl.forEach(p => { if (Math.hypot(p.x - q.x, (p.y - q.y) * 1.3) < R_) { strikeOn(p, Math.round(bm.T.dmg * (q.t === 'fuegoc' ? .22 : .18)), bm, 0); if (q.t === 'fuegoc') fxOn(p, { burn: 3 }); } }); } }); if (ch_) objNet(); }
     if (boss) mvpEv.seen = true;
     /* clones: duran 4 segundos */
     if (isHost) mobs.slice().forEach(o => { if (o.T.clon) { o.ttl = (o.ttl || 4) - dt; if (o.ttl <= 0) { const i = mobs.indexOf(o); if (i >= 0) mobs.splice(i, 1); } } });
     /* fuegos del Demonio: queman si los pisás fuera de la cuenta */
-    mvpObjs.forEach(f => { if (f.t === 'fuego' && Math.random() < dt * 14) parts.push({ x: f.x + rnd(-40, 40), y: f.y + rnd(-14, 14), vx: rnd(-10, 10), vy: rnd(-140, -60), life: rnd(.3, .6), s: rnd(3, 6), c: 220, fire: 1 }); });
+    mvpObjs.forEach(f => { if ((f.t === 'fuego' || f.t === 'fuegoc') && Math.random() < dt * 14) parts.push({ x: f.x + rnd(-40, 40), y: f.y + rnd(-14, 14), vx: rnd(-10, 10), vy: rnd(-140, -60), life: rnd(.3, .6), s: rnd(3, 6), c: 220, fire: 1 }); });
     /* todos caídos: se termina */
     if (P.dead && !mvpEv.over) { const anyAlive = [...others.values()].some(o => !o.dead); mvpEv.deadT = (mvpEv.deadT || 0) + dt; if (!anyAlive && mvpEv.deadT > 3) { mvpEv.over = true; banner('CAYERON TODOS', mvpEv.mk === 'lilia' ? 'El Senado los escupe afuera…' : 'La libreta los devuelve…', 3000, '#ff5a6a'); setTimeout(() => mvpBack('El MVP ganó esta vez.'), 3200); } } else if (!P.dead) mvpEv.deadT = 0;
     /* revivir: botón cuando estás al lado de un caído */
@@ -1654,7 +1691,8 @@
       if (o.t === 'oz') { const bl = .5 + .5 * Math.sin(t * 10); c.save(); c.fillStyle = 'rgba(255,40,70,' + (.15 + bl * .2) + ')'; c.strokeStyle = 'rgba(255,80,110,.95)'; c.lineWidth = 3 * zoom; c.beginPath(); c.ellipse(x, y, 175 * zoom, 140 * zoom, 0, 0, 7); c.fill(); c.stroke(); c.restore(); const im = iconOf('oz_muerte'), w = 80 * zoom; try { c.drawImage(im, x - w / 2, y - w, w, w); } catch (e) {} }
       if (o.t === 'clon') { c.save(); c.globalAlpha = .75; c.fillStyle = '#140818'; c.beginPath(); c.ellipse(x, y - 70 * zoom, 30 * zoom, 70 * zoom, 0, 0, 7); c.fill(); c.shadowColor = '#b080ff'; c.shadowBlur = 20; c.strokeStyle = '#b080ff'; c.lineWidth = 2 * zoom; c.stroke(); c.restore(); c.font = 'bold ' + Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; c.fillStyle = '#d8b0ff'; c.fillText('CLON', x, y - 150 * zoom); for (let i = 0; i < (o.hp || 1); i++) { c.fillRect(x - 14 + i * 8, y + 6, 6, 4); } }
       if (o.t === 'llama') { const d_ = o.hp || 1, bl = .5 + .5 * Math.sin(t * 16); c.save(); c.fillStyle = 'rgba(255,110,30,' + (.12 + bl * .14) + ')'; if (d_ > 0) c.fillRect(x, 0, VW - x, VH); else c.fillRect(0, 0, x, VH); c.restore(); }
-      if (o.t === 'fuego') { c.save(); c.globalCompositeOperation = 'lighter'; const g = c.createRadialGradient(x, y, 0, x, y, 90 * zoom); g.addColorStop(0, 'rgba(255,200,80,.6)'); g.addColorStop(1, 'rgba(255,60,0,0)'); c.fillStyle = g; c.beginPath(); c.ellipse(x, y, 90 * zoom, 38 * zoom, 0, 0, 7); c.fill(); c.restore(); c.strokeStyle = 'rgba(255,190,90,.9)'; c.lineWidth = 2 * zoom; c.beginPath(); c.ellipse(x, y, 80 * zoom, 32 * zoom, 0, 0, 7); c.stroke(); } });
+      if (o.t === 'grieta') { const im = img('/a/ob/fx_erupcion.png'), w = 230 * zoom; try { c.drawImage(im, x - w / 2, y - w * .62, w, w * .66); } catch (e) {} }
+      if (o.t === 'fuego' || o.t === 'fuegoc') { c.save(); c.globalCompositeOperation = 'lighter'; const g = c.createRadialGradient(x, y, 0, x, y, 90 * zoom); g.addColorStop(0, 'rgba(255,200,80,.6)'); g.addColorStop(1, 'rgba(255,60,0,0)'); c.fillStyle = g; c.beginPath(); c.ellipse(x, y, 90 * zoom, 38 * zoom, 0, 0, 7); c.fill(); c.restore(); c.strokeStyle = 'rgba(255,190,90,.9)'; c.lineWidth = 2 * zoom; c.beginPath(); c.ellipse(x, y, 80 * zoom, 32 * zoom, 0, 0, 7); c.stroke(); } });
     if (mapKey === 'mvp_hospital' && mobs.some(o => o.kind === 'mvp_cs' && o.A && o.A.act === 'grito')) CAMILLAS.forEach(([cx, cy]) => { const [x, y] = W2S(cx * WS, cy * WS); c.strokeStyle = 'rgba(160,255,170,.55)'; c.lineWidth = 3 * zoom; c.beginPath(); c.ellipse(x, y, 120 * zoom, 50 * zoom, 0, 0, 7); c.stroke(); });
     others.forEach((o, id) => { if (!o.dead) return; const [x, y] = W2S(o.x, o.y); c.font = 'bold ' + Math.round(13 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; c.fillStyle = '#ff8a7c'; c.fillText('CAÍDO', x, y - 200 * zoom * .5); });
   }
