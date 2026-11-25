@@ -1212,7 +1212,7 @@
   /* ===== MVPs FINALES · élites (fusibles) y los que se llaman con un objeto ===== */
   SKN.push('joker', 'joker_baile', 'joker_oro', 'joker_lazo', 'baston', 'baston_atk', 'tiempo', 'tiempo_atk', 'tiempo_stop', 'tiempo_stop2', 'virtuoso', 'virt_elec', 'virt_voz', 'virt_libro',
     'reina', 'reina_nigro', 'reina_rayo', 'reina_sombra', 'reina_hielo', 'reina_fuego', 'distorsion', 'distorsion_atk', 'gemela', 'gemela_atk', 'gemelo', 'gemelo_atk', 'mosca', 'mosca_real', 'muerte', 'muerte_f2',
-    'carbon_m', 'carbon_h', 'slave', 'slave_rep', 'slave_garra', 'gordo', 'gordo_atk', 'flaco', 'flaco_atk', 'enano', 'enano_atk', 'rosa_mvp', 'rosa_cuervos', 'rosa_sombra', 'rocio_mvp', 'rocio_fuego', 'natsume_mvp', 'natsume_inv', 'natsume_dash', 'corredor_sup', 'corredor_run', 'corredor_smash', 'corredor_pinchos');
+    'carbon_m', 'carbon_h', 'slave', 'slave_rep', 'slave_garra', 'gordo', 'gordo_atk', 'flaco', 'flaco_atk', 'enano', 'enano_atk', 'rosa_mvp', 'rosa_cuervos', 'rosa_sombra', 'rocio_mvp', 'rocio_fuego', 'natsume_mvp', 'natsume_inv', 'natsume_dash', 'corredor_sup', 'corredor_run', 'corredor_smash', 'corredor_pinchos', 'corredor_salto', 'corredor_zarpazo');
   const AURP = ['aura_roja', 'aura_luna', 'aura_mariposa', 'aura_azul'].map(k => [k, .25]);
   Object.assign(MVPS, {
     joker: { kind: 'mvp_joker', map: 'salon_joker', n: 'LA JOKER', gate: 'reto', elite: 1, fus: 'fusible_oscuro', oro: 800, dropP: .05, drops: [['gorro_joker', 1], ['lazo_dorado', 1]].concat(AURP),
@@ -1248,7 +1248,7 @@
   LIBS.tablero = { map: 'centro_ork', nm: 'TABLERO DE FUSIBLES', img: '/a/ob/teclado_ork.png', list: ['tiempo', 'baston', 'reina'], tab: 1 };
   const MB2 = Object.assign({}, MB, { coins: 0, xp: 60000 });
   const mvpM = (k, o) => MOB[k] = Object.assign({}, MB2, o);
-  mvpM('mvp_corredor', { name: 'EL CORREDOR SUPREMO', sheet: 'corredor_sup', hp: 4600, dmg: 52, sp: 165, aura: '255,120,40', burn: 1 });
+  mvpM('mvp_corredor', { name: 'EL CORREDOR SUPREMO', sheet: 'corredor_sup', death: 'corredor_muerte', hp: 4600, dmg: 52, sp: 165, aura: '255,120,40', burn: 1 });
   mvpM('mvp_joker', { name: 'LA JOKER', sheet: 'joker', hp: 4800, dmg: 48, sp: 175, aura: '200,80,255', dodge: .33 });
   mvpM('mvp_virtuoso', { name: 'EL VIRTUOSO', sheet: 'virtuoso', hp: 4600, dmg: 44, sp: 170, aura: '255,220,90', pspeed: 460, fdmg: 34 });
   mvpM('mvp_tiempo', { name: 'EL HOMBRE DEL TIEMPO', sheet: 'tiempo', hp: 5400, dmg: 58, sp: 190, reach: 115, cd: .75, aura: '255,200,80' });
@@ -1480,15 +1480,27 @@
       o.vis = A.hid ? .15 : 1; o.sk = A.hid ? 'natsume_inv' : 'natsume_mvp'; const tg = X.tg; if (!tg) return;
       if (A.sh <= 0) { A.sh = rnd(1.6, 2.4); o.lunge = 1; [-.18, 0, .18].forEach(s_ => fireMob(o, tg, 'cuchillo', s_)); }
       return X.melee(); },
-    mvp_corredor(o, dt, live, X) { const { A, T, hpK, hit } = X; A.rn = (A.rn == null ? 6 : A.rn) - dt; A.gt = (A.gt == null ? 9 : A.gt) - dt; A.tor = Math.max(0, (A.tor || 0) - dt);
+    mvp_corredor(o, dt, live, X) { const { A, T, hpK, hit } = X; A.rn = (A.rn == null ? 6 : A.rn) - dt; A.gt = (A.gt == null ? 9 : A.gt) - dt; A.sj = (A.sj == null ? 14 : A.sj) - dt; A.tor = Math.max(0, (A.tor || 0) - dt); A.zp = Math.max(0, (A.zp || 0) - dt);
+      /* fuego que deja: el piso queda incinerado */
+      const quema = (x, y, n, r) => { for (let i = 0; i < n && objsOf('fuegoc').length < 48; i++) { const a_ = i / n * 6.283 + Math.random() * .4, d_ = r * (.35 + Math.random() * .65); const f_ = addObj('fuegoc', x + Math.cos(a_) * d_, y + Math.sin(a_) * d_ * .6, 0); f_.tt = 4 + Math.random() * 2; } };
       if (A.tor > 0) { o.sk = 'corredor_sup'; o.moving = false; return; }
-      if (A.cast > 0) { A.cast -= dt; o.sk = 'corredor_smash'; o.moving = false; if (A.cast <= 0) { const v = live.find(p => p.id === A.vic) || live[0]; if (v) { shake = .7; SND.shot(); addObj('grieta', v.x, v.y, 0); hit(v, Math.round(T.dmg * 1.5), 0); fxOn(v, { stun: 2.6 }); if (Math.random() < .4) { A.lock = v.id; A.rn = 0; say('¡VA A REMATARLO!', null, '#ff7a30', 1); } } } return; }
+      /* SALTO APLASTANTE: se agacha, salta sobre alguien y cae prendiendo fuego todo alrededor */
+      if (A.jump > 0) { A.jump -= dt; o.sk = 'corredor_salto'; o.moving = false; const k = Math.min(1, Math.max(0, (1 - A.jump / 1.05 - .3) / .4));
+        if (k > 0 && k < 1) { const nx = A.x0 + (A.x1 - A.x0) * k, ny = A.y0 + (A.y1 - A.y0) * k; if (mobWalk(nx, ny)) { o.x = nx; o.y = ny; } }
+        if (!A.hitJ && A.jump < .35) { A.hitJ = 1; shake = .8; SND.shot(); addObj('grieta', o.x, o.y, 0); quema(o.x, o.y, 9, 150); fx('onda', o.x, o.y - 40, { w: 360, T: .5, grow: .6 });
+          for (let i = 0; i < 26; i++) parts.push({ x: o.x + rnd(-60, 60), y: o.y + rnd(-10, 10), vx: rnd(-160, 160), vy: rnd(-260, -80), life: rnd(.4, .8), s: rnd(4, 7), c: 220, fire: 1 });
+          live.forEach(p => { if (Math.hypot(p.x - o.x, (p.y - o.y) * 1.3) < 170) { hit(p, Math.round(T.dmg * 1.7), 140); fxOn(p, { burn: 3 }); } }); }
+        if (A.jump <= 0) A.hitJ = 0; return; }
+      if (A.cast > 0) { A.cast -= dt; o.sk = 'corredor_smash'; o.moving = false; if (A.cast <= 0) { const v = live.find(p => p.id === A.vic) || live[0]; if (v) { shake = .7; SND.shot(); addObj('grieta', v.x, v.y, 0); quema(v.x, v.y, 5, 110); hit(v, Math.round(T.dmg * 1.5), 0); fxOn(v, { stun: 2.6 }); if (Math.random() < .4) { A.lock = v.id; A.rn = 0; say('¡VA A REMATARLO!', null, '#ff7a30', 1); } } } return; }
       if (A.run > 0) { A.run -= dt; o.sk = 'corredor_run'; const tg = live.find(p => p.id === A.lock) || X.tg; if (tg) { moveMob(o, tg.x, tg.y, T.sp * 2.7, dt); if (Math.hypot(tg.x - o.x, tg.y - o.y) < 80 && !A.hitR) { A.hitR = 1; o.lunge = 1; hit(tg, Math.round(T.dmg * (A.lock === tg.id ? 2.6 : 1.3)), 120); fxOn(tg, { burn: 3 }); } }
-        A.tr = (A.tr || 0) - dt; if (A.tr <= 0) { A.tr = .22; if (objsOf('fuegoc').length < 40) { const f_ = addObj('fuegoc', o.x, o.y + 6, 0); f_.tt = 5; } }
+        A.tr = (A.tr || 0) - dt; if (A.tr <= 0) { A.tr = .18; if (objsOf('fuegoc').length < 48) { const f_ = addObj('fuegoc', o.x, o.y + 6, 0); f_.tt = 5; } }
         if (A.run <= 0) { A.lock = null; A.hitR = 0; if (Math.random() < .5) { A.tor = 1.4; floats.push({ x: o.x, y: o.y - 260, t: 1, txt: '¡SE TROPEZÓ!', c: '#ffb070' }); } } return; }
       if (A.rn <= 0) { A.rn = rnd(7, 10); A.run = 2.6; A.hitR = 0; return; }
       if (A.gt <= 0 && live.length) { A.gt = rnd(10, 13); A.cast = 1.1; A.vic = live[(Math.random() * live.length) | 0].id; say('CLAVA LAS MANOS EN EL PISO', null, '#ff9a40'); return; }
-      o.sk = o.lunge > .3 ? null : 'corredor_sup'; return X.melee(); },
+      if (A.sj <= 0 && X.tg && X.bd > 170) { A.sj = rnd(12, 16) * (hpK < .5 ? .7 : 1); A.jump = 1.05; A.hitJ = 0; A.x0 = o.x; A.y0 = o.y; A.x1 = X.tg.x; A.y1 = X.tg.y; o.face = X.tg.x < o.x ? -1 : 1; say('¡SALTO APLASTANTE!', 'Salí de donde va a caer', '#ff7a30'); return; }
+      /* zarpazo: cada golpe cuerpo a cuerpo se ve con su animación */
+      if (o.lunge > .7 && !(A.zp > 0)) A.zp = .4;
+      o.sk = A.zp > 0 ? 'corredor_zarpazo' : 'corredor_sup'; return X.melee(); },
     mvp_gordo(o, dt, live, X) { return trioAI(o, dt, live, X, { stun: 1.6, k: 'frz' }); },
     mvp_flaco(o, dt, live, X) { return trioAI(o, dt, live, X, { stun: .8 }); },
     mvp_enano(o, dt, live, X) { return trioAI(o, dt, live, X, { stun: 1.3 }); } };
@@ -1692,6 +1704,9 @@
       if (o.t === 'clon') { c.save(); c.globalAlpha = .75; c.fillStyle = '#140818'; c.beginPath(); c.ellipse(x, y - 70 * zoom, 30 * zoom, 70 * zoom, 0, 0, 7); c.fill(); c.shadowColor = '#b080ff'; c.shadowBlur = 20; c.strokeStyle = '#b080ff'; c.lineWidth = 2 * zoom; c.stroke(); c.restore(); c.font = 'bold ' + Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; c.fillStyle = '#d8b0ff'; c.fillText('CLON', x, y - 150 * zoom); for (let i = 0; i < (o.hp || 1); i++) { c.fillRect(x - 14 + i * 8, y + 6, 6, 4); } }
       if (o.t === 'llama') { const d_ = o.hp || 1, bl = .5 + .5 * Math.sin(t * 16); c.save(); c.fillStyle = 'rgba(255,110,30,' + (.12 + bl * .14) + ')'; if (d_ > 0) c.fillRect(x, 0, VW - x, VH); else c.fillRect(0, 0, x, VH); c.restore(); }
       if (o.t === 'grieta') { const im = img('/a/ob/fx_erupcion.png'), w = 230 * zoom; try { c.drawImage(im, x - w / 2, y - w * .62, w, w * .66); } catch (e) {} }
+      if (o.t === 'fuegoc') { const fl = .85 + Math.sin(performance.now() / 90 + o.x) * .15, life = Math.min(1, (o.tt == null ? 5 : o.tt) / 1.2);
+        c.save(); c.fillStyle = 'rgba(18,10,6,' + (.55 * life) + ')'; c.beginPath(); c.ellipse(x, y, 78 * zoom, 30 * zoom, 0, 0, 7); c.fill(); c.restore(); /* piso quemado */
+        if (drawFxImg(c, 'fuego_piso', x, y - 34 * zoom, 175 * zoom, 0, fl * life, false)) return; }
       if (o.t === 'fuego' || o.t === 'fuegoc') { c.save(); c.globalCompositeOperation = 'lighter'; const g = c.createRadialGradient(x, y, 0, x, y, 90 * zoom); g.addColorStop(0, 'rgba(255,200,80,.6)'); g.addColorStop(1, 'rgba(255,60,0,0)'); c.fillStyle = g; c.beginPath(); c.ellipse(x, y, 90 * zoom, 38 * zoom, 0, 0, 7); c.fill(); c.restore(); c.strokeStyle = 'rgba(255,190,90,.9)'; c.lineWidth = 2 * zoom; c.beginPath(); c.ellipse(x, y, 80 * zoom, 32 * zoom, 0, 0, 7); c.stroke(); } });
     if (mapKey === 'mvp_hospital' && mobs.some(o => o.kind === 'mvp_cs' && o.A && o.A.act === 'grito')) CAMILLAS.forEach(([cx, cy]) => { const [x, y] = W2S(cx * WS, cy * WS); c.strokeStyle = 'rgba(160,255,170,.55)'; c.lineWidth = 3 * zoom; c.beginPath(); c.ellipse(x, y, 120 * zoom, 50 * zoom, 0, 0, 7); c.stroke(); });
     others.forEach((o, id) => { if (!o.dead) return; const [x, y] = W2S(o.x, o.y); c.font = 'bold ' + Math.round(13 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; c.fillStyle = '#ff8a7c'; c.fillText('CAÍDO', x, y - 200 * zoom * .5); });
@@ -1801,11 +1816,13 @@
     if (o.drop) spawnPickup(o.drop, [o.x, o.y + 20]);
     const pl = { id: o.id, kind: o.kind, x: Math.round(o.x), y: Math.round(o.y), f: o.face, by: [...o.hitters] }; if (o.cid) { pl.cid = o.cid; pl.kb = o.lastBy; pl.cn = o.cn; }
     net('mdie', pl); onMobDie(pl); }
-  function onMobDie(p) { const T = MOB[p.kind]; if (!T) return; if (p.cid) { toast('Cayó el clon de ' + (p.cn || 'alguien') + '.'); if (p.kb === me.id) claimClone(p.cid, p.cn); } const i = mobs.findIndex(o => o.id === p.id); if (i >= 0) mobs.splice(i, 1); SND.dissolve();
+  /* jefes con animación de muerte: se juega en el lugar donde cayó y se apaga */
+  const dying = [];
+  function onMobDie(p) { const T = MOB[p.kind]; if (!T) return; const dAn = !!(T.death && HD && HD.BIG && HD.BIG[T.death] && !p.cid); if (dAn) dying.push({ k: T.death, x: p.x, y: p.y, f: p.f || 1, t0: performance.now(), T }); if (p.cid) { toast('Cayó el clon de ' + (p.cn || 'alguien') + '.'); if (p.kb === me.id) claimClone(p.cid, p.cn); } const i = mobs.findIndex(o => o.id === p.id); if (i >= 0) mobs.splice(i, 1); SND.dissolve();
     const art = artOf(T, 0, false), g = art.getContext('2d').getImageData(0, 0, art.width, art.height).data;
     /* ceniza corta y liviana: pocas partículas (máx. 45), se apagan rápido */
     const st = Math.max(1, Math.round(art.width / 14)), pts = []; for (let y = 0; y < art.height; y += st) for (let x = 0; x < art.width; x += st) if (g[(y * art.width + x) * 4 + 3] >= 10) pts.push([x, y]);
-    const want = T.boss ? 45 : 22, hgt = art.hd ? T.ph * PXS * HD_K / (220 / art.height) : T.ph * PXS;
+    const want = dAn ? 0 : T.boss ? 45 : 22, hgt = art.hd ? T.ph * PXS * HD_K / (220 / art.height) : T.ph * PXS;
     for (let n = 0; n < Math.min(want, pts.length); n++) { const [x, y] = pts[(Math.random() * pts.length) | 0], ks = hgt / art.height;
       parts.push({ x: p.x + (p.f < 0 ? art.width / 2 - x : x - art.width / 2) * ks, y: p.y - (art.height - y) * ks * (art.hd ? 240 / 256 : 1), vx: rnd(-30, 50), vy: rnd(-90, -20), life: rnd(.35, .7), s: PXS * .9, c: Math.random() < .8 ? 40 : 150 }); }
     if (T.boss) { shake = .6; toast(T.name + ' cayó.'); }
@@ -2567,6 +2584,10 @@
     ents.push({ y: P.y, draw: () => drawChar(P, look, me.nick, me.faction, true) });
     if (P.clone && P.clone.t > 0) ents.push({ y: P.clone.y, draw: () => { c.globalAlpha = .55; drawChar({ x: P.clone.x, y: P.clone.y, tx: P.clone.x, ty: P.clone.y, mv: false, walkT: P.walkT, atk: P.atk, dir: P.dir, iv: 0 }, look, '', me.faction, false); c.globalAlpha = 1; } });
     others.forEach(o => { if (o.look) ents.push({ y: o.y, draw: () => drawChar(o, o.look, o.nick, o.fac, false) }); });
+    for (let i = dying.length - 1; i >= 0; i--) { const d = dying[i], sp = HD.BIG[d.k], el = (performance.now() - d.t0) / 1000, tot = sp.n * 4, fi = Math.floor(el * sp.fps);
+      if (fi >= tot + 6) { dying.splice(i, 1); continue; }
+      ents.push({ y: d.y, draw: () => { const art = HD.frameAt(d.k, Math.min(tot - 1, fi)); if (!art) return; const [sx, sy] = W2S(d.x, d.y), H = d.T.ph * PXS * zoom, hk = H * HD_K / 220, aw = art.width * hk, ah = art.height * hk, ay = (art.fy || 240) * hk;
+        c.save(); c.translate(Math.round(sx), Math.round(sy)); if (d.f < 0) c.scale(-1, 1); c.globalAlpha = fi >= tot ? Math.max(0, 1 - (fi - tot) / 6) : 1; c.drawImage(glowOf(art, d.T.aura), Math.round(-aw / 2), Math.round(-ay), Math.round(aw), Math.round(ah)); c.restore(); c.globalAlpha = 1; } }); }
     if (gotFull) mobs.forEach(o => ents.push({ y: o.y, draw: () => { const st_ = o.stoneF || (o.A && (o.A.stone || o.A.inv)); if (st_) c.filter = 'grayscale(1) brightness(.8)'; drawMob(o); if (st_) c.filter = 'none'; } }));
     pickups.forEach(q => ents.push({ y: q.y - 30, draw: () => drawPickup(q) }));
     npcsHere().forEach(n => ents.push({ y: n.y * WS + (n.oy || 0), draw: () => drawNpc(n) }));
@@ -2633,8 +2654,12 @@
       const mdd = Math.min(60, Math.hypot(o.x - (o.lpx ?? o.x), o.y - (o.lpy ?? o.y))); o.lpx = o.x; o.lpy = o.y; o.wph = (o.wph || 0) + mdd * .045; o.wmv = mdd > .25 ? .15 : Math.max(0, (o.wmv || 0) - 1 / 60);
       const mwp = walkPose(o.wph, o.wmv > 0 && !(o.lunge > 0)), frame = mwp.fr, mbob = T.fly ? 0 : mwp.bob * zoom * Math.max(.6, Math.min(1.4, (T.ph || 26) / 26));
       const TT = o.sk ? (o.Tsk && o.Tsk.sheet === o.sk ? o.Tsk : (o.Tsk = Object.assign({}, T, { sheet: o.sk }))) : T, f4 = Math.floor(o.t * 7) % 4;
-      const art = o.sk ? artOf(TT, f4 % 3, o.hurt > 0, false, f4 === 3) : artOf(T, frame, o.hurt > 0, o.wmv > 0, o.lunge > 0 || o.st === 'aim'), S = PXS * zoom, W = T.pw * S, H = T.ph * S;
-      const AX = art.hd ? CELL_HD * H * HD_K / 220 : W, AY = art.hd ? 240 * H * HD_K / 220 : H, AW = art.hd ? AX : W, AH = art.hd ? AX : H; // HD: celda cuadrada con pies en 240
+      /* hojas grandes con su propia animación: arranca en el cuadro 0 cada vez que cambia la acción */
+      if (!o._pre && HD && HD.BIG && T.sheet && HD.BIG[T.sheet]) { o._pre = 1; const pf = T.sheet.split('_')[0] + '_'; Object.keys(HD.BIG).forEach(k => { if (k.startsWith(pf)) HD.load('/a/pj/' + k + '.png'); }); }
+      const SP = o.sk && HD && HD.BIG && HD.BIG[o.sk]; if (o.sk !== o._skp) { o._skp = o.sk; o._sk0 = o.t; }
+      const fi = SP && SP.fps ? (SP.once ? Math.min(SP.n - 1, Math.floor((o.t - o._sk0) * SP.fps)) : Math.floor((o.t - o._sk0) * SP.fps) % SP.n) : 0;
+      const art = (SP && SP.fps ? artOf(TT, fi, o.hurt > 0, !!SP.side, false) : null) || (o.sk ? artOf(TT, f4 % 3, o.hurt > 0, false, f4 === 3) : artOf(T, frame, o.hurt > 0, o.wmv > 0, o.lunge > 0 || o.st === 'aim')), S = PXS * zoom, W = T.pw * S, H = T.ph * S;
+      const hk = H * HD_K / 220, AX = art.hd ? art.width * hk : W, AY = art.hd ? (art.fy || 240) * hk : H, AW = art.hd ? AX : W, AH = art.hd ? art.height * hk : H; // HD: pies en fy (240 en las celdas de 256)
       let lx = 0, jx = 0; if (o.lunge > 0) lx = o.face * 26 * o.lunge * zoom; if (o.wind > 0 || o.st === 'aim') jx = Math.sin(t * 60) * 2 * zoom;
       shadow(sx, sy, Math.max(22, T.pw * 1.6));
       c.save(); c.translate(Math.round(sx + lx + jx), Math.round(sy + mbob)); if (o.face < 0) c.scale(-1, 1);

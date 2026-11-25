@@ -10,14 +10,29 @@
   /* Oscuros → su planilla (los que no están acá siguen con el dibujo pixel) */
   const MOB_SHEET = { errante: 'oscuro_hombre3', perro: 'sabueso', rastrero: 'gato', corredor: 'corredor_final', sombra: 'espectro', mole: 'mole', denso: 'le_cape', incinerario: 'corredor_incinerario' };
   const load = src => { if (!imgs[src]) { const i = new Image(); i.src = src; imgs[src] = i; } const i = imgs[src]; return i.complete && i.naturalWidth ? i : null; };
-  function cut(src, dir, col, id) {
-    const k = (id || src) + '|' + dir + col; if (cuts.has(k)) return cuts.get(k);
+  /* hojas grandes (cuadros más anchos para que los poderes no se corten): w×h por cuadro, pies en fy, n cuadros por fila.
+     fps = velocidad de la animación; once = se juega una vez y queda en el último cuadro; side = se ve de costado (mirando al objetivo) */
+  const BIG = {
+    corredor_sup: { w: 388, h: 289, fy: 274, n: 4 },
+    corredor_run: { w: 388, h: 289, fy: 274, n: 4, fps: 12, side: 1 },
+    corredor_smash: { w: 388, h: 289, fy: 274, n: 4, fps: 4, once: 1 },
+    corredor_salto: { w: 388, h: 289, fy: 274, n: 6, fps: 6, once: 1 },
+    corredor_zarpazo: { w: 388, h: 289, fy: 274, n: 4, fps: 11, once: 1, side: 1 },
+    corredor_muerte: { w: 388, h: 289, fy: 274, n: 4, fps: 9 }
+  };
+  const specOf = src => { const m = typeof src === 'string' && src.match(/\/([\w]+)\.png$/); return m ? BIG[m[1]] : null; };
+  function cut(src, dir, col, id, row) {
+    const k = (id || src) + '|' + dir + col + (row != null ? '#' + row : ''); if (cuts.has(k)) return cuts.get(k);
     const im = typeof src === 'string' ? load(src) : src; if (!im) return null;
-    const cv = document.createElement('canvas'); cv.width = cv.height = CELL; const g = cv.getContext('2d');
-    const own = dir === 'r' && (im.naturalHeight || im.height) >= CELL * 4; /* hojas de 4 filas: la derecha viene dibujada */
-    if (dir === 'r' && !own) { g.translate(CELL, 0); g.scale(-1, 1); }
-    g.drawImage(im, col * CELL, (own ? 3 : ROW[dir]) * CELL, CELL, CELL, 0, 0, CELL, CELL); cv.hd = true; cuts.set(k, cv); return cv;
+    const sp = specOf(src), cw = sp ? sp.w : CELL, ch = sp ? sp.h : CELL;
+    const cv = document.createElement('canvas'); cv.width = cw; cv.height = ch; const g = cv.getContext('2d');
+    const own = dir === 'r' && (im.naturalHeight || im.height) >= ch * 4; /* hojas de 4 filas: la derecha viene dibujada */
+    if (row == null && dir === 'r' && !own) { g.translate(cw, 0); g.scale(-1, 1); }
+    const r = row != null ? row : (own ? 3 : ROW[dir]);
+    g.drawImage(im, col * cw, r * ch, cw, ch, 0, 0, cw, ch); cv.hd = true; if (sp) cv.fy = sp.fy; cuts.set(k, cv); return cv;
   }
+  /* un cuadro suelto por número (para animaciones en secuencia, como la muerte: se leen de izquierda a derecha y de arriba a abajo) */
+  const frameAt = (name, i) => { const sp = BIG[name], n = sp ? sp.n : 4; return cut('/a/pj/' + name + '.png', 'd', i % n, null, Math.floor(i / n)); };
   /* un sobreviviente que ya no existe (se sacaron los modelos mal cortados) → vuelve al dibujo pixel */
   const sheet = (name, dir, frame, atk) => (/^sel\d/.test(name) && !SEL.includes(name)) ? null : cut('/a/pj/' + name + '.png', dir || 'd', atk ? 3 : (frame || 0));
   /* personaje base teñible: base_h / base_m. El PNG _reg guarda en R la parte (1 pelo · 2 piel · 3 ropa · 4 pantalón · 5 calzado; 0 = fija)
@@ -37,7 +52,7 @@
   const MODELS = { h: ['base_h1', 'base_h2'], m: ['base_m1', 'base_m2'] };
   const base = (fem, model, colors, dir, frame, atk) => { const l = MODELS[fem ? 'm' : 'h'], s = tinted(l[model] || l[0], colors); return s ? cut(s, dir || 'd', atk ? 3 : (frame || 0), s.key) : null; };
   /* dibuja una celda HD con los pies en (x, y); h = alto que debe ocupar el personaje en pantalla */
-  function blit(ctx, cv, x, y, h) { const k = h / 220, s = CELL * k; ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(cv, Math.round(x - 128 * k), Math.round(y - 240 * k), Math.round(s), Math.round(s)); }
+  function blit(ctx, cv, x, y, h) { const k = h / 220, w = cv.width * k, hh = cv.height * k; ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(cv, Math.round(x - w / 2), Math.round(y - (cv.fy || 240) * k), Math.round(w), Math.round(hh)); }
   /* precarga lo que se usa siempre */
   ['base_h1', 'base_h2', 'base_m1', 'base_m2'].flatMap(b => [b, b + '_reg']).concat(Object.values(NPC_SHEET), Object.values(MOB_SHEET)).forEach(n => load('/a/pj/' + n + '.png'));
   const SEL = ["sel01", "sel02", "sel03", "sel04", "sel05", "sel07", "sel08", "sel09", "sel11", "sel12", "sel13", "sel14", "sel15", "sel16", "sel17", "sel18", "sel20", "sel21", "sel22", "sel23", "sel24", "sel25", "sel26", "sel27", "sel29", "sel31", "sel34", "sel35"];
@@ -71,5 +86,5 @@
     if (r.cu) { lk.cu = r.cu; delete lk.pj; delete lk.model; ['cs', 'ch', 'ct', 'cp'].forEach(k => { if (lk[k] == null) lk[k] = 0; }); }
     else { lk.pj = r.k; delete lk.cu; delete lk.model; }
     if (r.cls != null) lk.cls = r.cls; ['skin', 'hair', 'hcol', 'top', 'acc', 'pant'].forEach(k => delete lk[k]); return lk; }
-  window.CZ_SHEETS = { ROSTER, roster, rosterIdx, pickPj, inRoster, CU, CPAL, custom, cuColors, SEL, CELL, MODELS, ALL, NPC_SHEET, MOB_SHEET, sheet, base, blit, load };
+  window.CZ_SHEETS = { BIG, frameAt, ROSTER, roster, rosterIdx, pickPj, inRoster, CU, CPAL, custom, cuColors, SEL, CELL, MODELS, ALL, NPC_SHEET, MOB_SHEET, sheet, base, blit, load };
 })();
