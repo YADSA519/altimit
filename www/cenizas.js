@@ -865,7 +865,7 @@
     INV.q = INV.q || { cura: 'vendas', esp: null };
     $('#h-nick').textContent = me.nick; ['#hud', '#topr', '#pads', '#hintL', '#stick'].forEach(s => $(s).hidden = false); if (EXP) $('#d-fac').hidden = true;
     document.body.classList.add('playing'); document.body.classList.toggle('ork', me.faction === 'ork'); $('#snd-b').classList.toggle('off', !SND.on); $('#m-snd').textContent = 'SONIDO: ' + (SND.on ? 'SÍ' : 'NO');
-    for (let i = 0; i < 90; i++) ash.push(newAsh(true));
+    for (let i = 0; i < 170; i++) ash.push(newAsh(true));
     const fresh = !MAPS[gc.zone]; const [hz, hp_] = home(); const zone = fresh ? hz : gc.zone;
     enterMap(zone, fresh ? hp_[0] * WS : gc.x, fresh ? hp_[1] * WS : gc.y, true);
     running = true; last = performance.now(); requestAnimationFrame(loop);
@@ -2433,7 +2433,9 @@
   const tint = document.createElement('canvas'), tg = tint.getContext('2d');
   function resize() { DPR = Math.min(1.5, devicePixelRatio || 1); VW = innerWidth; VH = innerHeight; cv.width = VW * DPR; cv.height = VH * DPR; dark.width = Math.ceil(VW / 2); dark.height = Math.ceil(VH / 2); zoom = Math.max(.55, Math.min(1.35, VH / 600)); }
   addEventListener('resize', resize); resize();
-  function newAsh(any) { return { x: Math.random() * VW, y: any ? Math.random() * VH : -10, v: 12 + Math.random() * 26, w: Math.random() * 6.28, s: .8 + Math.random() * 1.8, o: .2 + Math.random() * .45 }; }
+  function newAsh(any) { const g = 120 + Math.random() * 70 | 0; return { x: Math.random() * VW, y: any ? Math.random() * VH : -10, v: 14 + Math.random() * 30, w: Math.random() * 6.28, s: 1.2 + Math.random() * 2.4, o: .32 + Math.random() * .45, g }; }
+  /* lugares cerrados: ahí no cae ceniza */
+  const INTERIOR = new Set(['nogal', 'refugioSub', 'colon', 'bunker', 'lab', 'oficina_presente', 'oficina_ruina', 'casa_pablo', 'bar_humo', 'centro_ork', 'complejo8c', 'lab_cuarentena', 'teatro_int', 'subte_arena', 'bar_rojo', 'sotano_rift', 'mvp_hospital', 'mvp_santuario', 'municipal', 'garaje_sub', 'garaje', 'mvp_garaje', 'iglesia', 'paso_sub', 'senado_int', 'biblioteca', 'camara_tesoro', 'casa_reptil', 'casa_ricardo', 'lab_prision', 'lab_maldito', 'portal_espejos', 'relojeria', 'teatro_muerte', 'cueva_8c', 'salon_joker', 'oficina_8c']);
   function loop(now) { requestAnimationFrame(loop); if (document.hidden || now - last < 1000 / 40 - 2) return; const dt = Math.min(.05, (now - last) / 1000); last = now; t += dt; if (!paused && !warping) update(dt); render(); }
   document.addEventListener('visibilitychange', () => { if (!document.hidden) last = performance.now(); });
 
@@ -2810,7 +2812,7 @@
     // números flotantes
     floats.forEach(f => { const [x, y] = W2S(f.x, f.y); c.globalAlpha = Math.min(1, f.t * 2); c.font = 'bold ' + Math.round(15 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; c.fillStyle = '#000'; c.fillText(f.txt, x + 1, y + 1); c.fillStyle = f.c; c.fillText(f.txt, x, y); c.globalAlpha = 1; });
     // ceniza
-    ash.forEach(a => { c.fillStyle = 'rgba(220,216,206,' + a.o + ')'; c.fillRect(a.x, a.y, a.s, a.s); });
+    if (!INTERIOR.has(mapKey)) ash.forEach(a => { const g = a.g || 160; c.fillStyle = 'rgba(' + g + ',' + g + ',' + (g + 4) + ',' + a.o + ')'; c.fillRect(a.x, a.y, a.s, a.s); });
     let g = c.createRadialGradient(VW / 2, VH / 2, VH * .35, VW / 2, VH / 2, VW * .7); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.55)'); c.fillStyle = g; c.fillRect(0, 0, VW, VH);
     if (P.hurtT > 0) { c.fillStyle = 'rgba(160,20,10,' + P.hurtT * .8 + ')'; c.fillRect(0, 0, VW, VH); }
     if (P.ghost > 0) { c.fillStyle = 'rgba(180,200,220,.08)'; c.fillRect(0, 0, VW, VH); }
