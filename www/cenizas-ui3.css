@@ -47,24 +47,24 @@
 /* libretas */
 .libbook{position:relative;width:min(96vw,calc(88vh * 1.789),880px);aspect-ratio:880/492;background:url(/a/ui/l_pablo.webp) center/100% 100% no-repeat}
 #ov-lib[data-lib="sofia"] .libbook{background-image:url(/a/ui/l_sofia.webp)}
-.libl{position:absolute;left:12.5%;width:29.5%;top:36%;display:flex;flex-direction:column;gap:2.6%;height:40%}
-#ov-lib[data-lib="sofia"] .libl{top:42%;gap:4%}
-.libl button{height:30%;border:0;background:none;border-radius:6px}
-#ov-lib[data-lib="sofia"] .libl button{height:34%}
+.libl{position:absolute;left:11.5%;width:30.5%;top:0;height:100%;pointer-events:none}
+.libl button{position:absolute;left:0;width:100%;border:0;background:none;border-radius:8px;pointer-events:auto;z-index:2}
+.libl button:nth-child(1){top:36.5%;height:11%}.libl button:nth-child(2){top:51%;height:10.8%}.libl button:nth-child(3){top:65.3%;height:10.8%}
+#ov-lib[data-lib="sofia"] .libl button:nth-child(1){top:42.6%;height:12.4%}#ov-lib[data-lib="sofia"] .libl button:nth-child(2){top:59.5%;height:12.3%}
 .libl button.on{box-shadow:0 0 0 2px #ff9a4a,0 0 14px rgba(255,140,60,.7)}
-.libd{position:absolute;left:54.5%;right:10.5%;top:12%;bottom:15%;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 8px;overflow:hidden;text-align:center}
-.libd img{width:auto;height:46%;object-fit:contain;filter:sepia(.25) contrast(1.05)}
-.libd b{font-family:"Bebas",sans-serif;font-weight:400;font-size:clamp(14px,2.3vw,20px);letter-spacing:.1em;color:#ff7a6a}
-.libd small{font-size:clamp(9px,1.25vw,11.5px);color:#dccfb8;line-height:1.3}
-.libd em{font-style:normal;font-size:10px;color:#ffd860}
-.libgo{margin-top:auto;border:0;background:url(/a/ui/g_btn_papel.webp) center/100% 100% no-repeat;color:#1a140c;font-family:"Bebas",sans-serif;font-size:16px;letter-spacing:.12em;padding:7px 22px 5px}
+.libd{position:absolute;left:54.5%;right:10.5%;top:11%;bottom:12%;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 8px;overflow-y:auto;overflow-x:hidden;text-align:center;scrollbar-width:none}
+.libd::-webkit-scrollbar{display:none}
+.libd img{width:auto;height:36%;min-height:60px;flex-shrink:0;object-fit:contain;filter:sepia(.25) contrast(1.05)}
+.libd b{font-family:"Bebas",sans-serif;font-weight:400;font-size:clamp(14px,2.2vw,20px);letter-spacing:.1em;color:#ff7a6a;flex-shrink:0}
+.libd small{font-size:clamp(9px,1.2vw,11.5px);color:#dccfb8;line-height:1.3;flex-shrink:0}
+.libd em{font-style:normal;font-size:clamp(8.5px,1.1vw,10px);color:#ffd860;flex-shrink:0}
+.libgo{margin-top:auto;flex-shrink:0;position:sticky;bottom:0;border:0;background:url(/a/ui/g_btn_papel.webp) center/100% 100% no-repeat;color:#1a140c;font-family:"Bebas",sans-serif;font-size:clamp(12px,1.6vw,16px);letter-spacing:.1em;padding:7px 18px 5px}
 .libgo:disabled{filter:grayscale(1) brightness(.7)}
-.libn{position:absolute;left:12%;width:32%;bottom:9%;margin:0;font-size:clamp(8px,1.1vw,10.5px);color:#3a2a18;line-height:1.3}
+.libn{position:absolute;left:12%;width:30%;top:78%;bottom:5%;margin:0;overflow:hidden;font-size:clamp(8px,1.05vw,10.5px);font-weight:700;color:#24170a;line-height:1.25;pointer-events:none;z-index:1}
 .libbook .xbtn{top:-6px;right:4%}
 .gbox.inv{overflow:visible!important}
 .gbox.inv>h2{margin-top:-42px!important}
 .loadbox #load-t{top:86%;font-size:10px;color:#9a8c74}
-.libn{bottom:6%}
 
 /* ===== MOCHILA y TIENDA más amplias: todo a la vista en el celu acostado ===== */
 #ov-inv,#ov-shop{padding:6px!important;align-items:center}
@@ -90,3 +90,10 @@
 .shop .shopr .btn{min-width:62px!important;padding:7px 8px 5px!important;font-size:15px!important;flex:none}
 #shop-close{min-width:120px!important;padding:6px 18px 5px!important;font-size:16px!important}
 @media (max-height:340px){.mochi .slots canvas{width:28px;height:28px}.mochi .eq span u{display:none}}
+
+/* con un menú abierto, el diálogo de la historia se esconde (no tapa la mochila, la tienda ni la libreta) */
+body:has(.ov:not([hidden])) #st-dlg{visibility:hidden}
+/* mapa: que entre entero (título, leyenda y cerrar) en el celu acostado */
+#ov-map .mapbox{padding-bottom:4px!important}
+#ov-map .mapley{margin:4px 0 0;font-size:11px;text-align:left;padding-right:120px}
+#ov-map #map-close{position:absolute;right:4px;bottom:-4px;min-width:0;padding:7px 16px 5px;font-size:15px}
