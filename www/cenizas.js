@@ -139,7 +139,7 @@
   /* el clon que queda cuando morís contagiado: tiene tu cara (o.cl) y tu nombre (o.cn) */
   /* el Contagiado: Oscuro común que contagia el doble */
   MOB.contagiado = nm_('errante', { name: 'Contagiado', sheet: 'contagiado', hp: 8, dmg: 12, sp: 105, xp: 22, coins: 2, cont: 2 });
-  MOB.clon = nm_('errante', { name: 'Contagiado', hp: 9, dmg: 14, sp: 100, xp: 30, coins: 3, aura: '150,60,255' });
+  MOB.clon = nm_('errante', { name: 'Clon oscuro', hp: 90, dmg: 22, sp: 255, wsp: 120, sight: 900, cd: .7, xp: 60, coins: 8, aura: '150,60,255' }); /* rápido y difícil de matar: ya no se lleva tus cosas */
   MOB.cuervo = nm_('perro', { name: 'Cuervo', sheet: 'cuervo', sp: 250, hp: 4 });
   MOB.reptante = nm_('rastrero', { name: 'Reptante', sheet: 'reptante', hp: 6, dmg: 13 });
   MOB.insecto = nm_('corredor', { name: 'Insecto', sheet: 'insecto', hp: 7, dmg: 17, xp: 30 });
@@ -155,7 +155,7 @@
   MOB.saqueador = nm_('errante', { name: 'Saqueador', sheet: 'ex23', hp: 11, sp: 100, dmg: 14, xp: 38, coins: 3, human: true });
   MOB.tirador = nm_('incinerario', { name: 'Tirador rebelde', sheet: 'ex21', hp: 12, xp: 50, coins: 4, human: true });
   MOB.pablo = nm_('jefe', { name: 'PABLO', sheet: 'pablo_1', aura: '120,200,255', hp: 700, dmg: 12, xp: 3000, coins: 40, respawn: 99999999 });
-  MOB.yuki = nm_('errante', { name: 'YUKI', sheet: 'yuki', pw: 11, ph: 17, aura: '255,200,90', ai: 'flee', hp: 26, sp: 215, wsp: 70, dmg: 0, reach: 0, sight: 620, xp: 400, coins: 15, respawn: 900000, lv1: true });
+  MOB.yuki = nm_('errante', { name: 'YUKI', sheet: 'yuki', pw: 15, ph: 24, aura: '255,200,90', ai: 'flee', hp: 26, sp: 215, wsp: 70, dmg: 0, reach: 0, sight: 620, xp: 400, coins: 15, respawn: 900000, lv1: true });
   MOB.incinerario.burn = true; MOB.insecto.poison = true; MOB.babosa.poison = true; MOB.lodo.poison = true;
   MOB.soldado.fac = 'ork'; MOB.patrulla.fac = 'ork'; MOB.saqueador.fac = 'rebel'; MOB.tirador.fac = 'rebel';
   const HOURLY_AT = { patio: 'electrico', nueveJulio: 'garras', muelle: 'serpiente', teatroAv: 'pantallas' };
@@ -998,16 +998,11 @@
   const isMision = k => { const it = ITEMS[k]; return !!it && (/^(Historia|Misiones|Pista)/.test(it.t || '') || k === 'pagina' || k === 'brz_ork' || k === 'brz_reb'); };
   const MODE = () => STORY ? 'h' : 'x';
   function cloneLook() { const lk = {}; ['pj', 'npc', 'body', 'model', 'cls', 'cu', 'cs', 'ch', 'ct', 'cp', 'skin', 'hair', 'hcol', 'top', 'pant', 'fac'].forEach(k => { if (look && look[k] != null) lk[k] = look[k]; }); return lk; }
-  async function dejarClon() { if (!INV || MAP.safeAll || MAP.mvp || mapKey === 'casa_pablo') return; /* en los eventos de Pablo no hay clon ni se pierde nada */ const lk = cloneLook(), loot = {}, held = INV.held || {};
-    const epic_ = {}; Object.entries(INV.items || {}).forEach(([k, n]) => { if (!(n > 0) || !ITEMS[k]) return; if (isMision(k)) held[k] = (held[k] || 0) + n; else if (ITEMS[k].epic || ITEMS[k].r === 'e') epic_[k] = n; else loot[k] = n; }); /* lo épico nunca se pierde: queda en tu mochila */
-    const back = { items: INV.items, eq: INV.eq, q: INV.q, held: INV.held };
-    const eq0_ = INV.eq || {}; INV.held = held; INV.items = Object.assign({}, epic_); INV.eq = { arma: 'palo', luz: null, cara: null, brazo: null, ropa: null }; Object.entries(eq0_).forEach(([sl, k]) => { if (k && epic_[k]) INV.eq[sl] = k; }); if (INV.q) Object.keys(INV.q).forEach(sl => INV.q[sl] = null); INV.kitPend = true;
-    const p = { cl: lk, cn: me.nick, own: me.id, x: Math.round(P.x), y: Math.round(P.y), lvl: lvlOf(P.xp) };
-    if (Object.keys(loot).length) { try { const { data, error } = await sb.from('game_clones').insert({ owner: me.id, nick: me.nick, mode: MODE(), map: mapKey, x: p.x, y: p.y, lvl: p.lvl, look: lk, items: loot }).select('id').single(); if (error || !data) throw error || 0; p.cid = data.id; }
-      catch (e) { Object.assign(INV, back); INV.kitPend = false; } } /* si no se pudo guardar el clon, no perdés nada */
-    if (EXP && INV.kitPend) { const H = INV.held || {}; INV.held = {}; Object.entries(H).forEach(([k, c]) => addItem(k, c)); setTimeout(() => giveKit({ k: me.faction === 'ork' ? 'mercedes' : 'mary', nm: me.faction === 'ork' ? 'MERCEDES' : 'MARY' }), 1500); } /* en PvP no hay base con Mary/Mercedes: el kit llega solo */
+  /* al morir no perdés nada: solo queda tu clon oscuro (rápido y duro) dando vueltas por el mapa */
+  async function dejarClon() { if (!INV || MAP.safeAll || MAP.mvp || mapKey === 'casa_pablo') return;
+    const p = { cl: cloneLook(), cn: me.nick, own: me.id, x: Math.round(P.x), y: Math.round(P.y), lvl: lvlOf(P.xp) };
     persist(); quickBtns(); if (isHost) spawnClon(p); else net('clon', p); }
-  function spawnClon(p) { if (p.cid && mobs.some(o => o.cid === p.cid)) return; const o = spawnMob('clon', 0, [p.x, p.y]); if (!o) return; o.cl = p.cl; o.cn = p.cn; o.cid = p.cid || null; o.own = p.own || null; o.alpha = 1; needFull = true; }
+  function spawnClon(p) { if (p.cid && mobs.some(o => o.cid === p.cid)) return; const o = spawnMob('clon', 0, [p.x, p.y]); if (!o) return; o.cl = p.cl; o.cn = p.cn; o.cid = p.cid || null; o.own = p.own || null; o.alpha = 1; if (!p.cid) { o.hp = o.mhp = 90 + (p.lvl || 1) * 12; } needFull = true; }
   async function loadClones() { if (!isHost || MAP.safeAll) return; const mk0 = mapKey; try { const { data } = await sb.from('game_clones').select('id,owner,nick,x,y,lvl,look').eq('mode', MODE()).eq('map', mapKey).order('created_at', { ascending: false }).limit(8);
       if (mapKey !== mk0) return; (data || []).forEach(r => spawnClon({ cid: r.id, cn: r.nick, own: r.owner, cl: r.look || {}, x: r.x, y: r.y, lvl: r.lvl })); } catch (e) {} }
   async function claimClone(cid, nick) { try { const { data, error } = await sb.rpc('claim_clone', { cid }); if (error || !data) return; const got = []; Object.entries(data).forEach(([k, n]) => { if (ITEMS[k] && n > 0) { addItem(k, n); got.push(ITEMS[k].n + (n > 1 ? ' x' + n : '')); } });
@@ -1035,15 +1030,15 @@
     floats.push({ x: P.x, y: P.y - 190, t: .9, txt: '-' + d, c: '#ff6a5c' });
     if (knock && knockFrom) { const dx = P.x - knockFrom.x, dy = P.y - knockFrom.y, l = Math.hypot(dx, dy) || 1; for (let i = 0; i < 6; i++) { const nx = P.x + dx / l * knock / 6, ny = P.y + dy / l * knock / 6; if (walkable(nx, ny)) { P.x = nx; P.y = ny; } } }
     if (P.hp <= 0) { P.hp = 0; P.dead = true; buzz([80, 60, 160]); if (INV.bendEnd) INV.bendEnd = {}; setTimeout(bendHud, 0);
-      const fin_ = () => { const wasC = true; dejarClon(); cleanse(true);
+      const fin_ = () => { const wasC = true; dejarClon(); cleanse(false);
       /* MUNDO: si te mata un jugador o un jefe no perdés nivel; si te mata un Oscuro volvés al 1 */
       const byBoss = !byId && mk && MOB[mk] && MOB[mk].boss, rescued = me.faction === 'ork' ? 'ORK te rescató y te curaron.' : 'Los rebeldes te ayudaron y te volvieron a curar.';
       /* 2.1: en la HISTORIA no se pierde nivel, salvo 3 muertes seguidas (-1 nivel). En PvP nunca. */
       let keep = true, minus = false; if (EXP) { const L0 = lvlOf(P.xp), nl = Math.max(1, L0 - (2 + ((Math.random() * 3) | 0))); if (nl < L0) { minus = true; keep = false; P.lostLv = L0; P.xp = xpFor(nl); } }
       if (STORY) { INV.racha = (INV.racha || 0) + 1; if (INV.racha >= 3 && lvlOf(P.xp) > 1) { INV.racha = 0; keep = false; minus = true; P.lostLv = lvlOf(P.xp); P.xp = xpFor(P.lostLv - 1); } }
       let lostAb = 0; P.jefe = 0; if (window.CZ_STORY && STORY) CZ_STORY.died();
-      if (byId) { const who = (others.get(byId) || {}).nick || 'alguien'; $('#ov-dead').querySelector('p').textContent = 'Te derribó ' + who + '. Tu clon quedó con tus cosas. ' + (keep ? rescued : homeText()); net('died', { id: me.id, by: byId }); }
-      else $('#ov-dead').querySelector('p').textContent = (mk === 'contagio' ? 'El contagio te consumió. ' : byBoss ? MOB[mk].name + ' te derribó. ' : 'La ceniza te cubrió. ') + (wasC ? 'Tu clon Oscuro quedó en ' + MAP.name.toLowerCase() + ' con tus cosas: el que lo mate se las queda. Hablá con ' + (me.faction === 'ork' ? 'Mercedes' : 'Mary') + ' en la base. ' : '') + (byBoss || keep ? rescued : homeText());
+      if (byId) { const who = (others.get(byId) || {}).nick || 'alguien'; $('#ov-dead').querySelector('p').textContent = 'Te derribó ' + who + '. No perdiste nada. ' + (keep ? rescued : homeText()); net('died', { id: me.id, by: byId }); }
+      else $('#ov-dead').querySelector('p').textContent = (mk === 'contagio' ? 'El contagio te consumió. ' : byBoss ? MOB[mk].name + ' te derribó. ' : 'La ceniza te cubrió. ') + (wasC ? 'No perdiste nada, pero tu clon oscuro quedó suelto en ' + MAP.name.toLowerCase() + ': es rápido y duro. ' : '') + (byBoss || keep ? rescued : homeText());
       $('#d-lv').textContent = minus ? (EXP ? 'Caíste en el PvP: bajás del nivel ' : 'Tercera caída seguida: bajás del nivel ') + P.lostLv + ' al ' + lvlOf(P.xp) + '.' : 'No perdiste nivel: seguís en el ' + lvlOf(P.xp) + '.' + (STORY && INV.racha ? ' (Caídas seguidas: ' + INV.racha + '/3)' : '');
       sendPos(true); persist(); if (MAP.mvp) banner('CAÍSTE', 'Esperá que alguien te reviva', 4000, '#ff5a6a'); else setTimeout(() => $('#ov-dead').hidden = false, 700); };
       if (MAP.mvp || EXP) fin_(); else caer(fin_); }
@@ -1202,8 +1197,8 @@
   const MB = { art: 'jefe', aura: '255,40,60', pw: 30, ph: 44, sp: 150, wsp: 60, sight: 2400, wind: .35, cd: .9, reach: 95, heavy: true, boss: true, mvp: true, respawn: 99999999, coins: 300, xp: 40000, snd: 'roar', ai: 'mvp' };
   MOB.mvp_cs = Object.assign({}, MB, { name: 'EL COME SUEÑOS', sheet: 'cs_base', death: 'cs_muerte', hp: 3000, dmg: 55, sp: 175 });
   MOB.mvp_galera = Object.assign({}, MB, { name: 'EL HOMBRE DE GALERA', sheet: 'mvp_galera', hp: 2500, dmg: 50, ph: 48, sp: 140, aura: '170,120,255' });
-  MOB.mvp_bruja = Object.assign({}, MB, { name: 'LA BRUJA PODRIDA', sheet: 'mvp_bruja', hp: 2800, dmg: 45, sp: 80, aura: '140,220,60', pspeed: 380, fdmg: 30, pois5: 25 });
-  MOB.mvp_dama = Object.assign({}, MB, { name: 'LA DAMA TRISTE', sheet: 'mvp_dama', hp: 3200, dmg: 52, ph: 46, sp: 150, aura: '120,180,255' });
+  MOB.mvp_bruja = Object.assign({}, MB, { name: 'LA BRUJA PODRIDA', sheet: 'mvp_bruja', death: 'bruja_muerte', hp: 2800, dmg: 45, sp: 80, aura: '140,220,60', pspeed: 380, fdmg: 30, pois5: 25 });
+  MOB.mvp_dama = Object.assign({}, MB, { name: 'LA DAMA TRISTE', sheet: 'mvp_dama', death: 'dama_muerte', hp: 3200, dmg: 52, ph: 46, sp: 150, aura: '120,180,255' });
   MOB.mvp_demonio = Object.assign({}, MB, { name: 'EL DEMONIO DEL PALO', sheet: 'demonio_base', death: 'demonio_muerte', hp: 4400, dmg: 70, ph: 48, pw: 34, sp: 165, aura: '255,110,30', pspeed: 420, fdmg: 42 });
   MOB.sofia_mala = Object.assign({}, MOB.jefe, { name: 'SOFÍA', npc: 'sofia_npc', sheet: 'sofia_npc', aura: '200,40,40', hp: 900, dmg: 16, sp: 300, xp: 3000, coins: 30, shot: 'cuchillo', fdmg: 14, respawn: 0 });
   MOB.mvp_lilia = Object.assign({}, MB, { name: 'LILIA', sheet: 'lilia_f1', hp: 4200, dmg: 46, sp: 160, aura: '255,80,200', pspeed: 430, fdmg: 34 });
@@ -1212,7 +1207,7 @@
   /* ===== MVPs FINALES · élites (fusibles) y los que se llaman con un objeto ===== */
   SKN.push('joker', 'joker_baile', 'joker_oro', 'joker_lazo', 'baston', 'baston_atk', 'tiempo', 'tiempo_atk', 'tiempo_stop', 'tiempo_stop2', 'virtuoso', 'virt_elec', 'virt_voz', 'virt_libro',
     'reina', 'reina_nigro', 'reina_rayo', 'reina_sombra', 'reina_hielo', 'reina_fuego', 'distorsion', 'distorsion_atk', 'gemela', 'gemela_atk', 'gemelo', 'gemelo_atk', 'mosca', 'mosca_real', 'muerte', 'muerte_f2',
-    'carbon_m', 'carbon_h', 'slave', 'slave_rep', 'slave_garra', 'gordo', 'gordo_atk', 'flaco', 'flaco_atk', 'enano', 'enano_atk', 'rosa_mvp', 'rosa_cuervos', 'rosa_sombra', 'rocio_mvp', 'rocio_fuego', 'natsume_mvp', 'natsume_inv', 'natsume_dash', 'corredor_sup', 'corredor_run', 'corredor_smash', 'corredor_pinchos', 'corredor_salto', 'corredor_zarpazo', 'demonio_clones', 'demonio_especial_1', 'demonio_especial_2', 'joker_cartas', 'joker_cintas', 'rocio_barrido', 'rocio_tormenta', 'cs_rugido', 'cs_mordida');
+    'carbon_m', 'carbon_h', 'slave', 'slave_rep', 'slave_garra', 'gordo', 'gordo_atk', 'flaco', 'flaco_atk', 'enano', 'enano_atk', 'rosa_mvp', 'rosa_cuervos', 'rosa_sombra', 'rocio_mvp', 'rocio_fuego', 'natsume_mvp', 'natsume_inv', 'natsume_dash', 'corredor_sup', 'corredor_run', 'corredor_smash', 'corredor_pinchos', 'corredor_salto', 'corredor_zarpazo', 'demonio_clones', 'demonio_especial_1', 'demonio_especial_2', 'joker_cartas', 'joker_cintas', 'rocio_barrido', 'rocio_tormenta', 'cs_rugido', 'cs_mordida', 'slaverep_tierra', 'bruja_aliento', 'muerte_guadana', 'muerte_espectros', 'muerte_rosas', 'dama_energia', 'dama_espiritus', 'dama_carmesi', 'dama_transformacion', 'mosca_estallido', 'mosca_transf', 'mosca_armado', 'mosca_fuego', 'carbonh_piso', 'carbonh_rocas', 'carbonm_pisoton', 'carbonm_picada', 'gemelo_giro', 'gemelo_roca', 'gemela_patada', 'gemela_fuego', 'reina_lanza', 'reina_espada', 'reina_escudo', 'reina_mazo');
   const AURP = ['aura_roja', 'aura_luna', 'aura_mariposa', 'aura_azul'].map(k => [k, .25]);
   Object.assign(MVPS, {
     joker: { kind: 'mvp_joker', map: 'salon_joker', n: 'LA JOKER', gate: 'reto', elite: 1, fus: 'fusible_oscuro', oro: 800, dropP: .05, drops: [['gorro_joker', 1], ['lazo_dorado', 1]].concat(AURP),
@@ -1250,24 +1245,24 @@
   const mvpM = (k, o) => MOB[k] = Object.assign({}, MB2, o);
   mvpM('mvp_corredor', { name: 'EL CORREDOR SUPREMO', sheet: 'corredor_sup', death: 'corredor_muerte', hp: 4600, dmg: 52, sp: 165, aura: '255,120,40', burn: 1 });
   mvpM('mvp_joker', { name: 'LA JOKER', sheet: 'joker_base', death: 'joker_muerte', hp: 4800, dmg: 48, sp: 175, aura: '200,80,255', dodge: .33 });
-  mvpM('mvp_virtuoso', { name: 'EL VIRTUOSO', sheet: 'virtuoso', hp: 4600, dmg: 44, sp: 170, aura: '255,220,90', pspeed: 460, fdmg: 34 });
-  mvpM('mvp_tiempo', { name: 'EL HOMBRE DEL TIEMPO', sheet: 'tiempo', hp: 5400, dmg: 58, sp: 190, reach: 115, cd: .75, aura: '255,200,80' });
-  mvpM('mvp_baston', { name: 'EL DEL BASTÓN', sheet: 'baston', hp: 5200, dmg: 54, sp: 200, reach: 125, aura: '255,210,120', dodge: .3 });
-  mvpM('mvp_reina', { name: 'LA REINA', sheet: 'reina', hp: 6000, dmg: 50, sp: 150, aura: '255,230,160', pspeed: 470, fdmg: 40 });
+  mvpM('mvp_virtuoso', { death: 'virtuoso_muerte', name: 'EL VIRTUOSO', sheet: 'virtuoso', hp: 4600, dmg: 44, sp: 170, aura: '255,220,90', pspeed: 460, fdmg: 34 });
+  mvpM('mvp_tiempo', { death: 'tiempo_muerte', name: 'EL HOMBRE DEL TIEMPO', sheet: 'tiempo', hp: 5400, dmg: 58, sp: 190, reach: 115, cd: .75, aura: '255,200,80' });
+  mvpM('mvp_baston', { death: 'baston_muerte', name: 'EL DEL BASTÓN', sheet: 'baston', hp: 5200, dmg: 54, sp: 200, reach: 125, aura: '255,210,120', dodge: .3 });
+  mvpM('mvp_reina', { death: 'reina_muerte', name: 'LA REINA', sheet: 'reina', hp: 6000, dmg: 50, sp: 150, aura: '255,230,160', pspeed: 470, fdmg: 40 });
   mvpM('mvp_distorsion', { name: 'EL DISTORSIONADO', sheet: 'distorsion', hp: 4800, dmg: 50, sp: 255, aura: '200,120,255' });
-  mvpM('mvp_gemela', { name: 'LA GEMELA', sheet: 'gemela', hp: 3000, dmg: 46, sp: 165, aura: '255,110,60' });
-  mvpM('mvp_gemelo', { name: 'EL GEMELO V-07A', sheet: 'gemelo', hp: 2600, dmg: 30, sp: 270, cd: .45, aura: '120,220,255' });
-  mvpM('mvp_mosca', { name: 'LA MOSCA', sheet: 'mosca', hp: 3800, dmg: 66, sp: 210, aura: '255,120,40' });
-  mvpM('mvp_muerte', { name: 'LA MUERTE DEL TIEMPO', sheet: 'muerte', hp: 5600, dmg: 50, sp: 170, aura: '170,80,255' });
-  mvpM('mvp_carbon_h', { name: 'EL CARBÓN', sheet: 'carbon_h', hp: 3200, dmg: 50, sp: 150, aura: '120,120,140', pspeed: 520, fdmg: 34 });
-  mvpM('mvp_carbon_m', { name: 'LA CARBONA', sheet: 'carbon_m', hp: 2800, dmg: 44, sp: 175, aura: '170,150,200' });
-  mvpM('mvp_slave', { name: 'EL SLAVE', sheet: 'slave', hp: 5000, dmg: 52, sp: 185, aura: '160,90,255' });
-  mvpM('mvp_rosa', { name: 'ROSA', sheet: 'rosa_mvp', hp: 2600, dmg: 40, sp: 170, aura: '255,50,50', pspeed: 440, fdmg: 30, next: 'mvp_rocio' });
-  mvpM('mvp_rocio', { name: 'ROCÍO', sheet: 'rocio_base', hp: 2600, dmg: 46, sp: 160, aura: '190,90,255', next: 'mvp_natsume' });
-  mvpM('mvp_natsume', { name: 'NATSUME', sheet: 'natsume_mvp', hp: 2200, dmg: 36, sp: 250, aura: '255,105,190', pspeed: 620, fdmg: 26 });
-  mvpM('mvp_gordo', { name: 'EL GORDO', sheet: 'gordo', hp: 2400, dmg: 48, sp: 140, aura: '140,210,255', trap: 1 });
-  mvpM('mvp_flaco', { name: 'EL FLACO', sheet: 'flaco', hp: 2000, dmg: 40, sp: 190, aura: '255,240,120', trap: 1 });
-  mvpM('mvp_enano', { name: 'EL ENANO', sheet: 'enano', hp: 1800, dmg: 36, sp: 210, aura: '200,120,255', trap: 1 });
+  mvpM('mvp_gemela', { death: 'gemela_muerte', name: 'LA GEMELA', sheet: 'gemela', hp: 3000, dmg: 46, sp: 165, aura: '255,110,60' });
+  mvpM('mvp_gemelo', { death: 'gemelo_muerte', name: 'EL GEMELO V-07A', sheet: 'gemelo', hp: 2600, dmg: 30, sp: 270, cd: .45, aura: '120,220,255' });
+  mvpM('mvp_mosca', { death: 'mosca_muerte', name: 'LA MOSCA', sheet: 'mosca', hp: 3800, dmg: 66, sp: 210, aura: '255,120,40' });
+  mvpM('mvp_muerte', { death: 'muerte_muerte', name: 'LA MUERTE DEL TIEMPO', sheet: 'muerte', hp: 5600, dmg: 50, sp: 170, aura: '170,80,255' });
+  mvpM('mvp_carbon_h', { death: 'carbonh_muerte', name: 'EL CARBÓN', sheet: 'carbon_h', hp: 3200, dmg: 50, sp: 150, aura: '120,120,140', pspeed: 520, fdmg: 34 });
+  mvpM('mvp_carbon_m', { death: 'carbonm_muerte', name: 'LA CARBONA', sheet: 'carbon_m', hp: 2800, dmg: 44, sp: 175, aura: '170,150,200' });
+  mvpM('mvp_slave', { death: 'slaverep_muerte', name: 'EL SLAVE', sheet: 'slave', hp: 5000, dmg: 52, sp: 185, aura: '160,90,255' });
+  mvpM('mvp_rosa', { vanish: 1, name: 'ROSA', sheet: 'rosa_mvp', hp: 2600, dmg: 40, sp: 170, aura: '255,50,50', pspeed: 440, fdmg: 30, next: 'mvp_rocio' });
+  mvpM('mvp_rocio', { vanish: 1, name: 'ROCÍO', sheet: 'rocio_base', hp: 2600, dmg: 46, sp: 160, aura: '190,90,255', next: 'mvp_natsume' });
+  mvpM('mvp_natsume', { vanish: 1, name: 'NATSUME', sheet: 'natsume_mvp', hp: 2200, dmg: 36, sp: 250, aura: '255,105,190', pspeed: 620, fdmg: 26 });
+  mvpM('mvp_gordo', { death: 'gordo_muerte', name: 'EL GORDO', sheet: 'gordo', hp: 2400, dmg: 48, sp: 140, aura: '140,210,255', trap: 1 });
+  mvpM('mvp_flaco', { death: 'flaco_muerte', name: 'EL FLACO', sheet: 'flaco', hp: 2000, dmg: 40, sp: 190, aura: '255,240,120', trap: 1 });
+  mvpM('mvp_enano', { death: 'enano_muerte', name: 'EL ENANO', sheet: 'enano', hp: 1800, dmg: 36, sp: 210, aura: '200,120,255', trap: 1 });
   MOB.lich_inv = nm_('errante', { name: 'LICH DORADO', sheet: 'lich_inv', hp: 380, dmg: 26, sp: 170, wsp: 60, reach: 70, sight: 2400, wind: .3, cd: .9, xp: 0, coins: 0, respawn: 99999999, aura: '255,220,120', minion: 1 });
   /* monstruos nuevos de los lugares difíciles (tamaño de Oscuro común) */
   const nmB = (o) => nm_('errante', Object.assign({ wsp: 50, sight: 600, wind: .25, cd: .85, reach: 66 }, o));
@@ -1294,10 +1289,10 @@
     paused = true; const ov = $('#ov-lib'); ov.hidden = false; ov.dataset.lib = lk; const done = false; const box = ov.querySelector('.libl'); box.innerHTML = '';
     const det = ov.querySelector('.libd'); const pick = mk => { const M = MVPS[mk], won = (INV.mvpWon || {})[mk]; box.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.mk === mk));
       det.innerHTML = '<img src="/a/ob/mvp_' + mk + '.webp" alt=""><b>' + M.n + '</b><small>' + M.txt + '</small>' + (won ? '<em>VENCIDO ×' + won + '</em>' : '') + (M.pista && won ? '<em>PISTA: "' + M.pista + '"</em>' : '');
-      const go = document.createElement('button'); go.className = 'libgo'; const dn = mvpDone(mk), miss = L.tab ? (M.req || []).filter(r => !hasItem(r)) : []; go.textContent = dn ? 'HASTA MAÑANA' : miss.length ? 'FALTA: ' + miss.map(r => ITEMS[r].n).join(' + ') : L.tab ? 'PONER FUSIBLES' : 'ENFRENTAR'; go.disabled = dn || miss.length > 0; go.onclick = () => { closeLib(); if (L.tab) { (M.req || []).forEach(r => { INV.items[r]--; if (!INV.items[r]) delete INV.items[r]; }); persist(); } startMvp(mk); }; det.appendChild(go); };
+      const go = document.createElement('button'); go.className = 'libgo'; const dn = mvpDone(mk), miss = L.tab ? (M.req || []).filter(r => !hasItem(r)) : []; const otra = pabloMvp(mk) && mvpPlayed(mk); go.textContent = dn ? 'HASTA MAÑANA' : otra ? 'OTRA VEZ · ' + PABLO_OTRA + ' MONEDAS' : miss.length ? 'FALTA: ' + miss.map(r => ITEMS[r].n).join(' + ') : L.tab ? 'PONER FUSIBLES' : 'ENFRENTAR'; go.disabled = dn || miss.length > 0; go.onclick = () => { if (otra) { if ((INV.coins || 0) < PABLO_OTRA) return toast('Te faltan monedas: la revancha sale ' + PABLO_OTRA + '.'); INV.coins -= PABLO_OTRA; hud(); persist(); toast('Pagaste ' + PABLO_OTRA + ' monedas por la revancha.'); } closeLib(); if (L.tab) { (M.req || []).forEach(r => { INV.items[r]--; if (!INV.items[r]) delete INV.items[r]; }); persist(); } startMvp(mk); }; det.appendChild(go); };
     L.list.forEach(mk => { const b = document.createElement('button'); b.dataset.mk = mk; b.setAttribute('aria-label', MVPS[mk].n); b.onclick = () => pick(mk); box.appendChild(b); });
     pick(L.list[0]);
-    ov.querySelector('.libn').textContent = L.tab ? 'Poné los fusibles: todos los que estén en este mapa entran con vos. Se gastan.' : done ? 'Ya venciste a un MVP hoy. Si otro jugador abre la libreta, podés ir con él.' : 'Todos los que estén en este mapa vienen con vos.' + ((INV.mvpPistas || []).length ? ' Pistas: ' + INV.mvpPistas.join(' · ') : ''); }
+    ov.querySelector('.libn').textContent = L.tab ? 'Poné los fusibles: todos los que estén en este mapa entran con vos. Se gastan.' : done ? 'Ya venciste a un MVP hoy. Si otro jugador abre la libreta, podés ir con él.' : 'Todos los que estén en este mapa vienen con vos.' + (lk === 'pablo' ? ' Los de esta libreta se pueden repetir: la primera vez del día es gratis, después ' + PABLO_OTRA + ' monedas.' : ' Uno de cada uno por día.') + ((INV.mvpPistas || []).length ? ' Pistas: ' + INV.mvpPistas.join(' · ') : ''); }
   function closeLib() { $('#ov-lib').hidden = true; paused = false; }
   function startMvp(mk) { if (mvpDone(mk)) return; net('mvpgo', { mk, from: mapKey, by: me.nick }); goMvp(mk, me.nick); }
   function goMvp(mk, by) { const M = MVPS[mk]; if (!M || !MAPS[M.map]) return; INV.mvpBack = { map: mapKey, x: Math.round(P.x / WS), y: Math.round(P.y / WS) }; persist(); banner(M.n, mk === 'lilia' ? (by === me.nick ? 'Escribiste su nombre…' : by + ' escribió su nombre…') : LIBS.tablero && LIBS.tablero.list.includes(mk) ? (by === me.nick ? 'Pusiste los fusibles…' : by + ' puso los fusibles…') : by === me.nick ? 'Abriste la libreta…' : by + ' abrió la libreta…', 2400, '#ff5a6a'); SND.mob('roar', .4); setTimeout(() => warpTo(M.map), 900); }
@@ -1342,26 +1337,30 @@
       if (A.t1 <= 0) { A.t1 = hpK < .5 ? 5 : 7; const p = live[(Math.random() * live.length) | 0], q = randomNear(p.x, p.y, 420); if (q && mobWalk(q[0], q[1])) { addObj('galera', q[0], q[1], 2); SND.mob('whisper', .3); } }
       if (A.t2 <= 0 && tg) { A.t2 = 9; o.sk = SKN[3]; const q = randomNear(tg.x, tg.y, 200); if (q && mobWalk(q[0], q[1])) { o.x = q[0]; o.y = q[1]; } }
       return melee(); }
-    if (o.kind === 'mvp_bruja') {
+    if (o.kind === 'mvp_bruja') { A.al = Math.max(0, (A.al || 0) - dt); o.sk = A.al > 0 ? 'bruja_aliento' : o.lunge > .62 ? 'mvp_bruja_salto' : null;
       const goo = goos.length > 0, groups = live.filter(p => live.some(q => q !== p && near2(p, q, 300)));
       if (A.act === 'poder') { o.sk = SKN[5]; o.moving = false; if (A.at <= 0) { const cand = live.filter(p => live.some(q => q !== p && near2(p, q, 300)));
           if (cand.length) { const v = cand[(Math.random() * cand.length) | 0]; A.act = 'salto'; A.at = .6; A.x0 = o.x; A.y0 = o.y; A.x1 = v.x; A.y1 = v.y; A.vic = v; net('mvpban', { t: 'TE ROBA EL ALMA', c: '#a0ff60' }); }
           else { A.act = null; net('mvpban', { t: 'SE LE ESCAPÓ EL ALMA', c: '#a0ff60' }); banner('SE LE ESCAPÓ EL ALMA', null, 1400, '#a0ff60'); } } return; }
       if (A.act === 'salto') { o.sk = SKN[6]; const k = 1 - A.at / .6; o.x = A.x0 + (A.x1 - A.x0) * k; o.y = A.y0 + (A.y1 - A.y0) * k; if (A.at <= 0) { A.act = null; if (A.vic && near2(A.vic, o, 140)) hit(A.vic, 99999, 0); } return; }
       if (A.t3 <= 0 && goo && groups.length >= 2) { A.t3 = 18; A.act = 'poder'; A.at = groups.length >= 3 ? 1.6 : 2.4; net('mvpban', { t: '¡SE ESTÁ CARGANDO!', s: '¡Sepárense!', c: '#a0ff60' }); banner('¡SE ESTÁ CARGANDO!', '¡Sepárense!', 1800, '#a0ff60'); SND.mob('hiss', .5); return; }
-      if (A.t1 <= 0 && tg) { A.t1 = hpK < .5 ? 1.6 : 2.4; o.lunge = .6; fireMob(o, tg, 'moco'); if (hpK < .6) fireMob(o, tg, 'moco', .25); }
+      if (A.t1 <= 0 && tg) { A.t1 = hpK < .5 ? 1.6 : 2.4; o.lunge = .6; A.al = .65; o.face = tg.x < o.x ? -1 : 1; fireMob(o, tg, 'moco'); if (hpK < .6) fireMob(o, tg, 'moco', .25); }
       return melee(); }
     if (o.kind === 'mvp_dama') {
-      if (A.mode == null) { A.mode = 'azul'; A.sw = 10; } A.sw -= dt; if (A.sw <= 0 && !A.act) { A.mode = A.mode === 'azul' ? 'roja' : 'azul'; A.sw = 10; net('mvpban', { t: A.mode === 'azul' ? 'LLORA…' : 'SE ENOJA', c: A.mode === 'azul' ? '#8fd0ff' : '#ff6060' }); }
+      if (A.mode == null) A.mode = 'azul'; A.t4 = (A.t4 == null ? 7 : A.t4) - dt;
+      if (A.mode === 'azul' && hpK < .5 && !A.act) { A.mode = 'roja'; A.act = 'transf'; A.at = 1.3; net('mvpban', { t: 'SE TRANSFORMA', s: 'La cabeza te va a perseguir', c: '#ff6060' }); banner('SE TRANSFORMA', 'La cabeza te va a perseguir', 1600, '#ff6060'); }
       o.sk = A.mode === 'azul' ? SKN[7] : SKN[8];
-      if (A.act === 'robo') { o.sk = SKN[9]; o.moving = false; if (A.at <= 0) { const v = A.vic; A.act = 'hielo'; A.at = 1.3; if (v) { const q = [v.x + 80, v.y]; if (mobWalk(q[0], q[1])) { o.x = q[0]; o.y = q[1]; } hit(v, T.dmg * 2.2, 0); o.hp = Math.min(o.mhp || T.hp, o.hp + T.dmg * 4); floats.push({ x: o.x, y: o.y - 260, t: 1, txt: '+VIDA', c: '#ff8080' }); } A.mode = 'azul'; A.sw = 8; net('mvpban', { t: 'VA A CONGELAR', s: 'Júntense de a 3', c: '#8fd0ff' }); } return; }
-      if (A.act === 'hielo') { o.sk = SKN[7]; o.moving = false; if (A.at <= 0) { A.act = null; const v = A.vic || tg; if (v) { const n = live.filter(p => near2(p, v, 170)).length; shake = .3;
+      if (A.act === 'transf') { o.sk = 'dama_transformacion'; o.moving = false; if (A.at <= 0) A.act = null; return; }
+      if (A.act === 'esp') { o.sk = 'dama_espiritus'; o.moving = false; if (A.at <= .35 && !A.ef) { A.ef = 1; const v = live.find(p => p.id === A.vid) || tg; if (v) [-.35, -.12, .12, .35].forEach(s_ => fireMob(o, v, 'vacio', s_)); } if (A.at <= 0) A.act = null; return; }
+      if (A.act === 'robo') { o.sk = A.mode === 'roja' ? 'dama_carmesi' : SKN[9]; o.moving = false; if (A.at <= 0) { const v = A.vic; A.act = 'hielo'; A.at = 1.3; if (v) { const q = [v.x + 80, v.y]; if (mobWalk(q[0], q[1])) { o.x = q[0]; o.y = q[1]; } hit(v, T.dmg * 2.2, 0); o.hp = Math.min(o.mhp || T.hp, o.hp + T.dmg * 4); floats.push({ x: o.x, y: o.y - 260, t: 1, txt: '+VIDA', c: '#ff8080' }); } if (A.mode === 'azul') net('mvpban', { t: 'VA A CONGELAR', s: 'Júntense de a 3', c: '#8fd0ff' }); else A.act = null; } return; }
+      if (A.act === 'hielo') { o.sk = 'dama_energia'; o.moving = false; if (A.at <= 0) { A.act = null; const v = A.vic || tg; if (v) { const n = live.filter(p => near2(p, v, 170)).length; shake = .3;
             if (n >= 3) { net('mvpban', { t: 'HIELO BLOQUEADO', c: '#bfefff' }); banner('HIELO BLOQUEADO', null, 1200, '#bfefff'); } else fxOn(v, { half: 1, stun: 3, k: 'frz', mk: o.kind }); } } return; }
       const burning = live.find(p => p.me ? P.burn > 0 : (others.get(p.id) || {}).burn);
       if (A.t3 <= 0 && burning) { A.t3 = 14; A.act = 'robo'; A.at = .7; A.vic = burning; return; }
+      if (A.t4 <= 0 && tg && A.mode === 'azul' && bd > 180) { A.t4 = rnd(7, 9); A.act = 'esp'; A.at = 1; A.ef = 0; A.vid = tg.id; o.face = tg.x < o.x ? -1 : 1; return; }
       if (A.t2 <= 0 && tg && A.mode === 'azul') { A.t2 = 11; A.act = 'hielo'; A.at = 1.4; A.vic = tg; net('mvpban', { t: 'VA A CONGELAR', s: 'Júntense de a 3', c: '#8fd0ff' }); banner('VA A CONGELAR', 'Júntense de a 3', 1400, '#8fd0ff'); return; }
       if (tg && bd < T.reach + 30 && o.cd <= 0) { o.cd = T.cd; o.lunge = 1; hit(tg, T.dmg, 30); fxOn(tg, A.mode === 'roja' ? { burn: 5 } : { slow: 2 }); o.moving = false; return; }
-      if (tg) moveMob(o, tg.x, tg.y, T.sp, dt); return; }
+      if (tg) moveMob(o, tg.x, tg.y, T.sp * (A.mode === 'roja' ? 1.5 : 1), dt); return; }
     if (o.kind === 'mvp_lilia') { const ph = hpK > .66 ? 1 : hpK > .33 ? 2 : 3;
       if (ph !== A.ph) { A.ph = ph; A.t1 = 1.5; if (ph > 1) { const tt = ph === 2 ? 'LILIA SE ENOJA' : 'LILIA ESTÁ FURIOSA', ss = ph === 2 ? 'Bombas por todos lados' : 'Cuchillos: te hacen sangrar'; net('mvpban', { t: tt, s: ss, c: '#ff5ac8', big: 1 }); banner(tt, ss, 2000, '#ff5ac8'); shake = .6; SND.mob('roar', .7); } }
       o.sk = 'lilia_f' + ph; const T2 = Object.assign({}, T, { sp: ph === 1 ? 160 : ph === 2 ? 215 : 250, dmg: ph === 3 ? Math.round(T.dmg * 1.4) : T.dmg });
@@ -1441,11 +1440,14 @@
     mvp_reina(o, dt, live, X) { const { A, T, hpK, hit } = X; const p2 = phaseSay(o, A, hpK, 'LA REINA SE ENFURECE', 'Ya no se protege', '#ffe6a0'); A.cs = (A.cs == null ? 3 : A.cs) - dt; A.sm = (A.sm == null ? 8 : A.sm) - dt; A.skT = Math.max(0, (A.skT || 0) - dt); if (!A.skT) o.sk = 'reina';
       const liches = mobs.filter(m => m.kind === 'lich_inv' && m.hp > 0); A.stone = !p2 && liches.length > 0 ? 1 : 0; if (A.stone) { o.sk = 'reina_nigro'; o.moving = false; return; }
       if (A.sm <= 0) { A.sm = p2 ? 16 : 20; A.skT = 1; o.sk = 'reina_nigro'; for (let i = 0; i < (p2 ? 2 : 3); i++) { const q = randomNear(o.x, o.y, 260); const m = spawnMob('lich_inv', 0, q); if (m) { m.chasing = true; m.alpha = .2; } } say(p2 ? 'LLAMA A LOS LICHES' : 'SE VUELVE DE PIEDRA', p2 ? 'Y sigue atacando' : 'Maten a los liches', '#ffe6a0'); return; }
-      const tg = X.tg; if (A.cs <= 0 && tg) { A.cs = p2 ? 2.2 : 3.4; A.skT = .9; const el = ['fuego', 'hielo', 'rayo', 'sombra'][(Math.random() * 4) | 0]; o.sk = 'reina_' + el; o.lunge = 1;
-        if (el === 'fuego') { [-.2, 0, .2].forEach(s_ => fireMob(o, tg, 'fire', s_)); }
-        else if (el === 'hielo') { if (X.bd < 700) { hit(tg, Math.round(T.dmg * .8), 0); fxOn(tg, { stun: 2.2, k: 'frz' }); } }
-        else if (el === 'rayo') { fireMob(o, tg, 'rayo'); if (X.bd < 650) fxOn(tg, { stun: 1.2 }); }
-        else { addObj('sombra', tg.x, tg.y, 4); } return; }
+      const tg = X.tg; A.dash = Math.max(0, (A.dash || 0) - dt);
+      /* corre con el escudo eléctrico: el que choca queda paralizado */
+      if (A.dash > 0) { o.sk = 'reina_rayo'; const v = live.find(p => p.id === A.dv); if (v) { moveMob(o, v.x, v.y, T.sp * 3.2, dt); live.forEach(p => { if (!A.dh[p.id] && near2(p, o, 95)) { A.dh[p.id] = 1; hit(p, Math.round(T.dmg * 1.1), 120); fxOn(p, { stun: 3 }); floats.push({ x: p.x, y: p.y - 200, t: 1, txt: '¡PARALIZADO!', c: '#a8c0ff' }); } }); } return; }
+      if (A.cs <= 0 && tg) { A.cs = p2 ? 2.4 : 3.6; A.skT = 1; const el = ['fuego', 'hielo', 'rayo', 'sombra'][(Math.random() * 4) | 0]; o.sk = 'reina_' + el; o.lunge = 1; o.face = tg.x < o.x ? -1 : 1;
+        if (el === 'fuego') { say('ESPADA DE FUEGO', null, '#ff9a40'); if (X.bd < 300) { hit(tg, Math.round(T.dmg * 1.2), 60); fxOn(tg, { burn: 5 }); } else [-.15, 0, .15].forEach(s_ => fireMob(o, tg, 'fire', s_)); }
+        else if (el === 'hielo') { say('LANZA DE HIELO', null, '#a8e4ff'); fireMob(o, tg, 'cuchillo'); if (X.bd < 700) { hit(tg, Math.round(T.dmg * .9), 0); fxOn(tg, { stun: 2, k: 'frz' }); } }
+        else if (el === 'rayo') { say('ESCUDO ELÉCTRICO', 'Esquivala', '#a8c0ff'); A.skT = 1.2; A.dash = 1.1; A.dv = tg.id; A.dh = {}; }
+        else { say('MAZO OSCURO', 'Roba vida', '#c080ff'); if (X.bd < 320) { const d = Math.round(T.dmg * 2); hit(tg, d, 140); o.hp = Math.min(o.mhp || T.hp, o.hp + d * 2); floats.push({ x: o.x, y: o.y - 260, t: 1, txt: '+VIDA', c: '#c080ff' }); } else { A.cs = .4; return goTo(o, tg, T.sp * 1.6, dt); } } return; }
       if (X.bd > 360 || !tg) return goTo(o, tg, T.sp, dt); return X.melee(); },
     mvp_distorsion(o, dt, live, X) { const { A, T, hpK, hit } = X; const p2 = phaseSay(o, A, hpK, 'EL DISTORSIONADO SE QUIEBRA', 'Rayos por todo el mapa', '#d8a0ff'); o.sk = o.lunge > .3 ? 'distorsion_atk' : 'distorsion';
       A.dp = (A.dp == null ? 1.2 : A.dp) - dt; A.gr = (A.gr == null ? 8 : A.gr) - dt; A.bm = (A.bm == null ? 6 : A.bm) - dt;
@@ -1456,33 +1458,42 @@
       if (A.dp <= 0 && o.moving) { A.dp = 1.1; if (objsOf('dist').length < 10) addObj('dist', o.x, o.y + 10, 0); }
       const tg = X.tg; if (A.gr <= 0 && tg && X.bd < 170) { A.gr = rnd(8, 10); o.lunge = 1; hit(tg, T.dmg, 0); const dx = tg.x - o.x, dy = tg.y - o.y, l = Math.hypot(dx, dy) || 1; fxOn(tg, { throwv: [dx / l, dy / l] }); return; }
       return X.melee(); },
-    mvp_gemela(o, dt, live, X) { const { A, T, hit } = X; o.sk = o.lunge > .3 ? 'gemela_atk' : 'gemela'; A.ps = (A.ps == null ? 5 : A.ps) - dt; const tg = X.tg; if (!tg) return;
-      if (X.bd < T.reach + 40) { if (o.cd <= 0) { o.cd = T.cd; o.lunge = 1; hit(tg, T.dmg, 0); const r = Math.random(); if (A.ps <= 0) { A.ps = rnd(5, 7); const dx = tg.x - o.x, dy = tg.y - o.y, l = Math.hypot(dx, dy) || 1; fxOn(tg, { throwv: [dx / l, dy / l] }); } else fxOn(tg, r < .5 ? { burn: 4 } : { stun: 1.4 }); } o.moving = false; } else goTo(o, tg, T.sp, dt); },
-    mvp_gemelo(o, dt, live, X) { const { A, T, hit } = X; o.sk = o.lunge > .3 ? 'gemelo_atk' : 'gemelo'; const tg = X.tg; if (!tg) return;
-      A.cb = (A.cb || 0) - dt; if (X.bd < T.reach + 40) { if (o.cd <= 0) { A.n = (A.n || 0) + 1; o.cd = A.n % 4 === 0 ? 1.2 : .28; o.lunge = 1; hit(tg, T.dmg, 10); } o.moving = false; } else goTo(o, tg, T.sp, dt); },
-    mvp_mosca(o, dt, live, X) { const { A, T, hit } = X; A.real = Math.max(0, (A.real || 0) - dt); o.sk = A.real > 0 ? 'mosca_real' : 'mosca'; A.dmul = A.real > 0 ? 2 : .2;
-      if (A.real > 0) { A.pw = (A.pw == null ? 3 : A.pw) - dt; if (A.pw <= 0 && !A.used) { A.used = 1; shake = .9; SND.mob('roar', .8); fx('explosion', o.x, o.y - 80, { w: 520, T: .6, grow: .3 }); net('mvpfx', { k: 'explosion', x: Math.round(o.x), y: Math.round(o.y) });
+    mvp_gemela(o, dt, live, X) { const { A, T, hit } = X; A.ak = Math.max(0, (A.ak || 0) - dt); o.sk = A.ak > 0 ? A.akk : 'gemela'; A.ps = (A.ps == null ? 5 : A.ps) - dt; const tg = X.tg; if (!tg) return;
+      if (X.bd < T.reach + 40) { if (o.cd <= 0) { o.cd = T.cd; o.lunge = 1; o.face = tg.x < o.x ? -1 : 1; hit(tg, T.dmg, 0); const r = Math.random(); A.ak = .5; A.akk = A.ps <= 0 ? 'gemela_patada' : 'gemela_fuego'; if (A.ps <= 0) { A.ps = rnd(5, 7); const dx = tg.x - o.x, dy = tg.y - o.y, l = Math.hypot(dx, dy) || 1; fxOn(tg, { throwv: [dx / l, dy / l] }); } else fxOn(tg, r < .5 ? { burn: 4 } : { stun: 1.4 }); } o.moving = false; } else goTo(o, tg, T.sp, dt); },
+    mvp_gemelo(o, dt, live, X) { const { A, T, hit } = X; A.ak = Math.max(0, (A.ak || 0) - dt); o.sk = A.ak > 0 ? A.akk : o.lunge > .5 ? 'gemelo_atk' : 'gemelo'; const tg = X.tg; if (!tg) return;
+      A.rk = (A.rk == null ? 5 : A.rk) - dt; if (A.rk <= 0 && X.bd > 220) { A.rk = rnd(6, 8); A.ak = .7; A.akk = 'gemelo_roca'; o.face = tg.x < o.x ? -1 : 1; fireMob(o, tg, 'pincho'); return; }
+      A.cb = (A.cb || 0) - dt; if (X.bd < T.reach + 40) { if (o.cd <= 0) { A.n = (A.n || 0) + 1; o.cd = A.n % 4 === 0 ? 1.2 : .28; o.lunge = 1; if (A.n % 4 === 0) { A.ak = .55; A.akk = 'gemelo_giro'; live.forEach(p => { if (p !== tg && near2(p, o, 170)) { hit(p, T.dmg, 40); fxOn(p, { burn: 3 }); } }); fxOn(tg, { burn: 3 }); } hit(tg, T.dmg, 10); } o.moving = false; } else goTo(o, tg, T.sp, dt); },
+    mvp_mosca(o, dt, live, X) { const { A, T, hit } = X; const was = A.real > 0; A.real = Math.max(0, (A.real || 0) - dt); const isR = A.real > 0;
+      if (isR && !was) A.tf = { k: 'mosca_armado', t: .8 }; else if (!isR && was) A.tf = { k: 'mosca_transf', t: .8 };
+      if (!isR && !A.tf && (A.nr = (A.nr == null ? 14 : A.nr) - dt) <= 0) { A.nr = rnd(16, 22); A.real = 6; A.tf = { k: 'mosca_armado', t: .8 }; say('SE ARMA', 'Ahora le entra el daño', '#ff9a40'); }
+      A.fz = Math.max(0, (A.fz || 0) - dt); A.ex = Math.max(0, (A.ex || 0) - dt);
+      if (A.tf) { A.tf.t -= dt; o.sk = A.tf.k; o.moving = false; if (A.tf.t <= 0) A.tf = null; return; }
+      o.sk = A.real > 0 ? (A.ex > 0 ? 'mosca_estallido' : 'mosca_real') : (A.fz > 0 ? 'mosca_fuego' : 'mosca'); A.dmul = A.real > 0 ? 2 : .2;
+      if (!isR && o.lunge > .9) A.fz = .55;
+      if (A.real > 0) { o.moving = false; A.pw = (A.pw == null ? 3 : A.pw) - dt; if (A.pw <= 0 && !A.used) { A.used = 1; A.ex = 1; shake = .9; SND.mob('roar', .8); fx('explosion', o.x, o.y - 80, { w: 520, T: .6, grow: .3 }); net('mvpfx', { k: 'explosion', x: Math.round(o.x), y: Math.round(o.y) });
           live.forEach(p => { if (near2(p, o, 330)) { hit(p, Math.round(T.dmg * 2.2), 90); fxOn(p, { burn: 4 }); } }); say('¡LLAMARADA!', null, '#ff7a30'); } }
       else { A.pw = 3; A.used = 0; }
       return X.melee(); },
-    mvp_muerte(o, dt, live, X) { const { A, T, hpK, hit } = X; const p2 = phaseSay(o, A, hpK, 'FORMA FANTASMAL', 'Le entra menos daño', '#c090ff'), k = p2 ? .6 : 1; o.sk = p2 ? 'muerte_f2' : 'muerte'; o.vis = p2 ? .6 : 1; A.dmul = p2 ? .5 : 1;
+    mvp_muerte(o, dt, live, X) { const { A, T, hpK, hit } = X; const p2 = phaseSay(o, A, hpK, 'FORMA FANTASMAL', 'Le entra menos daño', '#c090ff'), k = p2 ? .6 : 1; A.ak = Math.max(0, (A.ak || 0) - dt); o.sk = A.ak > 0 ? A.akk : o.lunge > .6 ? (p2 ? 'muerte_f2' : 'muerte_guadana') : p2 ? 'muerte_f2' : 'muerte'; o.vis = p2 ? .75 : 1; A.dmul = p2 ? .5 : 1;
       A.rs = (A.rs == null ? 6 : A.rs) - dt; A.tq = (A.tq == null ? 10 : A.tq) - dt; A.oz = (A.oz == null ? 14 : A.oz) - dt;
       const oz = objsOf('oz')[0]; if (oz) { oz.tt = (oz.tt == null ? 2.8 : oz.tt) - dt; if (oz.tt <= 0) { shake = .7; SND.shot(); live.forEach(p => { if (Math.hypot(p.x - oz.x, (p.y - oz.y) * 1.25) < 175) hit(p, 99999, 0); }); dropObj(oz); } }
       const tg = X.tg; if (!tg) return;
-      if (A.oz <= 0) { A.oz = rnd(17, 21); addObj('oz', tg.x, tg.y, 0); say('LA OZ DEL DEMONIO', 'Salí del círculo', '#ff4a6a', 1); }
-      if (A.rs <= 0) { A.rs = rnd(8, 10) * k; live.forEach(p => { if (near2(p, tg, 330)) fxOn(p, { polen: 1 }); }); addObj('rosas', tg.x, tg.y, 3); say('ROSAS OSCURAS', 'Polen: alejate de ella', '#c060a0'); }
+      if (A.oz <= 0) { A.oz = rnd(17, 21); A.ak = .9; A.akk = p2 ? 'muerte_rosas' : 'muerte_espectros'; addObj('oz', tg.x, tg.y, 0); say('LA OZ DEL DEMONIO', 'Salí del círculo', '#ff4a6a', 1); }
+      if (A.rs <= 0) { A.rs = rnd(8, 10) * k; A.ak = .9; A.akk = 'muerte_rosas'; live.forEach(p => { if (near2(p, tg, 330)) fxOn(p, { polen: 1 }); }); addObj('rosas', tg.x, tg.y, 3); say('ROSAS OSCURAS', 'Polen: alejate de ella', '#c060a0'); }
       if (A.tq <= 0 && X.bd < 260) { A.tq = rnd(12, 14) * k; o.lunge = 1; fxOn(tg, { uno: 1, mk: o.kind }); say('TOQUE DE LA MUERTE', null, '#c090ff'); return; }
       return X.melee(); },
     mvp_carbon_h(o, dt, live, X) { return carbonAI(o, dt, live, X, 'linea'); },
     mvp_carbon_m(o, dt, live, X) { return carbonAI(o, dt, live, X, 'area'); },
     mvp_slave(o, dt, live, X) { const { A, T, hpK, hit } = X; const p2 = phaseSay(o, A, hpK, 'SE TRANSFORMA PARA SIEMPRE', 'Más rápido', '#b080ff'); A.rep = Math.max(0, (A.rep || 0) - dt); const rep = p2 || A.rep > 0;
       if (!rep && (A.hits || 0) >= 12) { A.hits = 0; A.rep = 7; say('¡SE ENOJA!', 'Se vuelve reptiliano', '#b080ff'); }
-      o.sk = A.sl > 0 ? 'slave_garra' : rep ? 'slave_rep' : 'slave'; A.dmul = rep ? .5 : 1; A.sl = Math.max(0, (A.sl || 0) - dt); A.gz = (A.gz == null ? 6 : A.gz) - dt;
+      A.tr = Math.max(0, (A.tr || 0) - dt); A.gt2 = (A.gt2 == null ? 6 : A.gt2) - dt; o.sk = A.tr > 0 ? 'slaverep_tierra' : A.sl > 0 ? 'slave_garra' : rep ? 'slave_rep' : 'slave'; A.dmul = rep ? .5 : 1; A.sl = Math.max(0, (A.sl || 0) - dt); A.gz = (A.gz == null ? 6 : A.gz) - dt;
       const cl = objsOf('clon').sort((a, b) => Math.hypot(a.x - o.x, a.y - o.y) - Math.hypot(b.x - o.x, b.y - o.y))[0];
       if (cl) { const sp = T.sp * (rep ? 1.25 : 1); moveMob(o, cl.x, cl.y, sp, dt); if (Math.hypot(cl.x - o.x, cl.y - o.y) < 70) { const ow = live.find(p => p.id === (A.own || {})[cl.id]);
           if (Math.random() < .5) { o.hp = Math.min(o.mhp || T.hp, o.hp + (o.mhp || T.hp) * .1); floats.push({ x: o.x, y: o.y - 260, t: 1, txt: '+VIDA', c: '#b080ff' }); say('ATRAVESÓ EL CLON', 'Se curó', '#b080ff'); }
           else { if (ow) fxOn(ow, { casi: 1, mk: o.kind }); say('GOLPEÓ EL CLON', null, '#ff4060'); } dropObj(cl); } return; }
       const tg = X.tg; if (tg && A.gz <= 0 && X.bd < 240) { A.gz = rnd(p2 ? 5 : 7, p2 ? 6 : 9); A.sl = .6; o.lunge = 1; hit(tg, T.dmg, 20); const c_ = addObj('clon', tg.x + 40, tg.y, 4); A.own = A.own || {}; A.own[c_.id] = tg.id; say('¡DEJÓ UN CLON!', 'Rómpanlo antes de que llegue', '#b080ff'); return; }
+      if (A.tr > 0) { o.moving = false; if (A.tr < .35 && !A.trh) { A.trh = 1; shake = .7; SND.shot(); addObj('grieta', o.x, o.y, 0); fx('onda', o.x, o.y - 30, { w: 420, T: .5, grow: .6 }); live.forEach(p => { if (near2(p, o, 230)) { hit(p, Math.round(T.dmg * 1.4), 120); fxOn(p, { slow: 3 }); } }); } return; }
+      if (rep && tg && A.gt2 <= 0 && X.bd < 260) { A.gt2 = rnd(p2 ? 6 : 8, p2 ? 8 : 11); A.tr = .85; A.trh = 0; say('¡GOLPE DE TIERRA!', 'Alejate de él', '#b080ff'); return; }
       if (rep && tg) { if (X.bd < T.reach + 30) { if (o.cd <= 0) { o.cd = T.cd * .7; o.lunge = 1; hit(tg, Math.round(T.dmg * 1.2), 30); } o.moving = false; } else goTo(o, tg, T.sp * 1.3, dt); return; }
       return X.melee(); },
     mvp_rosa(o, dt, live, X) { const { A, T, hit } = X; A.cv = (A.cv == null ? 4 : A.cv) - dt; A.sz = (A.sz == null ? 7 : A.sz) - dt; A.ds = (A.ds == null ? 9 : A.ds) - dt; A.skT = Math.max(0, (A.skT || 0) - dt); if (!A.skT) o.sk = 'rosa_mvp'; const tg = X.tg; if (!tg) return;
@@ -1536,18 +1547,19 @@
     mvp_gordo(o, dt, live, X) { return trioAI(o, dt, live, X, { stun: 1.6, k: 'frz' }); },
     mvp_flaco(o, dt, live, X) { return trioAI(o, dt, live, X, { stun: .8 }); },
     mvp_enano(o, dt, live, X) { return trioAI(o, dt, live, X, { stun: 1.3 }); } };
-  function carbonAI(o, dt, live, X, mode) { const { A, T, hit } = X; o.sk = mode === 'linea' ? 'carbon_h' : 'carbon_m'; A.pc = (A.pc == null ? 3 : A.pc) - dt;
+  function carbonAI(o, dt, live, X, mode) { const { A, T, hit } = X; A.ak = Math.max(0, (A.ak || 0) - dt); o.sk = A.ak > 0 ? A.akk : mode === 'linea' ? 'carbon_h' : 'carbon_m'; A.pc = (A.pc == null ? 3 : A.pc) - dt;
     const now = Date.now(), sl = mvpEv && mvpEv.slowed || {}, vic = live.filter(p => (sl[p.id] || 0) > now).sort((a, b) => Math.hypot(a.x - o.x, a.y - o.y) - Math.hypot(b.x - o.x, b.y - o.y))[0];
     objsOf('pincho').forEach(q => { q.tt = (q.tt == null ? .9 : q.tt) - dt; if (q.tt <= 0) { live.forEach(p => { if (Math.hypot(p.x - q.x, (p.y - q.y) * 1.3) < 130) { hit(p, Math.round(T.dmg * .9), 0); fxOn(p, { slow: 3 }); if (mvpEv) { mvpEv.slowed = mvpEv.slowed || {}; mvpEv.slowed[p.id] = Date.now() + 3000; } } }); dropObj(q); } });
     const tg = vic || X.tg; if (!tg) return; const eu = !!vic;
-    if (A.pc <= 0) { A.pc = rnd(2.6, 3.6); o.lunge = 1; if (mode === 'linea') [-.08, 0, .08].forEach(s_ => fireMob(o, tg, 'pincho', s_)); else live.forEach(p => { const q = randomNear(p.x, p.y, 90) || [p.x, p.y]; addObj('pincho', q[0], q[1], 0); }); }
-    const bd = Math.hypot(tg.x - o.x, tg.y - o.y); if (bd < T.reach + 30) { if (o.cd <= 0) { o.cd = T.cd * (eu ? .6 : 1); o.lunge = 1; hit(tg, Math.round(T.dmg * (eu ? 1.8 : 1)), 30); if (eu) floats.push({ x: o.x, y: o.y - 250, t: .8, txt: '¡EUFÓRICO!', c: '#ffb070' }); } o.moving = false; }
+    if (A.pc <= 0) { A.pc = rnd(2.6, 3.6); o.lunge = 1; A.ak = .7; A.akk = mode === 'linea' ? 'carbonh_rocas' : 'carbonm_pisoton'; o.face = tg.x < o.x ? -1 : 1; if (mode === 'linea') [-.08, 0, .08].forEach(s_ => fireMob(o, tg, 'pincho', s_)); else live.forEach(p => { const q = randomNear(p.x, p.y, 90) || [p.x, p.y]; addObj('pincho', q[0], q[1], 0); }); }
+    const bd = Math.hypot(tg.x - o.x, tg.y - o.y); if (bd < T.reach + 30) { if (o.cd <= 0) { o.cd = T.cd * (eu ? .6 : 1); o.lunge = 1; if (eu) { A.ak = .7; A.akk = mode === 'linea' ? 'carbonh_piso' : 'carbonm_picada'; } hit(tg, Math.round(T.dmg * (eu ? 1.8 : 1)), 30); if (eu) floats.push({ x: o.x, y: o.y - 250, t: .8, txt: '¡EUFÓRICO!', c: '#ffb070' }); } o.moving = false; }
     else goTo(o, tg, T.sp * (eu ? 1.7 : 1), dt); }
-  function trioAI(o, dt, live, X, onHit) { const { A, T, hit } = X; o.sk = o.lunge > .3 ? o.kind.slice(4) + '_atk' : o.kind.slice(4);
+  function trioAI(o, dt, live, X, onHit) { const { A, T, hit } = X; A.ak = Math.max(0, (A.ak || 0) - dt); o.sk = A.ak > 0 ? o.kind.slice(4) + '_atk' : o.kind.slice(4);
     let tg = live.find(p => p.id === o.lastBy) || X.tg; if (!tg) return; const bd = Math.hypot(tg.x - o.x, tg.y - o.y);
-    if (bd < T.reach + 30) { if (o.cd <= 0) { o.cd = T.cd; o.lunge = 1; hit(tg, T.dmg, 20); fxOn(tg, onHit); } o.moving = false; } else goTo(o, tg, T.sp, dt); }
+    if (bd < T.reach + 30) { if (o.cd <= 0) { o.cd = T.cd; o.lunge = 1; A.ak = o.kind === 'mvp_enano' ? .25 : .6; hit(tg, T.dmg, 20); fxOn(tg, onHit); } o.moving = false; } else goTo(o, tg, T.sp, dt); }
   /* ===== activación de los MVPs finales, misiones y objetos del mapa ===== */
-  const mvpDone = mk => ((INV.mvpD || {})[mk] === dayN());
+  const pabloMvp = mk => !!(LIBS.pablo && LIBS.pablo.list.includes(mk)), PABLO_OTRA = 100;
+  const mvpPlayed = mk => ((INV.mvpD || {})[mk] === dayN()), mvpDone = mk => !pabloMvp(mk) && mvpPlayed(mk);
   const velasOk = () => { const V = INV.velas || {}; return V.d === dayN() && (V.m || []).includes('chino_der') && (V.m || []).includes('chino_mercado'); };
   function gateHint(mk) { const M = MVPS[mk]; if (mvpDone(mk)) return 'Ya lo venciste hoy. Volvé mañana.';
     if (M.gate === 'reto') return storyFin() ? 'Hablale: te va a retar.' : 'No te va a dar bola hasta que termines la historia.';
@@ -1705,21 +1717,34 @@
     hud(); quickBtns();
     /* ítem único: lo tira una sola vez el host. 10%: si sale, le toca a uno de los presentes al azar; si no, a nadie */
     if (mk === 'lilia') { if (!hasItem('joystick_lilia')) { addItem('joystick_lilia', 1); setTimeout(() => banner('¡OBJETO ÉPICO!', 'Te ganaste el Joystick de Lilia', 4200, '#ff5ac8'), 2600); } else setTimeout(() => toast('Ya tenés el Joystick de Lilia.'), 2600); }
-    else if (isHost) { const ids = [me.id].concat([...others.keys()]); if (Math.random() < (M.dropP || MVP_UNICO)) { const k = pickW(M.drops), to = ids[(Math.random() * ids.length) | 0];
-        const nick = to === me.id ? me.nick : (others.get(to) || {}).nick || 'alguien'; net('mvploot', { to, k, nick }); mvpLoot({ to, k, nick }); } else net('mvploot', { none: 1 }), mvpLoot({ none: 1 }); }
+    else if (isHost) { const ids = [me.id].concat([...others.keys()]); if (Math.random() < Math.min(.5, (M.dropP || MVP_UNICO) * 3)) { const k = pickW(M.drops), nk = id => id === me.id ? me.nick : (others.get(id) || {}).nick || 'alguien';
+        /* tiran todos el dado: gana el más alto; si empatan, vuelven a tirar solo los empatados */
+        let pool = ids.slice(), to = ids[0]; const rounds = []; for (let i = 0; i < 8; i++) { const r = pool.map(id => [id, 1 + ((Math.random() * 6) | 0)]); rounds.push(r.map(([id, v]) => [nk(id), v])); const mx = Math.max(...r.map(x => x[1])); pool = r.filter(x => x[1] === mx).map(x => x[0]); to = pool[0]; if (pool.length === 1) break; }
+        const nick = nk(to); net('mvploot', { to, k, nick, rounds }); mvpLoot({ to, k, nick, rounds }); } else net('mvploot', { none: 1 }), mvpLoot({ none: 1 }); }
     if (M.fus) { if (!hasItem(M.fus)) { addItem(M.fus, 1); setTimeout(() => banner('¡FUSIBLE!', ITEMS[M.fus].n + ' · para el tablero ORK', 3600, '#ffd860'), 4200); } else setTimeout(() => toast('Ya tenés el ' + ITEMS[M.fus].n + '.'), 4200); }
     if (M.pista) { INV.mvpPistas = INV.mvpPistas || []; if (!INV.mvpPistas.includes(M.pista)) INV.mvpPistas.push(M.pista); }
-    setTimeout(() => { toast('Ganaste: ' + got.join(' · ') + (M.pista ? ' · PISTA: "' + M.pista + '"' : '')); }, 1500);
+    setTimeout(() => { lootBox('BOTÍN', got.concat(M.pista ? ['PISTA: "' + M.pista + '"'] : []), 7500); }, 1500);
     if (M.pista) setTimeout(() => banner('PISTA', '"' + M.pista + '"', 4000, '#e8c070'), 7200);
     persist(); setTimeout(() => mvpBack(), 11000); }
-  const MVP_UNICO = .10;
-  function mvpLoot(p) { if (p.none) return setTimeout(() => toast('Esta vez no cayó ningún objeto único.'), 2600);
-    const it = ITEMS[p.k]; if (!it) return; if (p.to === me.id) { addItem(p.k); persist(); quickBtns(); SND.level(); buzz([80, 40, 160]); }
-    setTimeout(() => banner(p.to === me.id ? '¡OBJETO ÚNICO!' : 'OBJETO ÚNICO', (p.to === me.id ? 'Te tocó: ' : p.nick + ' se llevó: ') + it.n, 4200, '#ff3b5c'), 2600); }
+  const MVP_UNICO = .12;
+  /* cuadro especial para el botín: queda unos segundos para que se pueda leer */
+  function lootBox(title, lines, ms, col) { let b = document.getElementById('lootbox'); if (!b) { b = document.createElement('div'); b.id = 'lootbox'; b.style.cssText = 'position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:60;min-width:260px;max-width:86vw;padding:14px 18px;background:rgba(14,10,8,.92);border:2px solid #b8893a;border-radius:10px;box-shadow:0 0 0 2px #2a1c10,0 8px 30px rgba(0,0,0,.6);color:#f0e4cc;font:600 15px/1.35 system-ui,sans-serif;text-align:center;pointer-events:none;transition:opacity .4s'; document.body.appendChild(b); }
+    b.innerHTML = '<div style="font-size:18px;letter-spacing:.06em;margin-bottom:6px;color:' + (col || '#ffd860') + '">' + title + '</div>' + lines.map(l => '<div style="margin:3px 0">' + l + '</div>').join(''); b.style.opacity = '1'; b.hidden = false; clearTimeout(lootBox.t); lootBox.t = setTimeout(() => { b.style.opacity = '0'; setTimeout(() => b.hidden = true, 450); }, ms || 7000); }
+  /* los dados para el objeto legendario: se ven las tiradas de todos y los desempates */
+  function diceShow(rounds, done) { let b = document.getElementById('dicebox'); if (!b) { b = document.createElement('div'); b.id = 'dicebox'; b.style.cssText = 'position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:61;padding:16px 18px;background:rgba(14,10,8,.95);border:2px solid #b8893a;border-radius:12px;color:#f0e4cc;font:600 14px/1.3 system-ui,sans-serif;text-align:center;max-width:92vw'; document.body.appendChild(b); }
+    let ri = 0; b.hidden = false; const face = v => '<img src="/a/ui/dado' + v + '.png" style="width:54px;height:54px;display:block;margin:4px auto" alt="' + v + '">';
+    const step = () => { const r = rounds[ri]; if (!r) { setTimeout(() => { b.hidden = true; done && done(); }, 1800); return; }
+      const head = '<div style="font-size:17px;color:#ffd860;margin-bottom:8px">' + (ri ? '¡EMPATE! VUELVEN A TIRAR' : 'TIREN LOS DADOS') + '</div>', row = vals => '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">' + r.map((x, i) => '<div style="min-width:70px">' + face(vals[i]) + '<small>' + x[0] + '</small></div>').join('') + '</div>';
+      let n = 0; const spin = setInterval(() => { b.innerHTML = head + row(r.map(() => 1 + ((Math.random() * 6) | 0))); if (++n > 10) { clearInterval(spin); b.innerHTML = head + row(r.map(x => x[1])); SND.pick && SND.pick(); ri++; setTimeout(step, 1700); } }, 90); };
+    step(); }
+  function mvpLoot(p) { if (p.none) return setTimeout(() => lootBox('SIN OBJETO LEGENDARIO', ['Esta vez no cayó ninguno.'], 4500, '#c8b8a0'), 9300);
+    const it = ITEMS[p.k]; if (!it) return; const give = () => { if (p.to === me.id) { addItem(p.k); persist(); quickBtns(); SND.level(); buzz([80, 40, 160]); }
+      lootBox(p.to === me.id ? '¡OBJETO LEGENDARIO!' : 'OBJETO LEGENDARIO', [(p.to === me.id ? 'Te lo ganaste: ' : p.nick + ' se lo ganó: ') + '<b style="color:#ff6a7a">' + it.n + '</b>'], 8000, '#ff3b5c'); };
+    if (p.rounds && p.rounds.length) setTimeout(() => diceShow(p.rounds, give), 2600); else setTimeout(give, 2600); }
   function revive(id) { if (MAP.mvp) { if (!hasItem('suero') && !hasItem('kit')) return toast('Para revivir necesitás un maletín de curación total o un kit de curación.'); const k = hasItem('suero') ? 'suero' : 'kit'; INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; if (k === 'suero') sueroTaken(); }
     net('revive', { to: id, by: me.nick }); SND.level(); toast('Lo reviviste.'); persist(); quickBtns(); }
   /* al morir quedás limpio: sin veneno, fuego, lentitud, aturdimiento ni habilidades */
-  function cleanse(lostAb) { if (INV) INV.cont = 0; P.inmune = 0; P.contFin = 0; P.poison = 0; P.poisonK = 0; P.burn = 0; P.slow = 0; P.stunT = 0; P.goo = 0; P.regen = null; P.fast = 0; P.potion = 0; P.furia = 0; P.jefe = 0; P.smoke = 0; P.gorro = 0; P.ghost = 0; P.clone = null;
+  function cleanse(lostAb) { if (INV) INV.cont = 0; P.aturd = 0; P.polen = 0; P.spinT = 0; P.revT = 0; P.manipT = 0; P.elemT = 0; P.frT = 0; P.sombH = 0; P.osc10 = 0; P.inmune = 0; P.contFin = 0; P.poison = 0; P.poisonK = 0; P.burn = 0; P.slow = 0; P.stunT = 0; P.goo = 0; P.regen = null; P.fast = 0; P.potion = 0; P.furia = 0; P.jefe = 0; P.smoke = 0; P.gorro = 0; P.ghost = 0; P.clone = null;
     if (lostAb && INV && INV.ab && INV.ab.length) { const had = INV.ab.map(a => AB[a] ? AB[a].n : a).join(', '); INV.ab = []; try { abButtons(); } catch (e) {} setTimeout(() => toast('Perdiste tus habilidades: ' + had + '.'), 1200); } }
   function gotRevived(by) { if (!P.dead) return; if (P.downFin) { P.downFin = null; P.downT = 0; const ov = $('#ov-down'); if (ov) ov.hidden = true; } cleanse(false); P.dead = false; P.hp = Math.round(maxHp(lvlOf(P.xp)) * .5); P.inv = 3; $('#ov-dead').hidden = true; SND.level(); banner('TE REVIVIERON', by, 1800, '#9fe0b0'); hud(); sendPos(true); }
   function mvpDraw(c, W2S, zoom, t) { if (!MAP || !MAP.mvp) return;
@@ -1850,7 +1875,9 @@
     net('mdie', pl); onMobDie(pl); }
   /* jefes con animación de muerte: se juega en el lugar donde cayó y se apaga */
   const dying = [];
-  function onMobDie(p) { const T = MOB[p.kind]; if (!T) return; const dAn = !!(T.death && HD && HD.BIG && HD.BIG[T.death] && !p.cid); if (dAn) dying.push({ k: T.death, x: p.x, y: p.y, f: p.f || 1, t0: performance.now(), T }); if (p.cid) { toast('Cayó el clon de ' + (p.cn || 'alguien') + '.'); if (p.kb === me.id) claimClone(p.cid, p.cn); } const i = mobs.findIndex(o => o.id === p.id); if (i >= 0) mobs.splice(i, 1); SND.dissolve();
+  function onMobDie(p) { const T = MOB[p.kind]; if (!T) return; const dAn = !!(T.death && HD && HD.BIG && HD.BIG[T.death] && !p.cid); if (dAn) dying.push({ k: T.death, x: p.x, y: p.y, f: p.f || 1, t0: performance.now(), T });
+    /* Rosa, Rocío y Natsume no mueren: se desvanecen en su color y aparece la siguiente */
+    if (T.vanish && HD) { dying.push({ vanish: 1, sheet: T.sheet, x: p.x, y: p.y, f: p.f || 1, t0: performance.now(), T }); for (let i = 0; i < 40; i++) parts.push({ x: p.x + rnd(-50, 50), y: p.y - rnd(20, 220), vx: rnd(-60, 60), vy: rnd(-180, -40), life: rnd(.8, 1.6), s: rnd(3, 7), rgb: T.aura || '255,255,255' }); } if (p.cid) { toast('Cayó el clon de ' + (p.cn || 'alguien') + '.'); if (p.kb === me.id) claimClone(p.cid, p.cn); } const i = mobs.findIndex(o => o.id === p.id); if (i >= 0) mobs.splice(i, 1); SND.dissolve();
     const art = artOf(T, 0, false), g = art.getContext('2d').getImageData(0, 0, art.width, art.height).data;
     /* ceniza corta y liviana: pocas partículas (máx. 45), se apagan rápido */
     const st = Math.max(1, Math.round(art.width / 14)), pts = []; for (let y = 0; y < art.height; y += st) for (let x = 0; x < art.width; x += st) if (g[(y * art.width + x) * 4 + 3] >= 10) pts.push([x, y]);
@@ -2226,8 +2253,11 @@
       if (n.heal !== 'any' && me.faction !== n.heal) return hostil(n);
       if (n.brz && tryBrazalete(n)) return;
       if ((healCd[n.k] || 0) > Date.now()) return npcSay(n, 'Todavía no. Volvé en ' + Math.ceil((healCd[n.k] - Date.now()) / 1000) + ' segundos.');
-      if (P.hp >= maxHp(lv)) return toast('Estás entero. ' + n.nm + ' te deja ir.');
-      P.hp = maxHp(lv); healCd[n.k] = Date.now() + 90000; SND.level(); floats.push({ x: P.x, y: P.y - 200, t: 1.2, txt: 'vida completa', c: '#9fe0b0' }); hud(); persist(); } }
+      const sick = (INV && INV.cont > 0) || P.poison > 0 || P.burn > 0 || P.slow > 0 || P.stunT > 0 || P.goo > 0 || P.aturd > 0 || P.polen > 0 || P.spinT > 0 || P.revT > 0 || P.manipT > 0 || P.elemT > 0 || P.frT > 0 || P.sombH > 0;
+      if (P.hp >= maxHp(lv) && !sick) return toast('Estás entero. ' + n.nm + ' te deja ir.');
+      /* cura todo: vida, contagio y cualquier estado (fuego, veneno, congelado, aturdido…) */
+      P.hp = maxHp(lv); if (INV) INV.cont = 0; P.contFin = 0; P.poison = 0; P.poisonK = 0; P.burn = 0; P.slow = 0; P.stunT = 0; P.goo = 0; P.aturd = 0; P.polen = 0; P.spinT = 0; P.revT = 0; P.manipT = 0; P.elemT = 0; P.frT = 0; P.sombH = 0;
+      healCd[n.k] = Date.now() + 90000; SND.level(); floats.push({ x: P.x, y: P.y - 200, t: 1.2, txt: sick ? 'curado del todo' : 'vida completa', c: '#9fe0b0' }); hud(); persist(); } }
   /* ---------- controles ---------- */
   const keys = {}; let joy = { on: false, id: null, x0: 0, y0: 0, dx: 0, dy: 0 };
   addEventListener('keydown', e => { if (document.activeElement === $('#say-in')) return; keys[e.key.toLowerCase()] = true; if (e.key === ' ' || e.key.toLowerCase() === 'j') attack(); if (e.key === 'Enter' || e.key.toLowerCase() === 'k') pressA(); if (e.key === 'Escape') openMenu(); if (e.key.toLowerCase() === 'q') cycleWeapon(); if (e.key.toLowerCase() === 'h') quickUse('cura'); if (e.key.toLowerCase() === 'e') quickUse('esp'); if (e.key.toLowerCase() === 'x') goGhost(); });
@@ -2275,7 +2305,7 @@
   $('#btn-x').addEventListener('pointerdown', e => { e.preventDefault(); goGhost(); });
   /* tienda de Plaza de Mayo */
   const SHOP = [['kit', 100, 'Vida completa'], ['vendas', 3, 'Cura el 22% de tu vida (3 s)'], ['pilas', 2, 'Recargan la linterna'], ['lanza', 8, 'Llega lejos y atraviesa · 30 golpes'], ['kitsune', 10, 'Desaparecés 3 segundos · 2 usos'], ['ganzuas', 6, 'Abren un casillero · se gastan']];
-  let curShop = null; function openShop(n) { if (!n || !n.nm) n = npcsHere().find(x => x.act === 'shop' || x.shop); if (!n || P.dead) return; curShop = (n.shop ? n.shop.map(([k, p]) => [k, p, ITEMS[k].d]) : SHOP.slice()); [['venda_q', 6], ['antiveneno', 6], ['trampa', 12], ['fragmento', 45], ['balas', 6], ['cart_itaka', 9], ['cargador', 14], ['virotes', 8], ['molotov', 15], ['granada', 25], ['vendas_a', 8], ['mate', 8], ['alfajor', 6], ['cafe', 8], ['pancho', 10], ['empanada', 15], ['hamburguesa', 22], ['locro', 25], ['pizza', 40]].concat(n.k === 'rosa' ? [['jeringa', 30]] : []).concat(n.shop && n.shop.some(([k]) => ITEMS[k] && ITEMS[k].eq === 'arma' && WEAP[k] && WEAP[k].gun) ? [['metralleta', 110]] : []).forEach(([k, p]) => { if (!curShop.some(r => r[0] === k)) curShop.push([k, p, ITEMS[k].d]); });
+  let curShop = null, shopNpc = null; function openShop(n) { if (!n || !n.nm) n = npcsHere().find(x => x.act === 'shop' || x.shop); if (!n || P.dead) return; shopNpc = n; curShop = (n.shop ? n.shop.map(([k, p]) => [k, p, ITEMS[k].d]) : SHOP.slice()); [['venda_q', 6], ['antiveneno', 6], ['trampa', 12], ['fragmento', 45], ['balas', 6], ['cart_itaka', 9], ['cargador', 14], ['virotes', 8], ['molotov', 15], ['granada', 25], ['vendas_a', 8], ['mate', 8], ['alfajor', 6], ['cafe', 8], ['pancho', 10], ['empanada', 15], ['hamburguesa', 22], ['locro', 25], ['pizza', 40]].concat(n.k === 'rosa' ? [['jeringa', 30]] : []).concat(n.shop && n.shop.some(([k]) => ITEMS[k] && ITEMS[k].eq === 'arma' && WEAP[k] && WEAP[k].gun) ? [['metralleta', 110]] : []).forEach(([k, p]) => { if (!curShop.some(r => r[0] === k)) curShop.push([k, p, ITEMS[k].d]); });
     $('#ov-shop h2').textContent = n.nm; $('#ov-shop p i').textContent = '"' + n.line + '"'; paused = true; $('#ov-shop').hidden = false; renderShop(); }
   const SELL = { metralleta: 20, trampa: 5, antiveneno: 3, venda_q: 3, pagina: 4, cigarrillo: 3, credencial: 6, receptor: 8, ganzuas: 6, filtro: 5, fragmento: 15, pista: 3, manzana: 2, pilas: 1, tarjeta: 10, expediente: 10, fusible: 4, radio: 6, cartucho: 10, canister: 10, contenedor: 8, energia: 8, mascara: 8, b_contencion: 12, b_resonancia: 12, campera: 5, chaleco: 10, armadura: 18, linterna: 4, cuchillo: 3, bate: 4, barra: 3, lanza: 6, pistola: 8, katana: 10, escopeta: 14, lanzallamas: 18, pista_ork: 4, pista_reb: 4 };
   const disc = () => (INV.descT || 0) > Date.now() ? .7 : 1;
@@ -2289,14 +2319,21 @@
         const tx = document.createElement('div'); tx.innerHTML = '<b>' + ITEMS[k].n + '</b><small>tenés ' + INV.items[k] + '</small>'; r.appendChild(tx); const b = document.createElement('button'); b.className = 'btn'; b.textContent = 'VENDER ' + SELL[k] + ' $';
         b.onclick = () => { INV.items[k]--; if (!INV.items[k]) delete INV.items[k]; delete INV.dur[k]; INV.coins += SELL[k]; SND.pick(); renderShop(); hud(); quickBtns(); persist(); }; r.appendChild(b); box.appendChild(r); }); } }
   /* PvP: el intendente de cada campamento da 20 vendas + un arma de fuego + una cuerpo a cuerpo (cada 15 minutos) */
-  function openKit(n) { const wait = (INV.kitT || 0) - Date.now(); if (wait > 0) { toast(n.nm + ': "Ya te equipé. Volvé en ' + Math.ceil(wait / 60000) + ' minutos."'); return openShop(Object.assign({}, n, { shop: [['vendas', 3], ['kit', 60], ['lanzallamas', 90], ['pistola', 25], ['chaleco', 30]] })); }
+  /* el kit es solo para el que arranca o se quedó sin nada: sin armas y con menos de 3 partes de equipo */
+  function kitNeed() { const armas = ownedWeapons().filter(w => w !== 'palo').length; const eqs = new Set(); Object.entries(INV.eq || {}).forEach(([sl, k]) => { if (k && sl !== 'arma' && ITEMS[k]) eqs.add(k); });
+    Object.entries(INV.items || {}).forEach(([k, c]) => { if (c > 0 && ITEMS[k] && ITEMS[k].eq && ITEMS[k].eq !== 'arma') eqs.add(k); }); return armas === 0 && eqs.size < 3; }
+  function openKit(n) { if (!kitNeed()) { toast(n.nm + ': "Ya tenés con qué arrancar. Si querés algo más, mirá lo que vendo."'); return openShop(Object.assign({}, n, { shop: [['vendas', 3], ['kit', 60], ['lanzallamas', 90], ['pistola', 25], ['chaleco', 30]] })); }
+    const wait = (INV.kitT || 0) - Date.now(); if (wait > 0) { toast(n.nm + ': "Ya te equipé. Volvé en ' + Math.ceil(wait / 60000) + ' minutos."'); return openShop(Object.assign({}, n, { shop: [['vendas', 3], ['kit', 60], ['lanzallamas', 90], ['pistola', 25], ['chaleco', 30]] })); }
     let fire = null, melee = null; paused = true; $('#ov-shop').hidden = false; $('#ov-shop h2').textContent = n.nm; $('#ov-shop p i').textContent = '"' + n.line + '"'; $('#shop-c').textContent = '20 vendas + 2 armas';
     const box = $('#shop-l'); const draw = () => { box.innerHTML = ''; const row = (lab, list, cur, set) => { const d = document.createElement('div'); d.className = 'kitr'; d.innerHTML = '<small>' + lab + '</small>'; list.forEach(k => { const b = document.createElement('button'); b.className = 'btn' + (cur === k ? ' solid' : ''); b.textContent = ITEMS[k].n; b.onclick = () => { set(k); draw(); }; d.appendChild(b); }); box.appendChild(d); };
       row('ARMA DE FUEGO', ['pistola', 'escopeta', 'metralleta', 'lanzallamas'], fire, k => fire = k); row('CUERPO A CUERPO', ['katana', 'bate', 'cuchillo', 'lanza'], melee, k => melee = k);
       const go = document.createElement('button'); go.className = 'btn solid'; go.textContent = 'RECIBIR EL KIT'; go.disabled = !(fire && melee); go.style.marginTop = '10px';
       go.onclick = () => { addItem('vendas', 20); addItem(fire); addItem(melee); delete INV.dur[fire]; delete INV.dur[melee]; setWeapon(melee); INV.kitT = Date.now() + 15 * 60000; SND.level(); paused = false; $('#ov-shop').hidden = true; toast('Recibiste 20 vendas, ' + ITEMS[fire].n + ' y ' + ITEMS[melee].n + '.'); quickBtns(); hud(); persist(); }; box.appendChild(go); };
     draw(); }
-  $('#shop-b').onclick = openShop; $('#shop-close').onclick = () => { paused = false; $('#ov-shop').hidden = true; };
+  $('#shop-b').onclick = openShop; $('#shop-close').onclick = () => { paused = false; $('#ov-shop').hidden = true; const sn = shopNpc; shopNpc = null;
+    /* Gusti siempre pide sus caramelos; Jaqui, al lado, se ríe cómplice */
+    if (sn && sn.k === 'gusty') { const jq = npcsHere().find(x => x.k === 'jaqui'), L = [['gusty', 'No te olvides de comprarme unos caramelos cara de mono. Pediselo al próximo vendedor.', 'GUSTI']]; if (jq) L.push(['jaqui', 'Jijiji… (se ríe cómplice)', 'JAQUI']);
+      if (window.CZ_STORY && CZ_STORY.say && !EXP) CZ_STORY.say(L); else { toast('GUSTI: "' + L[0][1] + '"'); if (jq) setTimeout(() => toast('JAQUI se ríe cómplice.'), 1800); } } };
   const playerDmg = () => Math.round(Math.max(1, dmgOf(lvlOf(P.xp)) + (INV ? WEAP[curW()].dmg : 0) - (INV && eqHas('b_contencion') ? 1 : 0)) * (P.furia > 0 ? 2 : 1) * (P.jefe > 0 ? 1.6 : 1) * (P.bFuerza > 0 ? 1.25 : 1) * (P.bFz > 0 ? 1.6 : 1) * (eqHas('brz_bianca') || eqHas('brz_chita') ? 2 : 1) * (bendOn('bendD') ? 1.25 : 1) * (WEAP[curW()].gun ? 1 : 1 + gearSum('mdmg')) * (WEAP[curW()].mul || 1) * (1 + gearSum('dmg')) * (WEAP[curW()].gun ? 1 + gearSum('gdmg') : 1) * (gearSum('fauno') && P.running ? 2 : 1) * 10) / 10;
   function attack() { if (!P || P.dead || paused || P.cd > 0 || P.aturd > 0) return; const wk = curW(), W = WEAP[wk], EI = ITEMS[wk] || {}; if (W.gun && !gunReady(wk)) return; P.atk = .3; P.cd = W.cd * (INV.ab.includes('rapido') ? .7 : 1); P.wk = wk;
     if (P.gorro) { P.gorro = 0; P.ghost = 0; }
@@ -2616,14 +2653,19 @@
     ents.push({ y: P.y, draw: () => drawChar(P, look, me.nick, me.faction, true) });
     if (P.clone && P.clone.t > 0) ents.push({ y: P.clone.y, draw: () => { c.globalAlpha = .55; drawChar({ x: P.clone.x, y: P.clone.y, tx: P.clone.x, ty: P.clone.y, mv: false, walkT: P.walkT, atk: P.atk, dir: P.dir, iv: 0 }, look, '', me.faction, false); c.globalAlpha = 1; } });
     others.forEach(o => { if (o.look) ents.push({ y: o.y, draw: () => drawChar(o, o.look, o.nick, o.fac, false) }); });
-    for (let i = dying.length - 1; i >= 0; i--) { const d = dying[i], sp = HD.BIG[d.k], el = (performance.now() - d.t0) / 1000, tot = sp.dirs ? sp.n : sp.n * 4, hold = sp.hold || 0, fi = Math.floor(el * sp.fps);
+    for (let i = dying.length - 1; i >= 0; i--) { if (dying[i].vanish) { const d = dying[i], el = (performance.now() - d.t0) / 1000; if (el > 1.8) { dying.splice(i, 1); continue; }
+        ents.push({ y: d.y, draw: () => { const art = HD.sheet(d.sheet, 'd', 0, false); if (!art) return; const [sx, sy] = W2S(d.x, d.y), H = d.T.ph * PXS * zoom, hk = H * HD_K / 220 * (art.s || 1), k = el / 1.8, aw = art.width * hk * (1 - k * .3), ah = art.height * hk * (1 + k * .4), ay = (art.fy || 240) * hk * (1 + k * .4);
+          c.save(); c.translate(Math.round(sx), Math.round(sy - k * 40 * zoom)); if (d.f < 0) c.scale(-1, 1); c.globalAlpha = Math.max(0, 1 - k); c.drawImage(glowOf(art, d.T.aura), Math.round(-aw / 2), Math.round(-ay), Math.round(aw), Math.round(ah));
+          c.globalCompositeOperation = 'lighter'; c.globalAlpha = Math.max(0, .6 - k * .6); c.drawImage(art, Math.round(-aw / 2), Math.round(-ay), Math.round(aw), Math.round(ah)); c.restore(); } }); continue; }
+      const d = dying[i], sp = HD.BIG[d.k], el = (performance.now() - d.t0) / 1000, tot = sp.dirs ? sp.n : sp.n * 4, hold = sp.hold || 0, fi = Math.floor(el * sp.fps);
       if (fi >= tot + hold + 6) { dying.splice(i, 1); continue; }
-      ents.push({ y: d.y, draw: () => { const art = HD.frameAt(d.k, Math.min(tot - 1, fi)); if (!art) return; const [sx, sy] = W2S(d.x, d.y), H = d.T.ph * PXS * zoom, hk = H * HD_K / 220, aw = art.width * hk, ah = art.height * hk, ay = (art.fy || 240) * hk;
+      ents.push({ y: d.y, draw: () => { const art = HD.frameAt(d.k, Math.min(tot - 1, fi)); if (!art) return; const [sx, sy] = W2S(d.x, d.y), H = d.T.ph * PXS * zoom, hk = H * HD_K / 220 * (art.s || 1), aw = art.width * hk, ah = art.height * hk, ay = (art.fy || 240) * hk;
+        if (sp.spot) { const a_ = fi < tot ? Math.min(1, fi / 3) : Math.max(0, 1 - (fi - tot) / 6); c.save(); const g_ = c.createLinearGradient(sx, sy - ah * 1.6, sx, sy); g_.addColorStop(0, 'rgba(255,250,235,0)'); g_.addColorStop(1, 'rgba(255,248,230,' + (.32 * a_) + ')'); c.fillStyle = g_; c.beginPath(); c.moveTo(sx - aw * .12, sy - ah * 1.6); c.lineTo(sx + aw * .12, sy - ah * 1.6); c.lineTo(sx + aw * .42, sy); c.lineTo(sx - aw * .42, sy); c.closePath(); c.fill(); c.fillStyle = 'rgba(255,250,235,' + (.25 * a_) + ')'; c.beginPath(); c.ellipse(sx, sy, aw * .42, aw * .1, 0, 0, 7); c.fill(); c.restore(); }
         c.save(); c.translate(Math.round(sx), Math.round(sy)); if (d.f < 0) c.scale(-1, 1); c.globalAlpha = fi >= tot + hold ? Math.max(0, 1 - (fi - tot - hold) / 6) : 1; c.drawImage(glowOf(art, d.T.aura), Math.round(-aw / 2), Math.round(-ay), Math.round(aw), Math.round(ah)); c.restore(); c.globalAlpha = 1; } }); }
     if (gotFull) mobs.forEach(o => ents.push({ y: o.y, draw: () => { const st_ = o.stoneF || (o.A && (o.A.stone || o.A.inv)); if (st_) c.filter = 'grayscale(1) brightness(.8)'; drawMob(o); if (st_) c.filter = 'none'; } }));
     pickups.forEach(q => ents.push({ y: q.y - 30, draw: () => drawPickup(q) }));
     npcsHere().forEach(n => ents.push({ y: n.y * WS + (n.oy || 0), draw: () => drawNpc(n) }));
-    if (yuki) ents.push({ y: yuki.y, draw: () => { const [sx, sy] = W2S(yuki.x, yuki.y), S = 6.4 * zoom; const sp = HD && HD.sheet('yuki', Math.sin(yuki.t * 2) > 0 ? 'l' : 'r', (yuki.t * 6 | 0) % 3, false); shadow(sx, sy, 18); if (sp) blitChar(c, sp, sx, sy, S, HD_K * .36);
+    if (yuki) ents.push({ y: yuki.y, draw: () => { const [sx, sy] = W2S(yuki.x, yuki.y), S = 6.4 * zoom; const sp = HD && HD.sheet('yuki', Math.sin(yuki.t * 2) > 0 ? 'l' : 'r', (yuki.t * 6 | 0) % 3, false); shadow(sx, sy, 18); if (sp) blitChar(c, sp, sx, sy, S, HD_K * .55);
       c.font = Math.round(12 * Math.max(.85, zoom)) + 'px TechMono, monospace'; c.textAlign = 'center'; c.fillStyle = '#e8c070'; c.fillText('YUKI', sx, sy - 120 * zoom); } });
     ptraps.forEach(tp => { if (tp.m !== mapKey) return; const [tx, ty] = W2S(tp.x, tp.y); if (tx < -60 || tx > VW + 60 || ty < -60 || ty > VH + 60) return;
       if (tp.fac === me.faction) { const im = img('/a/it/peligro.png'), w = 44 * zoom; c.globalAlpha = .9; if (ok(im)) c.drawImage(im, tx - w / 2, ty - w * .8, w, w); c.globalAlpha = 1; c.strokeStyle = 'rgba(255,170,80,.7)'; c.lineWidth = 2; c.beginPath(); c.ellipse(tx, ty, 34 * zoom, 11 * zoom, 0, 0, 7); c.stroke(); }
@@ -2687,11 +2729,11 @@
       const mwp = walkPose(o.wph, o.wmv > 0 && !(o.lunge > 0)), frame = mwp.fr, mbob = T.fly ? 0 : mwp.bob * zoom * Math.max(.6, Math.min(1.4, (T.ph || 26) / 26));
       const TT = o.sk ? (o.Tsk && o.Tsk.sheet === o.sk ? o.Tsk : (o.Tsk = Object.assign({}, T, { sheet: o.sk }))) : T, f4 = Math.floor(o.t * 7) % 4;
       /* hojas grandes con su propia animación: arranca en el cuadro 0 cada vez que cambia la acción */
-      if (!o._pre && HD && HD.BIG && T.sheet && HD.BIG[T.sheet]) { o._pre = 1; const pf = T.sheet.split('_')[0] + '_'; Object.keys(HD.BIG).forEach(k => { if (k.startsWith(pf)) HD.load('/a/pj/' + k + '.png'); }); }
-      const SP = o.sk && HD && HD.BIG && HD.BIG[o.sk]; if (o.sk !== o._skp) { o._skp = o.sk; o._sk0 = o.t; }
-      const fi = SP && SP.fps ? (SP.once ? Math.min(SP.n - 1, Math.floor((o.t - o._sk0) * SP.fps)) : Math.floor((o.t - o._sk0) * SP.fps) % SP.n) : 0;
+      if (!o._pre && HD && HD.BIG && T.sheet) { o._pre = 1; const pf = [HD.resolve(T.sheet), T.death || ''].filter(Boolean).map(k => k.split('_')[0] + '_'); Object.keys(HD.BIG).forEach(k => { if (pf.some(f => k.startsWith(f))) HD.load('/a/pj/' + HD.fileOf(k) + '.png'); }); }
+      const SP = o.sk && HD && HD.BIG && (HD.BIG[o.sk] || HD.BIG[HD.resolve(o.sk)]); if (o.sk !== o._skp) { o._skp = o.sk; o._sk0 = o.t; }
+      let fi = SP && SP.fps ? (SP.once ? Math.min(SP.n - 1, Math.floor((o.t - o._sk0) * SP.fps)) : Math.floor((o.t - o._sk0) * SP.fps) % SP.n) : 0; if (SP && SP.rev) fi = SP.n - 1 - fi;
       const art = (SP && SP.fps ? artOf(TT, fi, o.hurt > 0, !!SP.side, false) : null) || (o.sk ? artOf(TT, f4 % 3, o.hurt > 0, false, f4 === 3) : artOf(T, frame, o.hurt > 0, o.wmv > 0, o.lunge > 0 || o.st === 'aim')), S = PXS * zoom, W = T.pw * S, H = T.ph * S;
-      const hk = H * HD_K / 220, AX = art.hd ? art.width * hk : W, AY = art.hd ? (art.fy || 240) * hk : H, AW = art.hd ? AX : W, AH = art.hd ? art.height * hk : H; // HD: pies en fy (240 en las celdas de 256)
+      const hk = H * HD_K / 220 * ((art && art.s) || 1), AX = art.hd ? art.width * hk : W, AY = art.hd ? (art.fy || 240) * hk : H, AW = art.hd ? AX : W, AH = art.hd ? art.height * hk : H; // HD: pies en fy (240 en las celdas de 256)
       let lx = 0, jx = 0; if (o.lunge > 0) lx = o.face * 26 * o.lunge * zoom; if (o.wind > 0 || o.st === 'aim') jx = Math.sin(t * 60) * 2 * zoom;
       shadow(sx, sy, Math.max(22, T.pw * 1.6));
       c.save(); c.translate(Math.round(sx + lx + jx), Math.round(sy + mbob)); if (o.face < 0) c.scale(-1, 1);
@@ -2753,7 +2795,7 @@
     fxDraw(c, W2S, zoom);
     shots.forEach(b => { if (b.fire || b.drawn) return; const [x, y] = W2S(b.x, b.y); const [x2, y2] = W2S(b.x - b.vx * .03, b.y - b.vy * .03); c.strokeStyle = b.venom ? '#a050ff' : b.tear ? '#bfefff' : b.moco ? '#7fe060' : b.bolt ? '#d8c8a0' : b.knife ? '#e8ecf0' : 'rgba(255,230,160,.9)'; if (b.tear || b.moco || b.venom) { c.fillStyle = c.strokeStyle; c.beginPath(); c.arc(x, y, 9 * zoom, 0, 7); c.fill(); } c.lineWidth = 3 * zoom; c.beginPath(); c.moveTo(x2, y2); c.lineTo(x, y); c.stroke(); });
     // partículas
-    parts.forEach(p => { const [x, y] = W2S(p.x, p.y); const v = p.c || 30; c.fillStyle = p.fire ? 'rgba(255,' + (120 + (Math.random() * 100 | 0)) + ',40,' + Math.min(1, p.life * 2) + ')' : 'rgba(' + v + ',' + v + ',' + (v + 2) + ',' + Math.min(1, p.life) * .85 + ')'; c.fillRect(x, y, p.s * zoom, p.s * zoom); });
+    parts.forEach(p => { const [x, y] = W2S(p.x, p.y); const v = p.c || 30; c.fillStyle = p.rgb ? 'rgba(' + p.rgb + ',' + Math.min(1, p.life) + ')' : p.fire ? 'rgba(255,' + (120 + (Math.random() * 100 | 0)) + ',40,' + Math.min(1, p.life * 2) + ')' : 'rgba(' + v + ',' + v + ',' + (v + 2) + ',' + Math.min(1, p.life) * .85 + ')'; c.fillRect(x, y, p.s * zoom, p.s * zoom); });
     // oscuridad
     const dw = dark.width, dh = dark.height; dg.globalCompositeOperation = 'source-over'; dg.clearRect(0, 0, dw, dh); dg.fillStyle = 'rgba(4,4,8,' + Math.min(.9, (MAP.dark || .5) * ((MAP.dark || .5) >= .42 && !INV.eq.luz ? 1.75 : 1)) + ')'; dg.fillRect(0, 0, dw, dh);
     dg.globalCompositeOperation = 'destination-out';

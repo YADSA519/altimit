@@ -29,32 +29,107 @@
     joker_base: { w: 320, h: 320, fy: 300, n: 4 },
     joker_cartas: { w: 320, h: 320, fy: 300, n: 4, fps: 5, once: 1 },
     joker_cintas: { w: 320, h: 320, fy: 300, n: 4, fps: 6, once: 1, side: 1 },
-    joker_muerte: { w: 320, h: 320, fy: 300, n: 4, fps: 3.5, dirs: 1, hold: 14 },
     /* Rocío (MVP) */
     rocio_base: { w: 524, h: 315, fy: 294, n: 4 },
     rocio_barrido: { w: 524, h: 315, fy: 294, n: 4, fps: 3.2, once: 1, side: 1 },
     rocio_tormenta: { w: 524, h: 315, fy: 294, n: 4, fps: 4, once: 1 },
+    /* actualización 25/11: jefes rehechos (s = escala para que midan como el resto) */
+    slaverep_base: { w: 326, h: 314, fy: 294, n: 4, s: 0.773 },
+    slaverep_garra: { w: 326, h: 314, fy: 294, n: 4, s: 0.776, fps: 0.776, once: 1, side: 1 },
+    slaverep_tierra: { w: 326, h: 314, fy: 294, n: 4, s: 0.776, fps: 0.776, once: 1 },
+    slaverep_muerte: { w: 326, h: 314, fy: 294, n: 4, s: 0.776, fps: 0.776, dirs: 0.776, hold: 14 },
+    bruja_base: { w: 326, h: 333, fy: 288, n: 4, s: 0.95 },
+    bruja_zarpazo: { w: 326, h: 333, fy: 288, n: 4, s: 0.95, fps: 6, once: 1, side: 1 },
+    bruja_aliento: { w: 326, h: 333, fy: 288, n: 4, s: 0.95, fps: 6, once: 1, side: 1 },
+    bruja_drenaje: { w: 326, h: 333, fy: 288, n: 4, s: 0.95, fps: 4, once: 1 },
+    bruja_muerte: { w: 326, h: 333, fy: 288, n: 4, s: 0.95, fps: 5, hold: 10 },
+    muerte_f1: { w: 398, h: 277, fy: 255, n: 4, s: 0.943 },
+    muerte_guadana: { w: 398, h: 277, fy: 255, n: 4, s: 0.951, fps: 0.951, once: 1, side: 1 },
+    muerte_espectros: { w: 398, h: 277, fy: 255, n: 4, s: 0.951, fps: 0.951, once: 1, aura: "120,170,255" },
+    muerte_f2b: { w: 398, h: 277, fy: 255, n: 4, s: 0.951 },
+    muerte_rosas: { w: 398, h: 277, fy: 255, n: 4, s: 0.931, fps: 0.931, once: 1, aura: "120,170,255" },
+    muerte_muerte: { w: 328, h: 253, fy: 240, n: 4, s: 0.935, fps: 0.935, hold: 6 },
+    dama_base: { w: 222, h: 228, fy: 216, n: 8, s: 1.044, atkc: 6 },
+    dama_energia: { w: 506, h: 262, fy: 251, n: 4, s: 0.951, fps: 0.951, once: 1, aura: "120,170,255" },
+    dama_espiritus: { w: 506, h: 262, fy: 251, n: 4, s: 0.964, fps: 0.964, once: 1, aura: "120,170,255" },
+    dama_cuello: { w: 506, h: 262, fy: 251, n: 4, s: 1.162, fps: 1.162, once: 1, side: 1 },
+    dama_carmesi: { w: 506, h: 262, fy: 251, n: 4, s: 0.968, fps: 0.968, once: 1 },
+    dama_transformacion: { w: 458, h: 262, fy: 243, n: 5, s: 0.968, fps: 0.968, once: 1 },
+    dama_cabeza: { w: 458, h: 262, fy: 243, n: 5, s: 1.044, fps: 7 },
+    dama_muerte: { w: 458, h: 262, fy: 243, n: 5, s: 0.982, fps: 0.982, dirs: 0.982, hold: 12 },
+    mosca_real2: { w: 334, h: 317, fy: 273, n: 4, s: 0.843 },
+    mosca_estallido: { w: 334, h: 317, fy: 273, n: 4, s: 0.888, fps: 0.888, once: 1 },
+    mosca_transf: { w: 334, h: 317, fy: 273, n: 4, s: 0.85, fps: 0.85, once: 1 },
+    mosca_enjambre: { w: 334, h: 317, fy: 273, n: 4, s: 0.843, fps: 8 },
+    mosca_fuego: { w: 334, h: 317, fy: 273, n: 4, s: 0.843, fps: 7, once: 1 },
+    mosca_muerte: { w: 280, h: 274, fy: 255, n: 4, s: 0.951, fps: 0.951, dirs: 0.951, hold: 8 },
+    carbonh_base: { w: 326, h: 311, fy: 287, n: 4, s: 0.776 },
+    carbonh_piso: { w: 326, h: 311, fy: 287, n: 4, s: 0.805, fps: 0.805, once: 1, aura: "190,90,255" },
+    carbonh_rocas: { w: 588, h: 296, fy: 283, n: 4, s: 0.821, fps: 0.821, once: 1, side: 1, aura: "190,90,255" },
+    carbonh_muerte: { w: 262, h: 338, fy: 314, n: 5, s: 0.843, fps: 0.843, dirs: 0.843, hold: 14 },
+    carbonm_base: { w: 372, h: 306, fy: 291, n: 4, s: 0.779 },
+    carbonm_pisoton: { w: 366, h: 318, fy: 296, n: 4, s: 0.779, fps: 0.779, once: 1, aura: "190,90,255" },
+    carbonm_picada: { w: 358, h: 329, fy: 298, n: 4, s: 0.793, fps: 0.793, once: 1, aura: "190,90,255" },
+    carbonm_muerte: { w: 342, h: 312, fy: 296, n: 4, s: 0.752, fps: 0.752, dirs: 0.752, hold: 14 },
+    gemelo_base: { w: 396, h: 309, fy: 295, n: 4, s: 0.76 },
+    gemelo_giro: { w: 416, h: 333, fy: 296, n: 4, s: 0.796, fps: 0.796, once: 1 },
+    gemelo_roca: { w: 632, h: 341, fy: 314, n: 4, s: 0.814, fps: 0.814, once: 1, side: 1 },
+    gemelo_muerte: { w: 312, h: 296, fy: 283, n: 4, s: 0.802, fps: 0.802, dirs: 0.802, hold: 14 },
+    gemela_base: { w: 378, h: 296, fy: 285, n: 4, s: 0.785 },
+    gemela_patada: { w: 402, h: 294, fy: 277, n: 4, s: 0.821, fps: 0.821, once: 1, side: 1 },
+    gemela_fuego: { w: 432, h: 328, fy: 313, n: 4, s: 0.821, fps: 0.821, once: 1, side: 1 },
+    gemela_muerte: { w: 328, h: 298, fy: 286, n: 4, s: 0.802, fps: 0.802, dirs: 0.802, hold: 14 },
+    gordo_poder: { w: 346, h: 285, fy: 275, n: 4, s: 0.846, fps: 0.846, once: 1 },
+    gordo_muerte: { w: 306, h: 296, fy: 283, n: 4, s: 0.843, fps: 0.843, dirs: 0.843, hold: 12 },
+    flaco_base: { w: 318, h: 293, fy: 281, n: 4, s: 0.802 },
+    flaco_poder: { w: 304, h: 300, fy: 287, n: 4, s: 0.799, fps: 0.799, once: 1 },
+    flaco_muerte: { w: 306, h: 323, fy: 298, n: 4, s: 0.788, fps: 0.788, dirs: 0.788, hold: 12 },
+    enano_muerte: { w: 304, h: 315, fy: 291, n: 4, s: 0.765, fps: 0.765, dirs: 0.765, hold: 12 },
+    baston_muerte: { w: 300, h: 315, fy: 300, n: 4, s: 0.776, fps: 0.776, dirs: 0.776, hold: 10 },
+    tiempo_muerte: { w: 282, h: 306, fy: 295, n: 4, s: 0.776, fps: 0.776, dirs: 0.776, hold: 10 },
+    virtuoso_muerte: { w: 224, h: 297, fy: 285, n: 4, s: 0.79, fps: 0.79, dirs: 0.79, hold: 10 },
+    reina_lanza: { w: 560, h: 267, fy: 257, n: 4, s: 0.87, fps: 0.87, once: 1, side: 1 },
+    reina_espada: { w: 528, h: 267, fy: 257, n: 4, s: 0.87, fps: 0.87, once: 1, side: 1 },
+    reina_escudo: { w: 416, h: 267, fy: 257, n: 4, s: 0.87, fps: 0.87, once: 1, side: 1, aura: "150,120,255" },
+    reina_mazo: { w: 512, h: 267, fy: 257, n: 4, s: 0.87, fps: 0.87, once: 1, side: 1, aura: "190,90,255" },
+    reina_muerte: { w: 234, h: 311, fy: 301, n: 4, s: 0.754, fps: 0.754, dirs: 0.754, hold: 10 },
+    joker_muerte: { w: 312, h: 322, fy: 306, n: 4, s: 0.84, fps: 4.5, hold: 8, spot: 1 },
+    maxi_base: { w: 338, h: 259, fy: 246, n: 4, s: 0.973 },
+    ignacio_base: { w: 308, h: 257, fy: 241, n: 4, s: 0.939 },
+    azu_base: { w: 332, h: 301, fy: 289, n: 4, s: 0.793 },
+    mosca_armado: { w: 334, h: 317, fy: 273, n: 4, s: 0.843, fps: 5, once: 1, rev: 1 },
+    reina_piedra: { w: 512, h: 267, fy: 257, n: 4, s: 0.87, side: 1, aura: "190,90,255" },
     /* El Come Sueños */
     cs_base: { w: 326, h: 328, fy: 308, n: 4 },
-    cs_rugido: { w: 326, h: 328, fy: 308, n: 4, fps: 2.6, once: 1, aura: '170,90,255' },
-    cs_mordida: { w: 326, h: 328, fy: 308, n: 4, fps: 5, once: 1, side: 1, aura: '120,140,255' },
-    cs_muerte: { w: 326, h: 328, fy: 308, n: 4, fps: 3.5, dirs: 1, hold: 14 }
+    cs_rugido: { w: 326, h: 328, fy: 308, n: 4, fps: 0.817, once: 1, aura: '170,90,255' },
+    cs_mordida: { w: 326, h: 328, fy: 308, n: 4, fps: 0.821, once: 1, side: 1, aura: '120,140,255' },
+    cs_muerte: { w: 326, h: 328, fy: 308, n: 4, fps: 0.785, dirs: 0.785, hold: 14 }
   };
-  const specOf = src => { const m = typeof src === 'string' && src.match(/\/([\w]+)\.png$/); return m ? BIG[m[1]] : null; };
+  const ALIAS = { slave_rep: 'slaverep_base', slave_garra: 'slaverep_garra', mvp_bruja: 'bruja_base', mvp_bruja_poder: 'bruja_drenaje', mvp_bruja_salto: 'bruja_zarpazo',
+    muerte: 'muerte_f1', muerte_f2: 'muerte_f2b', mvp_dama: 'dama_base', mvp_dama_azul: 'dama_base', mvp_dama_roja: 'dama_cabeza', mvp_dama_humo: 'dama_cuello',
+    mosca: 'mosca_enjambre', mosca_real: 'mosca_real2', carbon_h: 'carbonh_base', carbon_m: 'carbonm_base', gemelo: 'gemelo_base', gemelo_atk: 'gemelo_base',
+    gemela: 'gemela_base', gemela_atk: 'gemela_base', gordo_atk: 'gordo_poder', flaco: 'flaco_base', flaco_atk: 'flaco_poder',
+    reina_nigro: 'reina_piedra', reina_hielo: 'reina_lanza', reina_fuego: 'reina_espada', reina_rayo: 'reina_escudo', reina_sombra: 'reina_mazo',
+    maxi2: 'maxi_base', ignacio2: 'ignacio_base', azu: 'azu_base' };
+  const FILE = { mosca_armado: 'mosca_transf', reina_piedra: 'reina_mazo' };
+  const fileOf = n => FILE[n] || n;
+  const resolve = n => ALIAS[n] || n;
+  const nameOf = src => { const m = typeof src === 'string' && src.match(/\/([\w]+)\.png$/); return m ? m[1] : null; };
+  const specOf = src => { const n = nameOf(src); return n ? BIG[resolve(n)] : null; };
   function cut(src, dir, col, id, row) {
     const k = (id || src) + '|' + dir + col + (row != null ? '#' + row : ''); if (cuts.has(k)) return cuts.get(k);
-    const im = typeof src === 'string' ? load(src) : src; if (!im) return null;
+    const nm = nameOf(src), im = typeof src === 'string' ? load(nm ? '/a/pj/' + fileOf(resolve(nm)) + '.png' : src) : src; if (!im) return null;
     const sp = specOf(src), cw = sp ? sp.w : CELL, ch = sp ? sp.h : CELL;
     const cv = document.createElement('canvas'); cv.width = cw; cv.height = ch; const g = cv.getContext('2d');
     const own = dir === 'r' && (im.naturalHeight || im.height) >= ch * 4; /* hojas de 4 filas: la derecha viene dibujada */
     if (row == null && dir === 'r' && !own) { g.translate(cw, 0); g.scale(-1, 1); }
     const r = row != null ? row : (own ? 3 : ROW[dir]);
-    g.drawImage(im, col * cw, r * ch, cw, ch, 0, 0, cw, ch); cv.hd = true; if (sp) cv.fy = sp.fy; cuts.set(k, cv); return cv;
+    g.drawImage(im, col * cw, r * ch, cw, ch, 0, 0, cw, ch); cv.hd = true; if (sp) { cv.fy = sp.fy; cv.s = sp.s || 1; } cuts.set(k, cv); return cv;
   }
   /* un cuadro suelto por número (para animaciones en secuencia, como la muerte: se leen de izquierda a derecha y de arriba a abajo) */
-  const frameAt = (name, i) => { const sp = BIG[name], n = sp ? sp.n : 4; return cut('/a/pj/' + name + '.png', 'd', i % n, null, Math.floor(i / n)); };
+  const frameAt = (name, i) => { const sp = BIG[resolve(name)], n = sp ? sp.n : 4; return cut('/a/pj/' + name + '.png', 'd', i % n, null, Math.floor(i / n)); };
   /* un sobreviviente que ya no existe (se sacaron los modelos mal cortados) → vuelve al dibujo pixel */
-  const sheet = (name, dir, frame, atk) => (/^sel\d/.test(name) && !SEL.includes(name)) ? null : cut('/a/pj/' + name + '.png', dir || 'd', atk ? 3 : (frame || 0));
+  const sheet = (name, dir, frame, atk) => (/^sel\d/.test(name) && !SEL.includes(name)) ? null : cut('/a/pj/' + name + '.png', dir || 'd', atk ? ((BIG[resolve(name)] || {}).atkc || 3) : (frame || 0));
   /* personaje base teñible: base_h / base_m. El PNG _reg guarda en R la parte (1 pelo · 2 piel · 3 ropa · 4 pantalón · 5 calzado; 0 = fija)
      y en G la luz relativa (128 = el tono medio), así se cambia el color sin perder sombras ni detalles. */
   const hex = h => { const n = parseInt(h.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
@@ -72,7 +147,7 @@
   const MODELS = { h: ['base_h1', 'base_h2'], m: ['base_m1', 'base_m2'] };
   const base = (fem, model, colors, dir, frame, atk) => { const l = MODELS[fem ? 'm' : 'h'], s = tinted(l[model] || l[0], colors); return s ? cut(s, dir || 'd', atk ? 3 : (frame || 0), s.key) : null; };
   /* dibuja una celda HD con los pies en (x, y); h = alto que debe ocupar el personaje en pantalla */
-  function blit(ctx, cv, x, y, h) { const k = h / 220, w = cv.width * k, hh = cv.height * k; ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(cv, Math.round(x - w / 2), Math.round(y - (cv.fy || 240) * k), Math.round(w), Math.round(hh)); }
+  function blit(ctx, cv, x, y, h) { const k = h / 220 * (cv.s || 1), w = cv.width * k, hh = cv.height * k; ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(cv, Math.round(x - w / 2), Math.round(y - (cv.fy || 240) * k), Math.round(w), Math.round(hh)); }
   /* precarga lo que se usa siempre */
   ['base_h1', 'base_h2', 'base_m1', 'base_m2'].flatMap(b => [b, b + '_reg']).concat(Object.values(NPC_SHEET), Object.values(MOB_SHEET)).forEach(n => load('/a/pj/' + n + '.png'));
   const SEL = ["sel01", "sel02", "sel03", "sel04", "sel05", "sel07", "sel08", "sel09", "sel11", "sel12", "sel13", "sel14", "sel15", "sel16", "sel17", "sel18", "sel20", "sel21", "sel22", "sel23", "sel24", "sel25", "sel26", "sel27", "sel29", "sel31", "sel34", "sel35"];
@@ -106,5 +181,5 @@
     if (r.cu) { lk.cu = r.cu; delete lk.pj; delete lk.model; ['cs', 'ch', 'ct', 'cp'].forEach(k => { if (lk[k] == null) lk[k] = 0; }); }
     else { lk.pj = r.k; delete lk.cu; delete lk.model; }
     if (r.cls != null) lk.cls = r.cls; ['skin', 'hair', 'hcol', 'top', 'acc', 'pant'].forEach(k => delete lk[k]); return lk; }
-  window.CZ_SHEETS = { BIG, frameAt, ROSTER, roster, rosterIdx, pickPj, inRoster, CU, CPAL, custom, cuColors, SEL, CELL, MODELS, ALL, NPC_SHEET, MOB_SHEET, sheet, base, blit, load };
+  window.CZ_SHEETS = { BIG, frameAt, resolve, fileOf, ROSTER, roster, rosterIdx, pickPj, inRoster, CU, CPAL, custom, cuColors, SEL, CELL, MODELS, ALL, NPC_SHEET, MOB_SHEET, sheet, base, blit, load };
 })();
