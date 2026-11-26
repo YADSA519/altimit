@@ -67,7 +67,7 @@ body.cine #st-dlg{display:block}
     if (!spr || !spr.hd) return '/a/it/aviso.png';
     const cv = document.createElement('canvas'); cv.width = 160; cv.height = 200; const g = cv.getContext('2d');
     const gr = g.createLinearGradient(0, 0, 0, 200); gr.addColorStop(0, '#3a3836'); gr.addColorStop(1, '#141312'); g.fillStyle = gr; g.fillRect(0, 0, 160, 200);
-    g.imageSmoothingEnabled = true; g.drawImage(spr, 58, 14, 140, 175, -20, -6, 200, 250);
+    g.imageSmoothingEnabled = true; const k_ = 1 / (spr.s || 1), fy_ = spr.fy || 240; g.drawImage(spr, spr.width / 2 - 70 * k_, fy_ - 226 * k_, 140 * k_, 175 * k_, -20, -6, 200, 250); /* hojas nuevas más grandes: el busto se recorta igual */
     g.fillStyle = 'rgba(0,0,0,.25)'; for (let y = 0; y < 200; y += 3) g.fillRect(0, y, 160, 1);
     try { const u = cv.toDataURL('image/jpeg', .85); if (k !== 'VOS') busts[k] = u; return u; } catch (e) { return '/a/it/aviso.png'; }
   }
