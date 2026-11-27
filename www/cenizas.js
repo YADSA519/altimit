@@ -2736,7 +2736,7 @@
       if (!o._pre && HD && HD.BIG && T.sheet) { o._pre = 1; const pf = [HD.resolve(T.sheet), T.death || ''].filter(Boolean).map(k => k.split('_')[0] + '_'); Object.keys(HD.BIG).forEach(k => { if (pf.some(f => k.startsWith(f))) HD.load('/a/pj/' + HD.fileOf(k) + '.png'); }); }
       const SP = o.sk && HD && HD.BIG && (HD.BIG[o.sk] || HD.BIG[HD.resolve(o.sk)]); if (o.sk !== o._skp) { o._skp = o.sk; o._sk0 = o.t; }
       let fi = SP && SP.fps ? (SP.once ? Math.min(SP.n - 1, Math.floor((o.t - o._sk0) * SP.fps)) : Math.floor((o.t - o._sk0) * SP.fps) % SP.n) : 0; if (SP && SP.rev) fi = SP.n - 1 - fi;
-      const art = (SP && SP.fps ? artOf(TT, fi, o.hurt > 0, !!SP.side, false) : null) || (o.sk ? artOf(TT, f4 % 3, o.hurt > 0, false, f4 === 3) : artOf(T, frame, o.hurt > 0, o.wmv > 0, o.lunge > 0 || o.st === 'aim')), S = PXS * zoom, W = T.pw * S, H = T.ph * S;
+      const art = (SP && SP.fps ? artOf(TT, fi, o.hurt > 0, !!SP.side || (!SP.once && o.wmv > 0), false) : null) || artOf(TT, frame, o.hurt > 0, o.wmv > 0, o.lunge > 0 || o.st === 'aim') /* con o.sk también: de costado al caminar y ataque al pegar (antes quedaba siempre de frente, como cangrejo) */, S = PXS * zoom, W = T.pw * S, H = T.ph * S;
       const hk = H * HD_K / 220 * ((art && art.s) || 1), AX = art.hd ? art.width * hk : W, AY = art.hd ? (art.fy || 240) * hk : H, AW = art.hd ? AX : W, AH = art.hd ? art.height * hk : H; // HD: pies en fy (240 en las celdas de 256)
       let lx = 0, jx = 0; if (o.lunge > 0) lx = o.face * 26 * o.lunge * zoom; if (o.wind > 0 || o.st === 'aim') jx = Math.sin(t * 60) * 2 * zoom;
       shadow(sx, sy, Math.max(22, T.pw * 1.6));
