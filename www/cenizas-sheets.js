@@ -20,11 +20,11 @@
     corredor_zarpazo: { w: 388, h: 289, fy: 274, n: 4, fps: 11, once: 1, side: 1 },
     corredor_muerte: { w: 388, h: 289, fy: 274, n: 4, fps: 9 },
     /* Demonio del Palo: aura = brillo propio de la acción (violeta para que los poderes oscuros no se pierdan); dirs = la hoja trae una fila por dirección */
-    demonio_base: { w: 326, h: 314, fy: 289, n: 4 },
-    demonio_clones: { w: 326, h: 314, fy: 289, n: 4, fps: 5, once: 1, aura: '190,90,255' },
-    demonio_especial_1: { w: 326, h: 314, fy: 289, n: 4, fps: 4, once: 1 },
-    demonio_especial_2: { w: 326, h: 314, fy: 289, n: 4, fps: 4.5, once: 1, side: 1, aura: '190,90,255' },
-    demonio_muerte: { w: 326, h: 314, fy: 289, n: 4, fps: 3.5, dirs: 1, hold: 14 },
+    demonio_base: { w: 326, h: 314, fy: 289, n: 4, lr: 1 },
+    demonio_clones: { w: 326, h: 314, fy: 289, n: 4, fps: 5, once: 1, aura: '190,90,255', lr: 1 },
+    demonio_especial_1: { w: 326, h: 314, fy: 289, n: 4, fps: 4, once: 1, lr: 1 },
+    demonio_especial_2: { w: 326, h: 314, fy: 289, n: 4, fps: 4.5, once: 1, side: 1, aura: '190,90,255', lr: 1 },
+    demonio_muerte: { w: 326, h: 314, fy: 289, n: 4, fps: 3.5, dirs: 1, hold: 14, lr: 1 },
     /* La Joker */
     joker_base: { w: 320, h: 320, fy: 300, n: 4 },
     joker_cartas: { w: 320, h: 320, fy: 300, n: 4, fps: 5, once: 1 },
@@ -38,25 +38,25 @@
     slaverep_garra: { w: 326, h: 314, fy: 294, n: 4, s: 0.776, fps: 7, once: 1, side: 1 },
     slaverep_tierra: { w: 326, h: 314, fy: 294, n: 4, s: 0.776, fps: 5, once: 1 },
     slaverep_muerte: { w: 326, h: 314, fy: 294, n: 4, s: 0.776, fps: 3.5, dirs: 1, hold: 14 },
-    bruja_base: { w: 326, h: 333, fy: 288, n: 4, s: 0.95 },
-    bruja_zarpazo: { w: 326, h: 333, fy: 288, n: 4, s: 0.95, fps: 6, once: 1, side: 1 },
-    bruja_aliento: { w: 326, h: 333, fy: 288, n: 4, s: 0.95, fps: 6, once: 1, side: 1 },
-    bruja_drenaje: { w: 326, h: 333, fy: 288, n: 4, s: 0.95, fps: 4, once: 1 },
-    bruja_muerte: { w: 326, h: 333, fy: 288, n: 4, s: 0.95, fps: 5, hold: 10 },
+    bruja_base: { w: 326, h: 333, fy: 288, n: 4, s: 0.95, lr: 1 },
+    bruja_zarpazo: { w: 326, h: 333, fy: 288, n: 4, s: 0.95, fps: 6, once: 1, side: 1, lr: 1 },
+    bruja_aliento: { w: 326, h: 333, fy: 288, n: 4, s: 0.95, fps: 6, once: 1, side: 1, lr: 1 },
+    bruja_drenaje: { w: 326, h: 333, fy: 288, n: 4, s: 0.95, fps: 4, once: 1, lr: 1 },
+    bruja_muerte: { w: 326, h: 333, fy: 288, n: 4, s: 0.95, fps: 5, hold: 10, lr: 1 },
     muerte_f1: { w: 398, h: 277, fy: 255, n: 4, s: 0.943 },
     muerte_guadana: { w: 398, h: 277, fy: 255, n: 4, s: 0.951, fps: 7, once: 1, side: 1 },
     muerte_espectros: { w: 398, h: 277, fy: 255, n: 4, s: 0.951, fps: 5, once: 1, aura: "120,170,255" },
     muerte_f2b: { w: 398, h: 277, fy: 255, n: 4, s: 0.951 },
     muerte_rosas: { w: 398, h: 277, fy: 255, n: 4, s: 0.931, fps: 5, once: 1, aura: "120,170,255" },
     muerte_muerte: { w: 328, h: 253, fy: 240, n: 4, s: 0.935, fps: 5, hold: 6 },
-    dama_base: { w: 222, h: 228, fy: 216, n: 8, s: 1.044, atkc: 6 },
-    dama_energia: { w: 506, h: 262, fy: 251, n: 4, s: 0.951, fps: 5, once: 1, aura: "120,170,255" },
-    dama_espiritus: { w: 506, h: 262, fy: 251, n: 4, s: 0.964, fps: 5, once: 1, aura: "120,170,255" },
-    dama_cuello: { w: 506, h: 262, fy: 251, n: 4, s: 1.162, fps: 1.162, once: 1, side: 1 },
-    dama_carmesi: { w: 506, h: 262, fy: 251, n: 4, s: 0.968, fps: 5, once: 1 },
-    dama_transformacion: { w: 458, h: 262, fy: 243, n: 5, s: 0.968, fps: 5, once: 1 },
-    dama_cabeza: { w: 458, h: 262, fy: 243, n: 5, s: 1.044, fps: 7 },
-    dama_muerte: { w: 458, h: 262, fy: 243, n: 5, s: 0.982, fps: 3.5, dirs: 1, hold: 12 },
+    dama_base: { w: 222, h: 228, fy: 216, n: 8, s: 1.044, atkc: 6, lr: 1 },
+    dama_energia: { w: 506, h: 262, fy: 251, n: 4, s: 0.951, fps: 5, once: 1, aura: "120,170,255", lr: 1 },
+    dama_espiritus: { w: 506, h: 262, fy: 251, n: 4, s: 0.964, fps: 5, once: 1, aura: "120,170,255", lr: 1 },
+    dama_cuello: { w: 506, h: 262, fy: 251, n: 4, s: 1.162, fps: 7, once: 1, side: 1, lr: 1 },
+    dama_carmesi: { w: 506, h: 262, fy: 251, n: 4, s: 0.968, fps: 5, once: 1, lr: 1 },
+    dama_transformacion: { w: 458, h: 262, fy: 243, n: 5, s: 0.968, fps: 5, once: 1, lr: 1 },
+    dama_cabeza: { w: 458, h: 262, fy: 243, n: 5, s: 1.044, fps: 7, lr: 1 },
+    dama_muerte: { w: 458, h: 262, fy: 243, n: 5, s: 0.982, fps: 3.5, dirs: 1, hold: 12, lr: 1 },
     mosca_real2: { w: 334, h: 317, fy: 273, n: 4, s: 0.843 },
     mosca_estallido: { w: 334, h: 317, fy: 273, n: 4, s: 0.888, fps: 5, once: 1 },
     mosca_transf: { w: 334, h: 317, fy: 273, n: 4, s: 0.85, fps: 5, once: 1 },
@@ -125,7 +125,7 @@
     const cv = document.createElement('canvas'); cv.width = cw; cv.height = ch; const g = cv.getContext('2d');
     const own = dir === 'r' && (im.naturalHeight || im.height) >= ch * 4; /* hojas de 4 filas: la derecha viene dibujada */
     if (row == null && dir === 'r' && !own) { g.translate(cw, 0); g.scale(-1, 1); }
-    const r = row != null ? row : (own ? 3 : ROW[dir]);
+    const r0 = row != null ? row : (own ? 3 : ROW[dir]), r = sp && sp.lr && row == null && r0 >= 2 ? 5 - r0 : r0; /* lr: hojas que vinieron con izquierda y derecha cambiadas */
     g.drawImage(im, col * cw, r * ch, cw, ch, 0, 0, cw, ch); cv.hd = true; if (sp) { cv.fy = sp.fy; cv.s = (sp.s || 1) * ((sp.rs && sp.rs[r]) || 1); } cuts.set(k, cv); return cv;
   }
   /* un cuadro suelto por número (para animaciones en secuencia, como la muerte: se leen de izquierda a derecha y de arriba a abajo) */

@@ -97,3 +97,8 @@ body:has(.ov:not([hidden])) #st-dlg{visibility:hidden}
 #ov-map .mapbox{padding-bottom:4px!important}
 #ov-map .mapley{margin:4px 0 0;font-size:11px;text-align:left;padding-right:120px}
 #ov-map #map-close{position:absolute;right:4px;bottom:-4px;min-width:0;padding:7px 16px 5px;font-size:15px}
+/* tienda: cada fila mide lo que necesita (sin encimarse), descripción en 3 líneas y la caja entra entera */
+.gbox.shop{box-sizing:border-box;max-height:calc(100dvh - 56px)!important;display:flex!important;flex-direction:column}
+#shop-l{grid-auto-rows:max-content!important;align-items:start;overflow-y:auto!important;min-height:0;flex:1 1 auto}
+.shop .shopr{align-self:start;min-height:56px;height:auto!important}
+.shop .shopr small{display:-webkit-box!important;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
